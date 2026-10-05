@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>All Necessary Topics Related to AI Engineering</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b0f17;
+  --bg-card: #111827;
+  --bg-card-2: #0f172a;
+  --grid: rgba(148, 163, 184, 0.06);
+  --border: #1f2937;
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-faint: #64748b;
+  --accent: #22d3ee;
+  --accent-2: #a78bfa;
+  --accent-3: #34d399;
+  --accent-warn: #fbbf24;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  --sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+body {
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.shell { max-width: 980px; margin: 0 auto; padding: 32px 24px 96px; }
+.hero { padding: 56px 0 32px; border-bottom: 1px solid var(--border); margin-bottom: 40px; }
+.hero .eyebrow {
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 16px;
+}
+.hero h1 {
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 800; margin: 0 0 16px;
+  letter-spacing: -0.02em; line-height: 1.05;
+}
+.hero h1 .gradient {
+  background: linear-gradient(120deg, var(--accent) 0%, var(--accent-2) 100%);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+}
+.hero .lede { font-size: 17px; color: var(--text-dim); max-width: 720px; margin: 0; }
+.cards { display: grid; gap: 20px; }
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px 28px;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.card h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  font-weight: 700;
+}
+.card .topics {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--accent-3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.card p { color: var(--text-dim); margin: 0 0 16px; }
+.card ul {
+  margin: 0 0 18px;
+  padding-left: 20px;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+.card ul li { margin: 2px 0; }
+.card a.btn {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bg);
+  background: var(--accent);
+  padding: 8px 18px;
+  border-radius: 8px;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+}
+.card a.btn:hover { background: #67e8f9; }
+.card .meta {
+  display: flex; gap: 16px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-bottom: 16px;
+  letter-spacing: 0.04em;
+}
+.about {
+  margin-top: 56px;
+  padding: 24px 28px;
+  background: var(--bg-card-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.about h3 {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 700;
+}
+.about p { color: var(--text-dim); margin: 0 0 8px; font-size: 14px; }
+footer {
+  margin-top: 64px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  color: var(--text-faint);
+  font-size: 12px;
+  font-family: var(--mono);
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<header class="hero">
+  <div class="eyebrow">Reference Guides · AI Engineering</div>
+  <h1>All Necessary Topics Related to <span class="gradient">AI Engineering</span></h1>
+  <p class="lede">Three single-file HTML references covering the fundamentals every applied AI engineer needs: <strong>how LLMs work</strong>, <strong>how to talk to them</strong>, and <strong>how to manage what they remember</strong>. Each guide is dual-voice — a technical version (with diagrams, code, and cited papers) and a layman's version (plain English with analogies) at the bottom of every topic.</p>
+</header>
+
+<div class="cards">
+
+  <div class="card">
+    <div class="topics">10 topics · ~30 min read</div>
+    <h2>LLM Fundamentals</h2>
+    <p>How modern language models actually work, cost, and behave — from an engineer's lens.</p>
+    <ul>
+      <li>Tokens, tokenization, context windows → cost</li>
+      <li>Model families (Claude, GPT, Gemini, Llama, Mistral, Qwen, DeepSeek)</li>
+      <li>Closed vs open-weight, when each wins</li>
+      <li>Sampling (temperature, top_p, top_k, penalties)</li>
+      <li>Streaming, structured outputs, function calling</li>
+      <li>Multimodal inputs, embeddings + rerankers</li>
+      <li>Reasoning models &amp; extended thinking</li>
+    </ul>
+    <a class="btn" href="llm-fundamentals.html">Open guide →</a>
+  </div>
+
+  <div class="card">
+    <div class="topics">8 topics · ~35 min read</div>
+    <h2>Prompt Engineering</h2>
+    <p>The eight techniques every prompt engineer reaches for — message design, few-shot, reasoning, structuring, templating, versioning, output handling, and adversarial defense.</p>
+    <ul>
+      <li>System vs User vs Assistant messages</li>
+      <li>Few-shot examples, role prompting &amp; personas</li>
+      <li>Chain-of-thought, ReAct, reflection</li>
+      <li>XML / Markdown structuring</li>
+      <li>Templating &amp; variable injection</li>
+      <li>Prompt versioning (prompts as code)</li>
+      <li>Output parsers &amp; graceful failure</li>
+      <li>Prompt injection defense</li>
+    </ul>
+    <a class="btn" href="prompt-engineering.html">Open guide →</a>
+  </div>
+
+  <div class="card">
+    <div class="topics">7 topics · ~30 min read</div>
+    <h2>Context Engineering</h2>
+    <p>How to fit an infinite task into a finite window — budgeting, summarization, caching, hierarchical memory, compression, tool truncation, and the "lost in the middle" failure mode.</p>
+    <ul>
+      <li>Context window budgeting</li>
+      <li>Conversation summarization &amp; rolling memory</li>
+      <li>Prompt caching strategies (Anthropic / OpenAI / Gemini)</li>
+      <li>Hierarchical memory (working / short-term / long-term / episodic)</li>
+      <li>Context compression &amp; pruning (LLMLingua)</li>
+      <li>Tool result truncation</li>
+      <li>Lost in the Middle &amp; mitigation</li>
+    </ul>
+    <a class="btn" href="context-engineering.html">Open guide →</a>
+  </div>
+
+</div>
+
+<div class="about">
+  <h3>About these guides</h3>
+  <p>Each guide is a <strong>single self-contained HTML file</strong> — no build step, no dependencies, no internet required. Open directly in any modern browser. All citations resolve to arXiv papers and primary vendor documentation; each ID was fetched and verified against the publisher's metadata.</p>
+  <p>The "layman's version" panels at the bottom of every section use simple analogies so non-engineers (PMs, designers, curious developers) can follow along. Engineers get diagrams, comparison tables, and runnable snippets at the same source.</p>
+</div>
+
+<footer>
+  Open any guide directly in your browser · cited primary sources throughout
+</footer>
+
+</div>
+</body>
+</html>
