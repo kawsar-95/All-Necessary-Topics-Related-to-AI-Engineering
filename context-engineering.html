@@ -6,7 +6,7 @@
 <title>Context Engineering — An Engineer's Reference</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #0b0f17;
@@ -21,6 +21,7 @@
   --accent: #22d3ee;
   --accent-2: #a78bfa;
   --accent-3: #34d399;
+  --bn: 'Noto Sans Bengali','Inter',system-ui,sans-serif;
   --accent-warn: #fbbf24;
   --accent-danger: #fb7185;
   --accent-pink: #f472b6;
@@ -385,6 +386,70 @@ tr:hover td { background: rgba(255,255,255,0.015); }
 }
 .layman .analogy::before { content: "🍳 "; }
 
+/* BANGLA PANEL */
+.bangla {
+  background: linear-gradient(180deg, rgba(52, 211, 153, 0.06), rgba(52, 211, 153, 0.02));
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  border-radius: 12px;
+  padding: 18px 22px;
+  margin: 14px 0 8px;
+  font-family: var(--bn);
+}
+.bangla-head {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 10px;
+}
+.bangla-head .icon {
+  font-size: 18px;
+  width: 32px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(52, 211, 153, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.bangla-head .label {
+  font-family: var(--bn);
+  font-size: 15px;
+  color: var(--accent-3);
+  font-weight: 700;
+}
+.bangla-head .label small {
+  display: block;
+  color: var(--text-faint);
+  font-size: 12px;
+  margin-top: 2px;
+  font-weight: 400;
+}
+.bangla p {
+  margin: 0 0 12px;
+  font-size: 15.5px;
+  color: var(--text);
+  line-height: 1.9;
+  font-family: var(--bn);
+}
+.bangla p:last-child { margin-bottom: 0; }
+.bangla strong { color: #6ee7b7; }
+.bangla code {
+  background: rgba(52, 211, 153, 0.08);
+  border-color: rgba(52, 211, 153, 0.25);
+  color: #6ee7b7;
+}
+.bangla ul { margin: 0 0 12px; padding-left: 22px; font-size: 15.5px; line-height: 1.9; font-family: var(--bn); }
+.bangla li { margin-bottom: 4px; }
+.bangla .analogy {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(52, 211, 153, 0.06);
+  border-left: 3px solid var(--accent-3);
+  border-radius: 0 8px 8px 0;
+  font-size: 14.5px;
+  line-height: 1.9;
+  color: var(--text-dim);
+  font-family: var(--bn);
+}
+.bangla .analogy::before { content: "💡 "; }
+
 /* SOURCES */
 .sources { margin-top: 80px; padding-top: 32px; border-top: 1px solid var(--border); }
 .sources h2 { font-size: 22px; margin-bottom: 16px; }
@@ -402,6 +467,86 @@ footer {
   color: var(--text-faint);
   font-size: 12px;
 }
+
+/* DESIGN POLISH */
+html { scroll-behavior: smooth; }
+section[id] { scroll-margin-top: 150px; }
+@media (max-width: 720px) { section[id] { scroll-margin-top: 16px; } }
+.shell { padding-left: clamp(16px, 4vw, 32px); padding-right: clamp(16px, 4vw, 32px); }
+.section-head { display: flex; align-items: center; gap: 14px; }
+.section-head h2 { margin: 0; line-height: 1.25; }
+.section-num { flex-shrink: 0; }
+.diagram { box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 8px 24px rgba(0,0,0,0.25); }
+.diagram-caption { line-height: 1.55; text-align: left; }
+.diagram-caption-bn {
+  margin-top: 6px;
+  font-family: var(--bn);
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--accent-3);
+  font-style: normal;
+  padding-left: 10px;
+  border-left: 2px solid rgba(52, 211, 153, 0.45);
+}
+.diagram-caption-bn::before { content: "বাংলা: "; font-weight: 600; }
+table { box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+tbody tr:nth-child(even) td { background: rgba(148, 163, 184, 0.035); }
+tbody tr:hover td { background: rgba(34, 211, 238, 0.05); }
+th, td { text-align: left; vertical-align: top; }
+.toc a { transition: background .15s, color .15s; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.bangla, .layman { overflow-wrap: break-word; }
+.bangla p, .bangla li { text-align: left; }
+.bangla ul { padding-left: 22px; margin: 0 0 12px; }
+.bangla li { margin-bottom: 6px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* MOBILE FIXES: wide tables scroll inside themselves instead of widening the page */
+@media (max-width: 720px) {
+  table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
+  th, td { min-width: 110px; vertical-align: top; }
+  section, .two-col .panel, .layman, .bangla { min-width: 0; }
+  p code, li code, td code { overflow-wrap: anywhere; word-break: break-word; }
+  .two-col { grid-template-columns: minmax(0, 1fr); }
+  .toc { position: static; }
+}
+
+/* DIAGRAM VISIBILITY */
+.diagram { padding: 18px; cursor: zoom-in; border-color: var(--border-strong, #334155); }
+.diagram::after {
+  content: "🔍 Click to enlarge";
+  position: absolute; top: 8px; right: 12px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.04em;
+  color: var(--text-dim); background: rgba(11, 15, 23, 0.85);
+  border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px;
+  opacity: 0.85; pointer-events: none;
+}
+.diagram:hover::after, .diagram:focus-visible::after { opacity: 1; color: var(--accent); border-color: var(--accent); }
+.diagram:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.diagram svg rect[stroke]:not([stroke="none"]) { stroke-width: 1.5; }
+.diagram svg text { paint-order: stroke; stroke: rgba(15, 23, 42, 0.55); stroke-width: 0.4px; }
+.diagram-caption { font-size: 13px; color: var(--text-dim); }
+@media (max-width: 720px) {
+  .diagram { overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 12px; }
+  .diagram svg { min-width: 780px; }
+  .diagram::after { content: "↔ Swipe · tap to enlarge"; }
+}
+.dz-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(5, 8, 14, 0.985);
+  display: flex; flex-direction: column; align-items: center;
+  overflow: auto; padding: 56px 16px 32px;
+  cursor: zoom-out;
+}
+.dz-overlay .dz-inner { width: max(1200px, 96vw); max-width: 2200px; flex-shrink: 0; }
+.dz-overlay svg { display: block; width: 100%; height: auto; background: var(--bg-card-2, #0f172a); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+.dz-overlay .diagram-caption { max-width: 1100px; margin-left: auto; margin-right: auto; font-size: 14px; }
+.dz-close {
+  position: fixed; top: 12px; right: 16px; z-index: 1001;
+  font-family: var(--mono); font-size: 12px; color: var(--text);
+  background: var(--bg-card); border: 1px solid var(--border-strong, #334155);
+  border-radius: 8px; padding: 6px 12px; cursor: pointer;
+}
 </style>
 </head>
 <body>
@@ -410,7 +555,7 @@ footer {
 <header class="hero">
   <div class="eyebrow">Context Engineering · A Practitioner's Reference</div>
   <h1>How to fit an <span class="gradient">infinite task</span> into a <span class="gradient">finite window</span></h1>
-  <p class="lede">A dense, citation-backed reference for the seven techniques every production LLM system reaches for — context budgeting, summarization, caching, hierarchical memory, compression, tool-result truncation, and the "lost in the middle" failure mode. <strong style="color: var(--accent-warn);">Each section ships in two voices:</strong> the engineer's version (with diagrams and papers) and a layman's version (plain English with analogies) at the bottom of each topic.</p>
+  <p class="lede">A dense, citation-backed reference for the seven techniques every production LLM system reaches for — context budgeting, summarization, caching, hierarchical memory, compression, tool-result truncation, and the "lost in the middle" failure mode. <strong style="color: var(--accent-warn);">Each section ships in two voices:</strong> the engineer's version (with diagrams and papers) and a layman's version (plain English with analogies) at the bottom of each topic. <strong style="color: var(--accent-3);">প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।</strong></p>
   <div class="meta">
     <span><span class="dot"></span>7 topics · ~30 min read</span>
     <span>Built from primary papers &amp; vendor docs</span>
@@ -441,7 +586,7 @@ footer {
   <div class="diagram">
     <svg viewBox="0 0 1100 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Context window budget pie">
       <!-- Pie chart segments using paths -->
-      <text x="40" y="32" font-family="JetBrains Mono, monospace" font-size="13" fill="#64748b">budgeting a 200K-token window — illustrative allocations</text>
+      <text x="40" y="32" font-family="JetBrains Mono, monospace" font-size="13" fill="#a8b5c8">budgeting a 200K-token window — illustrative allocations</text>
 
       <g transform="translate(220, 170)">
         <!-- Segments via paths, going clockwise from 12 -->
@@ -456,39 +601,40 @@ footer {
         <!-- user/output 15% = 54 deg, pink -->
         <path d="M0 0 L-112.8 -42.4 A120 120 0 0 1 0 -120 Z" fill="#f472b6" fill-opacity="0.65" stroke="#f472b6"/>
 
-        <text x="60" y="-90" font-family="JetBrains Mono, monospace" font-size="11" fill="#0b0f17" font-weight="700">SYSTEM</text>
-        <text x="118" y="0" font-family="JetBrains Mono, monospace" font-size="11" fill="#0b0f17" font-weight="700">TOOLS</text>
-        <text x="0" y="90" font-family="JetBrains Mono, monospace" font-size="11" fill="#0b0f17" font-weight="700">RETRIEVAL</text>
-        <text x="-90" y="55" font-family="JetBrains Mono, monospace" font-size="11" fill="#0b0f17" font-weight="700">HISTORY</text>
-        <text x="-72" y="-30" font-family="JetBrains Mono, monospace" font-size="11" fill="#0b0f17" font-weight="700">USER+OUTPUT</text>
+        <text x="60" y="-90" font-family="JetBrains Mono, monospace" font-size="12" fill="#0b0f17" font-weight="700">SYSTEM</text>
+        <text x="118" y="0" font-family="JetBrains Mono, monospace" font-size="12" fill="#0b0f17" font-weight="700">TOOLS</text>
+        <text x="0" y="90" font-family="JetBrains Mono, monospace" font-size="12" fill="#0b0f17" font-weight="700">RETRIEVAL</text>
+        <text x="-90" y="55" font-family="JetBrains Mono, monospace" font-size="12" fill="#0b0f17" font-weight="700">HISTORY</text>
+        <text x="-72" y="-30" font-family="JetBrains Mono, monospace" font-size="12" fill="#0b0f17" font-weight="700">USER+OUTPUT</text>
       </g>
 
       <!-- Legend -->
       <g transform="translate(450, 80)" font-family="JetBrains Mono, monospace" font-size="12">
         <g><rect x="0" y="0" width="14" height="14" fill="#22d3ee" fill-opacity="0.65" stroke="#22d3ee"/>
            <text x="22" y="11" fill="#e2e8f0">SYSTEM — persona, rules, schema</text>
-           <text x="280" y="11" fill="#94a3b8">≈ 8% · 16K tokens</text></g>
+           <text x="280" y="11" fill="#cfd8e6">≈ 8% · 16K tokens</text></g>
         <g transform="translate(0,28)">
            <rect x="0" y="0" width="14" height="14" fill="#a78bfa" fill-opacity="0.65" stroke="#a78bfa"/>
            <text x="22" y="11" fill="#e2e8f0">TOOLS — schemas, definitions</text>
-           <text x="280" y="11" fill="#94a3b8">≈ 7% · 14K tokens</text></g>
+           <text x="280" y="11" fill="#cfd8e6">≈ 7% · 14K tokens</text></g>
         <g transform="translate(0,56)">
            <rect x="0" y="0" width="14" height="14" fill="#34d399" fill-opacity="0.65" stroke="#34d399"/>
            <text x="22" y="11" fill="#e2e8f0">RETRIEVAL — RAG chunks</text>
-           <text x="280" y="11" fill="#94a3b8">≈ 40% · 80K tokens</text></g>
+           <text x="280" y="11" fill="#cfd8e6">≈ 40% · 80K tokens</text></g>
         <g transform="translate(0,84)">
            <rect x="0" y="0" width="14" height="14" fill="#fbbf24" fill-opacity="0.65" stroke="#fbbf24"/>
            <text x="22" y="11" fill="#e2e8f0">HISTORY — prior turns</text>
-           <text x="280" y="11" fill="#94a3b8">≈ 30% · 60K tokens</text></g>
+           <text x="280" y="11" fill="#cfd8e6">≈ 30% · 60K tokens</text></g>
         <g transform="translate(0,112)">
            <rect x="0" y="0" width="14" height="14" fill="#f472b6" fill-opacity="0.65" stroke="#f472b6"/>
            <text x="22" y="11" fill="#e2e8f0">USER + OUTPUT — current turn</text>
-           <text x="280" y="11" fill="#94a3b8">≈ 15% · 30K tokens</text></g>
+           <text x="280" y="11" fill="#cfd8e6">≈ 15% · 30K tokens</text></g>
       </g>
 
-      <text x="40" y="288" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">retrieval usually dominates; reduce it first. system + tools are the floor.</text>
+      <text x="40" y="288" font-family="JetBrains Mono, monospace" font-size="12" fill="#a8b5c8">retrieval usually dominates; reduce it first. system + tools are the floor.</text>
     </svg>
     <div class="diagram-caption">A 200K-token window broken into system + tools + retrieval + history + current turn. Percentages are typical for an agentic RAG app, not universal.</div>
+    <div class="diagram-caption diagram-caption-bn">এই ডায়াগ্রামে একটি 200K-token context window-কে SYSTEM (≈8%), TOOLS (≈7%), RETRIEVAL (≈40%), HISTORY (≈30%) এবং USER+OUTPUT (≈15%) অংশে ভাগ করে দেখানো হয়েছে। প্রতিটি অংশের প্রস্থ তার token বাজেটের সমান; RETRIEVAL সবচেয়ে বড়, তাই আগে সেটাই কমানো উচিত।</div>
   </div>
 
   <h3>Allocation principles</h3>
@@ -532,6 +678,21 @@ footer {
     <p><strong>Production rule:</strong> the biggest slice of the budget usually goes to retrieved documents. If you're running over budget, shrink the retrieval first — not the system prompt. Retrieval bloat is the #1 silent cost in production AI apps.</p>
     <div class="analogy"><strong>The desk analogy:</strong> your AI's context window is a desk with a fixed surface area. Five piles compete for space: rules, tools, references, history, current task. The top of the desk is "in focus" and the middle of any pile gets fuzzy. Always put the must-read items at the very top of the most visible pile — don't bury them. When the desk is overflowing, the first thing to trim is the reference pile, not the rules.</div>
   </aside>
+
+  <aside class="bangla">
+    <div class="bangla-head"><span class="icon">🇧🇩</span><span class="label">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>
+    <p>একটি LLM একবারে যতটুকু লেখা পড়তে পারে, তার একটা নির্দিষ্ট সীমা আছে — এটাই <strong>context window</strong>। এই সীমার ভেতরেই system prompt, tool definitions, retrieved documents, আগের chat history, আর ইউজারের বর্তমান প্রশ্ন ও উত্তর — সবাইকে জায়গা ভাগ করে নিতে হয়। <strong>Context window budgeting</strong> মানে হলো কোন জিনিস কতটুকু জায়গা পাবে, তা আগে থেকে হিসাব করে ঠিক করা।</p>
+    <p>উদাহরণ হিসেবে ২০০K টোকেনের একটি window-তে সাধারণ ভাগ হতে পারে: system ≈ ৮%, tools ≈ ৭%, retrieval ≈ ৪০%, history ≈ ৩০%, current turn ≈ ১৫%। মনে রাখবেন, এটি agentic RAG অ্যাপের জন্য একটি সাধারণ উদাহরণ, সব ক্ষেত্রে এক নয়।</p>
+    <ul>
+      <li><strong>System prompt:</strong> কমপক্ষে ~১–২K টোকেন লাগে (persona, নিয়ম, schema)। বেশি বড় করলে খরচ বাড়ে এবং মডেলের মনোযোগ পাতলা হয়ে যায়।</li>
+      <li><strong>Tool definitions:</strong> ~১–৩K টোকেন। শুধু সেই tool-ই রাখুন যা এই ধাপে লাগতে পারে; বিশেষ tool দরকারের সময় load করুন।</li>
+      <li><strong>Retrieval:</strong> বাজেট = window − system − tools − current turn − reserved output। পরিমাণের চেয়ে মান বেশি গুরুত্বপূর্ণ।</li>
+      <li><strong>History:</strong> কঠোরভাবে ছোট রাখুন — summarization (§2) ব্যবহার করুন।</li>
+      <li><strong>Output reservation:</strong> উত্তরের জন্য টোকেন আগেই আলাদা করে রাখুন, নইলে উত্তর মাঝপথে কেটে গিয়ে নীরবে ব্যর্থ হয়।</li>
+    </ul>
+    <p>সবচেয়ে গুরুত্বপূর্ণ সতর্কতা হলো <strong>"Lost in the Middle"</strong> (Liu et al., 2023): মডেল লম্বা context-এর শুরু ও শেষের তথ্য ভালো মনে রাখে, কিন্তু মাঝখানের তথ্যে প্রায় random-এর কাছাকাছি ফল দেয়। তাই যা সবচেয়ে জরুরি, তা শুরুতে বা শেষে রাখুন। আর বাজেট ছাড়িয়ে গেলে আগে retrieval কমান — system prompt নয়, কারণ retrieval-ই সাধারণত সবচেয়ে বড় অংশ। (বিস্তারিত §7-এ।)</p>
+    <div class="analogy"><strong>দর্জির কাপড় কাটার উদাহরণ:</strong> ধরুন আপনার কাছে নির্দিষ্ট মাপের এক থান কাপড় আছে, আর তা দিয়েই শার্ট, প্যান্ট ও টুপি বানাতে হবে। কাটার আগে কোনটায় কতটা কাপড় যাবে তার হিসাব না করলে শেষের জিনিসটার জন্য কাপড় কম পড়ে যায়। তেমনি context window-র "কাপড়" আগে ভাগ করে নিন, শেষ উত্তরের জন্য একটু জায়গা রাখুন, আর কাপড় কম পড়লে সবচেয়ে বেশি দখল করা অংশটা (retrieval) থেকেই ছাঁটুন।</div>
+  </aside>
 </section>
 
 <section id="s2">
@@ -552,7 +713,7 @@ footer {
       <defs>
         <marker id="arr2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L6,4 L0,8 Z" fill="#94a3b8"/></marker>
       </defs>
-      <text x="40" y="32" font-family="JetBrains Mono, monospace" font-size="13" fill="#64748b">rolling-window summarization — oldest chunk is condensed, recent is kept verbatim</text>
+      <text x="40" y="32" font-family="JetBrains Mono, monospace" font-size="13" fill="#a8b5c8">rolling-window summarization — oldest chunk is condensed, recent is kept verbatim</text>
 
       <!-- Conversation timeline -->
       <rect x="40" y="60" width="1020" height="40" rx="6" fill="#0f172a" stroke="#334155"/>
@@ -577,13 +738,13 @@ footer {
 
       <!-- Arrow -->
       <line x1="600" y1="80" x2="660" y2="80" stroke="#94a3b8" marker-end="url(#arr2)"/>
-      <text x="610" y="68" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">summarise</text>
+      <text x="610" y="68" font-family="JetBrains Mono, monospace" font-size="12" fill="#a8b5c8">summarise</text>
 
       <!-- Output -->
       <rect x="680" y="60" width="380" height="40" rx="6" fill="#0f172a" stroke="#334155"/>
-      <text x="690" y="76" font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">summary block (200 tokens)</text>
+      <text x="690" y="76" font-family="JetBrains Mono, monospace" font-size="11" fill="#a8b5c8">summary block (200 tokens)</text>
       <rect x="690" y="80" width="180" height="14" rx="3" fill="#fb7185" fill-opacity="0.30"/>
-      <text x="700" y="91" font-family="JetBrains Mono, monospace" font-size="9" fill="#e2e8f0">T-7, T-6, T-5 condensed</text>
+      <text x="700" y="91" font-family="JetBrains Mono, monospace" font-size="10" fill="#e2e8f0">T-7, T-6, T-5 condensed</text>
 
       <!-- recent preserved -->
       <rect x="690" y="100" width="364" height="40" rx="6" fill="#0f172a" stroke="#334155"/>
@@ -600,11 +761,12 @@ footer {
         <text x="957" y="124" fill="#f472b6">T0</text>
       </g>
 
-      <text x="40" y="170" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">the summary block is written by the model itself, then injected as the earliest message(s)</text>
-      <text x="40" y="190" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">compression ratio typically 5–20×; information loss is the cost</text>
-      <text x="40" y="210" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">→ use a structured schema for summaries ("key facts / open questions / decisions")</text>
+      <text x="40" y="170" font-family="JetBrains Mono, monospace" font-size="12" fill="#a8b5c8">the summary block is written by the model itself, then injected as the earliest message(s)</text>
+      <text x="40" y="190" font-family="JetBrains Mono, monospace" font-size="12" fill="#a8b5c8">compression ratio typically 5–20×; information loss is the cost</text>
+      <text x="40" y="210" font-family="JetBrains Mono, monospace" font-size="12" fill="#a8b5c8">→ use a structured schema for summaries ("key facts / open questions / decisions")</text>
     </svg>
     <div class="diagram-caption">Rolling memory: oldest turns are condensed by the model into a summary block, recent turns stay verbatim. Sliding window plus summarization.</div>
+    <div class="diagram-caption diagram-caption-bn">এখানে rolling-window summarization দেখানো হয়েছে: সবচেয়ে পুরনো turn (T-7, T-6, T-5) মডেল নিজে একটি ছোট summary block-এ (200 tokens) সংকুচিত করে, আর T-4 থেকে T0 পর্যন্ত সাম্প্রতিক turn গুলো হুবহু থাকে। বাঁ থেকে ডানে পড়লে আগে ও পরের অবস্থা বোঝা যায়।</div>
   </div>
 
   <h3>What to keep in the summary</h3>
@@ -642,6 +804,20 @@ footer {
     <p><strong>The catch:</strong> summarization is lossy. Like compressing a photo — you save space, but you lose detail. Numbers drift. Exact quotes disappear. If something matters a lot, pull it out separately before you summarise and put it in a "key facts" slot. Don't trust a summary to be the source of truth.</p>
     <p><strong>The best production trick:</strong> hierarchical summarization. Keep a tight summary of the very oldest stuff, a mid-resolution summary of the middle, and the recent turns verbatim. Like an executive briefing: one page, then three pages, then the full transcript. The AI can ask for the right level of detail as needed.</p>
     <div class="analogy"><strong>The meeting-notes analogy:</strong> you can't keep every word of a 4-hour meeting on your desk, but you do need to know what was decided. A good meeting summary lists the decisions, action items, and key facts — not a transcript. Same with chat history: keep a "decisions + facts + questions" summary of old turns, and the recent turns verbatim. The AI gets the same comprehension for a fraction of the desk space.</div>
+  </aside>
+
+  <aside class="bangla">
+    <div class="bangla-head"><span class="icon">🇧🇩</span><span class="label">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>
+    <p>৫০ টার্নের একটা chat মানে ১ টার্নের চেয়ে ৫০ গুণ বেশি টোকেন। কিন্তু এর বেশিরভাগই অপ্রয়োজনীয় — সম্ভাষণ, "একটু বুঝিয়ে বলুন", অসম্পূর্ণ কথা। <strong>Conversation summarization</strong> হলো পুরোনো কথোপকথনকে ছোট একটি সারাংশে (summary) চেপে ফেলা, যাতে মডেল প্রসঙ্গ না হারিয়েও কম টোকেনে কাজ চালাতে পারে। একে বলে <strong>rolling memory</strong>: সবচেয়ে পুরোনো অংশ সংক্ষেপ হয়, সাম্প্রতিক টার্নগুলো হুবহু থাকে।</p>
+    <p>কখন summarize করবেন, তার তিনটি trigger:</p>
+    <ul>
+      <li><strong>Token-budget triggered:</strong> history নির্দিষ্ট সীমা (যেমন 4K) পার হলে সবচেয়ে পুরোনো অংশ সংক্ষেপ করুন।</li>
+      <li><strong>Turn-count triggered:</strong> প্রতি K টার্ন পরপর আগের K−1 টার্ন একটি block-এ নিন — সহজ ও অনুমানযোগ্য।</li>
+      <li><strong>Semantic triggered:</strong> বিষয় বদলালে (embedding similarity কমে গেলে) summarize করুন।</li>
+    </ul>
+    <p>শুধু "chat-টা সারাংশ করো" বললে ঝাপসা ফল আসে। তাই একটি <strong>structured schema</strong> ব্যবহার করুন — যেমন <code>user_goal</code>, <code>decisions_made</code>, <code>open_questions</code>, <code>key_facts_learned</code>, <code>entities</code>, <code>user_preferences</code>, <code>tool_results_to_remember</code>। সাধারণত compression ratio ৫–২০×, তবে এর মূল্য হলো তথ্য হারানো।</p>
+    <p><strong>Hierarchical summarisation</strong> হলো সবচেয়ে ভালো কৌশল: একদম পুরোনো টার্নের rolling summary, মাঝের টার্নের mid-resolution summary, আর সাম্প্রতিক টার্ন হুবহু। আর সতর্ক থাকুন — summarization lossy; সিদ্ধান্ত, নির্দিষ্ট সংখ্যা ও উদ্ধৃতি সবার আগে হারায়। তাই গুরুত্বপূর্ণ তথ্য আলাদা structured slot-এ রাখুন, summary-কে "সূচি" ভাবুন (source of truth নয়), আর high-stakes কথোপকথনের পুরো transcript DB-তে সংরক্ষণ করুন।</p>
+    <div class="analogy"><strong>ক্লাসের খাতার উদাহরণ:</strong> পরীক্ষার আগে আপনি পুরো বছরের লেকচার আবার পড়েন না; আপনার হাতে থাকে নিজের গোছানো নোট — সূত্র, সিদ্ধান্ত আর গুরুত্বপূর্ণ উদাহরণ। কিন্তু কোনো সংজ্ঞা নিয়ে সন্দেহ হলে আপনি মূল বইয়ে ফিরে যান। এখানেও সারাংশ হলো নোট, আর মূল transcript হলো বই — নোট দিয়ে কাজ চলে, আর নির্ভুলতা দরকার হলে মূল উৎসে যাওয়া যায়।</div>
   </aside>
 </section>
 
@@ -682,33 +858,34 @@ footer {
   <h3>The standard cache layout</h3>
   <div class="diagram">
     <svg viewBox="0 0 1100 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cache layout">
-      <text x="40" y="32" font-family="JetBrains Mono, monospace" font-size="13" fill="#64748b">cache breakpoints — everything before the breakpoint is reused, everything after is rebuilt</text>
+      <text x="40" y="32" font-family="JetBrains Mono, monospace" font-size="13" fill="#a8b5c8">cache breakpoints — everything before the breakpoint is reused, everything after is rebuilt</text>
 
       <rect x="40"  y="60" width="320" height="50" rx="6" fill="rgba(52,211,153,0.10)" stroke="#34d399"/>
       <text x="200" y="82" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#34d399">system prompt (cached)</text>
-      <text x="200" y="100" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#94a3b8">persona + rules + schema</text>
+      <text x="200" y="100" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#cfd8e6">persona + rules + schema</text>
 
       <rect x="370" y="60" width="240" height="50" rx="6" fill="rgba(167,139,250,0.10)" stroke="#a78bfa"/>
       <text x="490" y="82" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#a78bfa">tool schemas (cached)</text>
-      <text x="490" y="100" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#94a3b8">stable across calls</text>
+      <text x="490" y="100" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#cfd8e6">stable across calls</text>
 
       <rect x="620" y="60" width="280" height="50" rx="6" fill="rgba(34,211,238,0.10)" stroke="#22d3ee"/>
       <text x="760" y="82" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#22d3ee">retrieved docs (cached*)</text>
-      <text x="760" y="100" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#94a3b8">same docs as last call</text>
+      <text x="760" y="100" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#cfd8e6">same docs as last call</text>
 
       <!-- breakpoint arrow -->
-      <line x1="920" y1="60" x2="920" y2="180" stroke="#fb7185" stroke-width="2" stroke-dasharray="3 3"/>
-      <text x="928" y="124" font-family="JetBrains Mono, monospace" font-size="10" fill="#fb7185">cache_control: { type: "ephemeral" }</text>
+      <line x1="920" y1="60" x2="920" y2="148" stroke="#fb7185" stroke-width="2" stroke-dasharray="3 3"/>
+      <text x="912" y="136" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11" fill="#fb7185">cache_control: { type: "ephemeral" }</text>
 
       <rect x="940" y="60" width="120" height="50" rx="6" fill="rgba(251,113,133,0.10)" stroke="#fb7185"/>
       <text x="1000" y="82" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#fb7185">user msg</text>
-      <text x="1000" y="100" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#94a3b8">rebuilt</text>
+      <text x="1000" y="100" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#cfd8e6">rebuilt</text>
 
       <rect x="40" y="160" width="900" height="60" rx="6" fill="rgba(244,114,182,0.06)" stroke="#f472b6"/>
-      <text x="60" y="182" font-family="JetBrains Mono, monospace" font-size="11" fill="#f472b6">★ Anthropic supports up to 4 breakpoints · put stable content first, dynamic content last</text>
-      <text x="60" y="200" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">*retrieval caching only works if the SAME documents are returned call after call — any change busts the cache</text>
+      <text x="60" y="182" font-family="JetBrains Mono, monospace" font-size="12" fill="#f472b6">★ Anthropic supports up to 4 breakpoints · put stable content first, dynamic content last</text>
+      <text x="60" y="200" font-family="JetBrains Mono, monospace" font-size="12" fill="#a8b5c8">*retrieval caching only works if the SAME documents are returned call after call — any change busts the cache</text>
     </svg>
     <div class="diagram-caption">Cache the prefix that doesn't change (system + tools + stable retrieval), pass only the new user message after the breakpoint.</div>
+    <div class="diagram-caption diagram-caption-bn">ডায়াগ্রামে system prompt, tool schemas ও retrieved docs cached অংশ হিসেবে আর user msg প্রতিবার নতুন করে তৈরি হওয়া অংশ হিসেবে দেখানো হয়েছে। cache breakpoint-এর আগের সব কিছু আবার ব্যবহৃত হয়; তাই স্থির content আগে, পরিবর্তনশীল content শেষে রাখতে হয়।</div>
   </div>
 
   <h3>What to cache vs what not to</h3>
@@ -775,6 +952,20 @@ messages = [
     <p><strong>Real savings:</strong> for a customer-support agent with a 60K-token system prompt and a 2K user message, caching the 60K means you pay ~10× less on every call after the first. For a million-call-per-day app, this is the difference between bankruptcy and a healthy margin.</p>
     <div class="analogy"><strong>The textbook analogy:</strong> every LLM call is like making a student read a 50-page textbook to answer one question. Even if the textbook is the same every time, they re-read the whole thing. Prompt caching is letting the student keep the textbook open on their desk and only ask new questions — the textbook stays put, they only spend time on the new answer. Massive savings, but only if the textbook literally doesn't change.</div>
   </aside>
+
+  <aside class="bangla">
+    <div class="bangla-head"><span class="icon">🇧🇩</span><span class="label">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>
+    <p>প্রতিবার API call-এ একই system prompt, tool schema আর retrieved document বারবার পাঠালে একই লেখা বারবার পড়ার জন্য টাকা দিতে হয়। <strong>Prompt caching</strong>-এ আপনি prompt-এর একটি <strong>prefix</strong> (শুরুর অংশ) cache করতে পারেন; পরের call-এ prefix হুবহু মিললে provider আগের কাজ পুনরায় ব্যবহার করে — খরচ কমে এবং গতি বাড়ে। স্থির system prompt ও দীর্ঘ retrieval আছে এমন অ্যাপে ইনপুট বিলের ৮০–৯০% পর্যন্ত কমতে পারে।</p>
+    <p>তিন provider-এর পদ্ধতি আলাদা:</p>
+    <ul>
+      <li><strong>Anthropic:</strong> স্বয়ংক্রিয় cache এবং নিজের নিয়ন্ত্রণের জন্য <code>cache_control</code> breakpoint; একটি prompt-এ সর্বোচ্চ ৪টি <em>ephemeral</em> breakpoint। TTL ৫ মিনিট (hit হলে নতুন করে শুরু হয়)।</li>
+      <li><strong>OpenAI:</strong> ১০২৪ টোকেনের বেশি prompt-এ recent prefix মিললে স্বয়ংক্রিয় cache; cached টোকেনে ৫০% ছাড়।</li>
+      <li><strong>Gemini:</strong> স্পষ্টভাবে <code>cachedContent</code> resource তৈরি করতে হয়; TTL configurable (default ~৬০ মিনিট)।</li>
+    </ul>
+    <p>নিয়ম হলো <strong>স্থির জিনিস আগে, পরিবর্তনশীল জিনিস শেষে</strong>। Cache করুন: system prompt, স্থির tool schema, বারবার ব্যবহৃত বড় document, static few-shot উদাহরণ, style guide। Cache করবেন না: ইউজারের সর্বশেষ বার্তা, প্রতি call-এ বদলে যাওয়া retrieval (যেমন আজকের খবর), এবং যেখানে প্রতি call-এ freshness জরুরি। হিসাবের উদাহরণ: ৬০K টোকেনের prefix ও ৪K টোকেনের user message থাকলে cache ছাড়া ৬৪K টোকেনের পুরো দাম; cache থাকলে ৬০K প্রায় ১০ গুণ সস্তা ও ৪K সাধারণ দামে — steady state-এ ইনপুট খরচে প্রায় ~৮৫% সাশ্রয়।</p>
+    <p>সবচেয়ে বড় ফাঁদ হলো <strong>cache invalidation</strong>: cached অংশে একটি অক্ষরও বদলালে (typo ঠিক করা, version number, timestamp) তার পরের সব cache বাতিল হয়। তাই prefix-কে <strong>byte-identical</strong> রাখুন, dynamic তথ্য breakpoint-এর পরে দিন, CI-তে system prompt-এর hash রাখুন, আর cache সত্যিই hit হচ্ছে কি না যাচাই করতে <code>response.usage.cache_read_input_tokens</code> দেখুন (০-এর বেশি মানে hit)।</p>
+    <div class="analogy"><strong>চায়ের দোকানের "বাঁধা অর্ডার" উদাহরণ:</strong> রোজ সকালে একই অফিসের লোক আসে, আর প্রতিদিন দোকানদারকে পুরো মেনু ও চা বানানোর নিয়ম নতুন করে বুঝিয়ে দিতে হলে সময় ও পরিশ্রম দুটোই যায়। বরং দোকানদার যদি "রোজকার বাঁধা অর্ডার" মনে রাখে, তাহলে আপনাকে শুধু আজকের বাড়তি কথাটুকু বলতে হয়। তবে বাঁধা অর্ডারের একটা শব্দও বদলালে দোকানদার আবার গোড়া থেকে শুনতে চাইবে।</div>
+  </aside>
 </section>
 
 <section id="s4">
@@ -784,33 +975,34 @@ messages = [
   <h3>The four-layer model</h3>
   <div class="diagram">
     <svg viewBox="0 0 1100 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hierarchical memory layers">
-      <text x="40" y="32" font-family="JetBrains Mono, monospace" font-size="13" fill="#64748b">hierarchical memory — fast/small layers close to the model, slow/large layers in storage</text>
+      <text x="40" y="32" font-family="JetBrains Mono, monospace" font-size="13" fill="#a8b5c8">hierarchical memory — fast/small layers close to the model, slow/large layers in storage</text>
 
       <rect x="40"  y="60" width="240" height="50" rx="8" fill="rgba(34,211,238,0.10)" stroke="#22d3ee"/>
       <text x="160" y="82" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#22d3ee">Working memory</text>
-      <text x="160" y="100" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#94a3b8">in-context · current turn</text>
+      <text x="160" y="100" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#cfd8e6">in-context · current turn</text>
 
       <rect x="40"  y="130" width="240" height="50" rx="8" fill="rgba(167,139,250,0.10)" stroke="#a78bfa"/>
       <text x="160" y="152" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#a78bfa">Short-term</text>
-      <text x="160" y="170" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#94a3b8">recent turns · this session</text>
+      <text x="160" y="170" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#cfd8e6">recent turns · this session</text>
 
       <rect x="300" y="130" width="240" height="50" rx="8" fill="rgba(52,211,153,0.10)" stroke="#34d399"/>
       <text x="420" y="152" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#34d399">Long-term</text>
-      <text x="420" y="170" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#94a3b8">user prefs · known facts</text>
+      <text x="420" y="170" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#cfd8e6">user prefs · known facts</text>
 
       <rect x="560" y="130" width="240" height="50" rx="8" fill="rgba(251,191,36,0.10)" stroke="#fbbf24"/>
       <text x="680" y="152" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#fbbf24">Episodic</text>
-      <text x="680" y="170" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#94a3b8">past sessions · experiences</text>
+      <text x="680" y="170" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#cfd8e6">past sessions · experiences</text>
 
       <rect x="820" y="130" width="240" height="50" rx="8" fill="rgba(244,114,182,0.10)" stroke="#f472b6"/>
       <text x="940" y="152" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#f472b6">External / Tools</text>
-      <text x="940" y="170" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#94a3b8">RAG, databases, APIs</text>
+      <text x="940" y="170" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#cfd8e6">RAG, databases, APIs</text>
 
-      <text x="40"  y="220" font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">size: small  ←————————————————→  unbounded</text>
-      <text x="40"  y="240" font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">latency: ns  ←————————————————→  ms–s</text>
-      <text x="40"  y="260" font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">"attention": always  ←—————————————→  only when retrieved</text>
+      <text x="40"  y="220" font-family="JetBrains Mono, monospace" font-size="11" fill="#a8b5c8">size: small  ←————————————————→  unbounded</text>
+      <text x="40"  y="240" font-family="JetBrains Mono, monospace" font-size="11" fill="#a8b5c8">latency: ns  ←————————————————→  ms–s</text>
+      <text x="40"  y="260" font-family="JetBrains Mono, monospace" font-size="11" fill="#a8b5c8">"attention": always  ←—————————————→  only when retrieved</text>
     </svg>
     <div class="diagram-caption">Four-layer hierarchical memory. Each layer trades size for attention: working memory is small but always attended; external storage is unbounded but only retrieved on demand.</div>
+    <div class="diagram-caption diagram-caption-bn">এই ডায়াগ্রামে Working memory থেকে Short-term, Long-term, Episodic ও External / Tools পর্যন্ত চার-পাঁচ স্তরের hierarchical memory দেখানো হয়েছে। নিচের অক্ষগুলো পড়লে বোঝা যায়, ওপরের স্তর ছোট, দ্রুত ও সবসময় attended; নিচের স্তর বড়, ধীর ও শুধু প্রয়োজনে retrieve করা হয়।</div>
   </div>
 
   <table>
@@ -886,6 +1078,21 @@ messages = [
     <p><strong>Production gotcha:</strong> memories contradict themselves. Last Tuesday you preferred bullet points; today you prefer prose. Don't just trust long-term memory blindly — tag facts with timestamps, surface them for confirmation, or weight by recency.</p>
     <div class="analogy"><strong>The memory-walk analogy:</strong> working memory is the desk in front of you. Short-term memory is the notebook from yesterday's meeting. Long-term memory is your address and your spouse's name. Episodic memory is that vacation you took in 2019. External storage is the library. A good AI — like a good person — knows which layer to look in, doesn't overload the desk with old news, and checks the library when a specific fact is needed.</div>
   </aside>
+
+  <aside class="bangla">
+    <div class="bangla-head"><span class="icon">🇧🇩</span><span class="label">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>
+    <p>মানুষের মনে একধরনের স্মৃতি নেই — আছে working, short-term, long-term, episodic ইত্যাদি স্তর। দীর্ঘ সময় ধরে চলা AI সিস্টেমেরও তেমন স্তরবিন্যাস দরকার। <strong>Hierarchical memory</strong> মানে ভিন্ন ধরনের তথ্য ভিন্ন সময়সীমায়, ভিন্ন জায়গায় রাখা এবং প্রতিটি স্তরে সংক্ষিপ্ত করা। মডেলের যত কাছে, স্তর তত ছোট কিন্তু সবসময় মনোযোগে থাকে; যত দূরে, তত বিশাল কিন্তু শুধু প্রয়োজনে retrieve হয়।</p>
+    <ul>
+      <li><strong>Working memory:</strong> বর্তমান prompt (system + tools + retrieved + current request); প্রতি call-এ নতুন, ephemeral।</li>
+      <li><strong>Short-term:</strong> এই session-এর সাম্প্রতিক টার্ন, tool result, সিদ্ধান্ত; session store-এ (<code>session_id</code> দিয়ে), rolling summarization সহ।</li>
+      <li><strong>Long-term:</strong> ইউজারের পছন্দ, জানা তথ্য, প্রজেক্টের context; vector store + structured DB-তে (<code>user_id</code> দিয়ে), ধীরে আপডেট হয়।</li>
+      <li><strong>Episodic:</strong> আগের session-এর সংক্ষিপ্ত "স্মৃতি", কী কাজ করেছিল তার শিক্ষা; session শেষে memory-update agent লেখে।</li>
+      <li><strong>External / tools:</strong> RAG index, database, API, ডকুমেন্ট; প্রয়োজনমতো retrieve হয়।</li>
+    </ul>
+    <p><strong>MemGPT</strong> (Packer et al., 2023)-এর মূল ধারণা: LLM-এর context-কে virtual memory-র মতো দেখা। মডেল নিজেই ঠিক করে কখন তথ্য working memory থেকে external storage-এ <em>evict</em> করবে এবং কখন আবার <em>page in</em> করবে — এর জন্য সে <code>recall</code>, <code>archival_search</code>-এর মতো tool call ব্যবহার করে। দীর্ঘস্থায়ী agent-এর এটিই স্থাপত্য-নকশা। সাধারণ pattern হলো session শেষে একটি consolidation ধাপ: transcript থেকে <code>user_preferences</code>, <code>project_facts</code>, <code>episodic_lessons</code> বের করে vector store বা structured DB-তে লেখা।</p>
+    <p><strong>সতর্কতা:</strong> long-term memory সময়ের সাথে পুরোনো বা স্ববিরোধী হয়ে যেতে পারে। তাই প্রতিটি memory-তে timestamp ও confidence score রাখুন, সন্দেহজনক পুরোনো memory ইউজারকে দিয়ে নিশ্চিত করান, অথবা retrieval-এর সময় recency অনুযায়ী ওজন দিন।</p>
+    <div class="analogy"><strong>অফিসের ফাইল-ব্যবস্থার উদাহরণ:</strong> আপনার টেবিলে যে কাগজটা খোলা, সেটা working memory। ড্রয়ারে রাখা এই সপ্তাহের ফাইল হলো short-term। আলমারির স্থায়ী রেকর্ড long-term, আর পুরোনো প্রজেক্টের শিক্ষা-নোট episodic। বাকি সবকিছু আছে কেন্দ্রীয় আর্কাইভে (external)। ভালো কর্মী জানে কোন তথ্য কোথায় খুঁজতে হবে — টেবিল ঠেসে না রেখে দরকারমতো আর্কাইভ থেকে আনে।</div>
+  </aside>
 </section>
 
 <section id="s5">
@@ -940,21 +1147,22 @@ messages = [
 
   <div class="diagram">
     <svg viewBox="0 0 1100 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="LLMLingua compression pipeline">
-      <text x="40" y="32" font-family="JetBrains Mono, monospace" font-size="13" fill="#64748b">LLMLingua pipeline: classifier marks low-info tokens for removal</text>
+      <text x="40" y="32" font-family="JetBrains Mono, monospace" font-size="13" fill="#a8b5c8">LLMLingua pipeline: classifier marks low-info tokens for removal</text>
 
       <rect x="40" y="60" width="600" height="40" rx="6" fill="#0f172a" stroke="#334155"/>
       <text x="56" y="82" font-family="JetBrains Mono, monospace" font-size="11" fill="#e2e8f0">"The user is asking about the weather in Dhaka which is the capital of Bangladesh..."</text>
 
       <line x1="660" y1="80" x2="730" y2="80" stroke="#94a3b8" marker-end="url(#arr2)"/>
-      <text x="670" y="68" font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">classify</text>
+      <text x="670" y="68" font-family="JetBrains Mono, monospace" font-size="11" fill="#a8b5c8">classify</text>
 
       <rect x="750" y="60" width="300" height="40" rx="6" fill="rgba(34,211,238,0.10)" stroke="#22d3ee"/>
       <text x="766" y="82" font-family="JetBrains Mono, monospace" font-size="11" fill="#22d3ee">"user asks Dhaka weather..." (40% tokens)</text>
 
-      <text x="40" y="140" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">compression done BEFORE the LLM call — saves input tokens &amp; latency</text>
-      <text x="40" y="160" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">some lossiness is acceptable for simple Q&amp;A; not for factual lookups</text>
+      <text x="40" y="140" font-family="JetBrains Mono, monospace" font-size="12" fill="#a8b5c8">compression done BEFORE the LLM call — saves input tokens &amp; latency</text>
+      <text x="40" y="160" font-family="JetBrains Mono, monospace" font-size="12" fill="#a8b5c8">some lossiness is acceptable for simple Q&amp;A; not for factual lookups</text>
     </svg>
     <div class="diagram-caption">LLMLingua and similar tools identify low-information phrases ("the capital of Bangladesh") and drop them while preserving the meaning.</div>
+    <div class="diagram-caption diagram-caption-bn">এখানে LLMLingua pipeline দেখানো হয়েছে: একটি classifier মূল prompt-এর কম-তথ্যপূর্ণ token চিহ্নিত করে, তারপর সংক্ষিপ্ত রূপ (প্রায় 40% tokens) তৈরি হয়। এই compression LLM call-এর আগেই হয়, ফলে input tokens ও latency কমে; তবে কিছু তথ্য হারাতে পারে।</div>
   </div>
 
   <h3>Pruning: surgical removal of irrelevant context</h3>
@@ -987,6 +1195,23 @@ messages = [
     <p><strong>The best production recipe combines both:</strong> retrieve 20 candidates → re-rank to top 5 → drop redundant ones → if still over budget, compress each with LLMLingua → inject into the prompt in the right place. Each step saves tokens; together they keep you under budget without losing the parts that matter.</p>
     <p><strong>The trade-off:</strong> compression and pruning are lossy. You save space, but you lose detail. A fact that gets compressed away might have been the answer. The art is knowing when to compress and when to keep things verbatim — usually you compress noise (greetings, repetitions) and keep signal (facts, decisions, names).</p>
     <div class="analogy"><strong>The book-editor analogy:</strong> compression is a copy editor cutting filler ("the capital of Bangladesh, which is in South Asia" → "Dhaka, Bangladesh") — every word earns its place. Pruning is the same editor ripping out whole chapters that don't relate to the current story. Both make the book tighter; both lose some information. A great editor does both — keeps the story, drops the fluff.</div>
+  </aside>
+
+  <aside class="bangla">
+    <div class="bangla-head"><span class="icon">🇧🇩</span><span class="label">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>
+    <p>Summarization যখন বেশি lossy আর সময়ও কম, তখন <strong>compression</strong> (অপ্রয়োজনীয় পুনরাবৃত্তি সরিয়ে ছোট করা) এবং <strong>pruning</strong> (অপ্রাসঙ্গিক অংশ বাদ দেওয়া) কাজে লাগে। লক্ষ্য একটাই: তথ্যের ঘনত্ব একই রেখে টোকেন কমানো।</p>
+    <p>প্রধান compression কৌশলগুলো:</p>
+    <ul>
+      <li><strong>LLM summarisation:</strong> structured schema দিয়ে সারাংশ; ৫–২০×; chat history ও লম্বা document-এর জন্য।</li>
+      <li><strong>LLMLingua:</strong> ছোট classifier কম-তথ্যবহ শব্দ/টোকেন ছেঁটে দেয়; ৫–২০×; latency ও খরচ কমাতে। এটি LLM call-এর <em>আগেই</em> চলে।</li>
+      <li><strong>Selective context:</strong> self-information (perplexity) দিয়ে অপ্রয়োজনীয় বাক্যাংশ বাদ; প্রায় ৫×; RAG-এর জন্য।</li>
+      <li><strong>Embedding-based filtering:</strong> query-র সাথে প্রাসঙ্গিকতার score দিয়ে কম-score chunk বাদ।</li>
+      <li><strong>Token-budget knapsack:</strong> প্রাসঙ্গিকতার ক্রমে chunk নিতে থাকা, budget ভরলে থামা।</li>
+      <li><strong>Deduplication:</strong> প্রায় একই chunk (cosine &gt; 0.95) থাকলে একটি রাখা; ১.৫–৩×।</li>
+    </ul>
+    <p><strong>Pruning</strong> চার রকম: relevance pruning (প্রশ্নের সাথে মিল কম এমন নিচের chunk ফেলা), recency pruning (summary-তে ঢুকে যাওয়া পুরোনো টার্ন বাদ), task-aware pruning (বর্তমান ধাপে অপ্রয়োজনীয় tool definition বাদ), আর diversity pruning (একই তথ্যের একাধিক doc থেকে সবচেয়ে ভালোটি রাখা)। Compression সবকিছুকে ছোট করে; pruning শুধু অপ্রাসঙ্গিক অংশ কাটে — দুটো পরিপূরক।</p>
+    <p><strong>প্রোডাকশনের সম্মিলিত পদ্ধতি:</strong> (১) K=20 candidate chunk retrieve করুন, (২) cross-encoder দিয়ে re-rank করুন, (৩) সেরা ৫টিতে prune করুন, (৪) তখনও বাজেটের বেশি হলে LLMLingua দিয়ে compress করুন, (৫) prompt-এর সঠিক জায়গায় (§7 মনে রেখে) চিহ্নিত section-এ বসান। মনে রাখবেন, দুটোই lossy — যে তথ্যটি compress হয়ে হারাল সেটিই হয়তো উত্তর ছিল, তাই noise ছাঁটুন, signal (তথ্য, সিদ্ধান্ত, নাম) যথাসম্ভব হুবহু রাখুন।</p>
+    <div class="analogy"><strong>ঈদের বাজারের ব্যাগ গোছানোর উদাহরণ:</strong> ছোট ব্যাগে সব ধরাতে হলে আপনি প্রথমে কাপড়গুলো ভাঁজ করে চেপে নেন (compression), তারপর যেগুলো এবার লাগবেই না সেগুলো একেবারে বাদ দেন (pruning)। শুধু ভাঁজ করলে ব্যাগ ভরে যায়, আবার শুধু বাদ দিলে দরকারি জিনিস ফেলে আসার ভয় থাকে। দুটো মিলিয়ে করলে ব্যাগ হালকা থাকে অথচ দরকারি কিছু বাদ পড়ে না।</div>
   </aside>
 </section>
 
@@ -1048,25 +1273,26 @@ messages = [
   <h3>Where to truncate</h3>
   <div class="diagram">
     <svg viewBox="0 0 1100 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tool result anatomy">
-      <text x="40" y="32" font-family="JetBrains Mono, monospace" font-size="13" fill="#64748b">anatomy of a tool result — different regions, different value</text>
+      <text x="40" y="32" font-family="JetBrains Mono, monospace" font-size="13" fill="#a8b5c8">anatomy of a tool result — different regions, different value</text>
 
       <rect x="40" y="60" width="1020" height="80" rx="8" fill="#0f172a" stroke="#334155"/>
       <text x="60" y="84" font-family="JetBrains Mono, monospace" font-size="12" fill="#22d3ee">[tool: search_docs]</text>
 
       <rect x="40" y="100" width="240" height="40" rx="6" fill="rgba(34,211,238,0.10)" stroke="#22d3ee"/>
-      <text x="160" y="125" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#22d3ee">summary header</text>
-      <text x="160" y="139" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#94a3b8">"5,234 results, top by relevance"</text>
+      <text x="160" y="125" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#22d3ee">summary header</text>
+      <text x="160" y="139" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#cfd8e6">"5,234 results, top by relevance"</text>
 
       <rect x="290" y="100" width="320" height="30" rx="6" fill="rgba(52,211,153,0.10)" stroke="#34d399"/>
-      <text x="450" y="121" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#34d399">key slice (top 5 results)</text>
+      <text x="450" y="121" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#34d399">key slice (top 5 results)</text>
 
       <rect x="620" y="100" width="200" height="30" rx="6" fill="rgba(251,191,36,0.10)" stroke="#fbbf24"/>
-      <text x="720" y="121" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#fbbf24">schema + counts</text>
+      <text x="720" y="121" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#fbbf24">schema + counts</text>
 
       <rect x="830" y="100" width="230" height="30" rx="6" fill="rgba(244,114,182,0.10)" stroke="#f472b6"/>
-      <text x="945" y="121" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#f472b6">cursor for more</text>
+      <text x="945" y="121" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#f472b6">cursor for more</text>
     </svg>
     <div class="diagram-caption">Return the high-signal bits (summary, top slice, schema) and a pointer for the rest. Let the agent pull more if needed.</div>
+    <div class="diagram-caption diagram-caption-bn">এই ডায়াগ্রামে একটি tool result-এর গঠন দেখানো হয়েছে: ওপরে summary header, মাঝে key slice (top 5 results), তারপর schema + counts এবং শেষে আরও ডেটার জন্য cursor। অর্থাৎ বেশি সিগন্যালযুক্ত অংশ আগে দিয়ে বাকিটা pointer দিয়ে পরে আনা যায়।</div>
   </div>
 
   <div class="callout warn">
@@ -1088,6 +1314,21 @@ messages = [
     <p><strong>The landmine:</strong> don't truncate code or JSON in the middle of a structure. Cutting a function body mid-line, or a JSON object mid-brace, breaks the parser. Truncate at boundaries — function ends, JSON closing braces, the end of a logical block.</p>
     <div class="analogy"><strong>The librarian analogy:</strong> when you ask for books on a topic, a good librarian doesn't dump a thousand books on your desk. They hand you the 5 most relevant, tell you "we have 200 more if you need them," and offer to pull specific books on request. Tool truncation works the same way: return the high-signal bits, plus a pointer for the rest. The desk stays clean; the AI stays in control.</div>
   </aside>
+
+  <aside class="bangla">
+    <div class="bangla-head"><span class="icon">🇧🇩</span><span class="label">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>
+    <p>একটি tool call একাই ১০০K টোকেন ফেরত দিতে পারে — লম্বা কোড ফাইল, হাজার সারির database result বা ৫০ পাতার ওয়েব পেজ। সামলে না রাখলে একটি tool result-ই পুরো context window ভরে ফেলে। <strong>Tool result truncation</strong> মানে ফলাফল <em>কাজের উপযোগী কিন্তু সীমাবদ্ধ</em> রাখা।</p>
+    <p>চার ধরনের কৌশল:</p>
+    <ul>
+      <li><strong>Length-based:</strong> hard cap (N টোকেনের পর <code>[...truncated...]</code>), head/tail (শুরু ও শেষ K টোকেন রেখে মাঝখান বাদ), অথবা প্রথম ও শেষ N লাইন।</li>
+      <li><strong>Structure-based:</strong> database-এর জন্য schema + প্রথম ১০ সারি + মোট সংখ্যা; কোডের জন্য function signature ও type রেখে body বাদ; অথবা tool-কে বলা যেন শুধু যা চাওয়া হয়েছে তাই ফেরত দেয়।</li>
+      <li><strong>Semantic:</strong> relevance অনুযায়ী top-K চিহ্নিত করা, ছোট মডেল দিয়ে আগেই সারাংশ, বা vector DB-তে রেখে শুধু pointer + summary ফেরত দেওয়া।</li>
+      <li><strong>Smart bounds:</strong> বাজেটে tool-এর জন্য জায়গা আগেই রাখা (§1), page করে ফলাফল আনা, আর বড় ডেটা object store-এ রেখে reference দিয়ে <em>just-in-time</em> আনা।</li>
+    </ul>
+    <p>সবচেয়ে প্রোডাকশন-বান্ধব পদ্ধতি হলো <strong>"page through" pattern</strong>: পুরো ফলাফল একসাথে না দিয়ে ছোট একটি slice (যেমন ৫টি result, প্রায় &lt; 2K টোকেন) আর একটি <code>next_cursor</code> ও <code>total</code> ফেরত দিন। এজেন্ট দরকার মনে করলে cursor দিয়ে আরও চাইবে — খরচ সীমিত থাকে, অথচ অনুসন্ধান চালিয়ে যাওয়া যায়। একটি ভালো tool result-এ থাকে summary header, key slice, schema + counts এবং আরও আনার cursor।</p>
+    <p><strong>সতর্কতা:</strong> কোড বা JSON মাঝপথে কেটে দেবেন না — function-এর body বা JSON object অর্ধেক কাটলে parser ভেঙে যায়। <em>Structure-aware</em> কাটুন (function-এর শেষ, বন্ধনী বন্ধ হওয়ার জায়গা, লাইনের শেষে), আর সম্ভব হলে উৎসেই tool-কে দিয়ে কাটিয়ে নিন।</p>
+    <div class="analogy"><strong>রেস্টুরেন্টের মেনু-কার্ডের উদাহরণ:</strong> ওয়েটার যদি আপনার সামনে রান্নাঘরের সব পদ একসাথে এনে টেবিলে ঠেসে দেয়, জায়গাই থাকবে না। ভালো ওয়েটার প্রথমে মেনু দেখায়, সেরা কয়েকটি পদ সুপারিশ করে, বলে "আরও আছে, চাইলে বলবেন" — আর আপনি চাইলে তবেই আনে। Tool result-ও ঠিক তেমন: দরকারি অংশ আগে দাও, বাকিটা চাইলে দেবে।</div>
+  </aside>
 </section>
 
 <section id="s7">
@@ -1099,23 +1340,23 @@ messages = [
 
   <div class="diagram">
     <svg viewBox="0 0 1100 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lost in the middle U-curve">
-      <text x="40" y="32" font-family="JetBrains Mono, monospace" font-size="13" fill="#64748b">retrieval accuracy by position in context (illustrative U-curve)</text>
+      <text x="40" y="32" font-family="JetBrains Mono, monospace" font-size="13" fill="#a8b5c8">retrieval accuracy by position in context (illustrative U-curve)</text>
 
       <!-- axes -->
       <line x1="60" y1="60" x2="60" y2="240" stroke="#334155"/>
       <line x1="60" y1="240" x2="1060" y2="240" stroke="#334155"/>
-      <text x="40" y="56" font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">accuracy</text>
-      <text x="1040" y="258" font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">position in context →</text>
+      <text x="46" y="150" text-anchor="middle" transform="rotate(-90 46 150)" font-family="JetBrains Mono, monospace" font-size="11" fill="#a8b5c8">accuracy</text>
+      <text x="1060" y="258" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11" fill="#a8b5c8">position in context →</text>
 
       <!-- U-curve -->
       <path d="M 80 80 Q 200 78, 320 140 T 640 80 Q 800 78, 1000 90" stroke="#fb7185" stroke-width="2.5" fill="none"/>
-      <text x="180" y="70" font-family="JetBrains Mono, monospace" font-size="11" fill="#fb7185" font-weight="600">strong</text>
-      <text x="500" y="170" font-family="JetBrains Mono, monospace" font-size="11" fill="#fb7185" font-weight="600">collapsed middle</text>
-      <text x="940" y="80" font-family="JetBrains Mono, monospace" font-size="11" fill="#fb7185" font-weight="600">strong</text>
+      <text x="180" y="70" font-family="JetBrains Mono, monospace" font-size="12" fill="#fb7185" font-weight="600">strong</text>
+      <text x="500" y="170" font-family="JetBrains Mono, monospace" font-size="12" fill="#fb7185" font-weight="600">collapsed middle</text>
+      <text x="940" y="68" font-family="JetBrains Mono, monospace" font-size="12" fill="#fb7185" font-weight="600">strong</text>
 
       <!-- midpoint highlight -->
       <rect x="430" y="60" width="200" height="180" rx="8" fill="rgba(244,114,182,0.05)" stroke="#f472b6" stroke-dasharray="3 3"/>
-      <text x="530" y="290" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#f472b6">↓ danger zone: put NOTHING critical here</text>
+      <text x="530" y="290" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#f472b6">↓ danger zone: put NOTHING critical here</text>
 
       <!-- example bar at top showing prompt structure -->
       <rect x="80" y="40" width="980" height="6" rx="2" fill="#0f172a" stroke="#334155"/>
@@ -1124,6 +1365,7 @@ messages = [
       <rect x="430" y="40" width="100" height="6" rx="2" fill="#fb7185" fill-opacity="0.4"/>
     </svg>
     <div class="diagram-caption">The U-curve: retrieval accuracy vs. position. Endpoints are reliable; the middle is risky. Place critical information at start or end.</div>
+    <div class="diagram-caption diagram-caption-bn">এখানে context-এর ভেতরে position অনুযায়ী retrieval accuracy-র একটি illustrative U-curve দেখানো হয়েছে। শুরু ও শেষে accuracy strong, কিন্তু মাঝের collapsed middle অংশে তা কমে যায়; তাই গুরুত্বপূর্ণ তথ্য মাঝের danger zone-এ রাখা উচিত নয়।</div>
   </div>
 
   <h3>Why does it happen?</h3>
@@ -1190,6 +1432,23 @@ messages = [
     <p><strong>The brutal truth:</strong> newer models handle long context better than 2023's, but the U-shape never fully disappears. For really important facts, don't bury them in the middle. Put them at the top, at the bottom, or both.</p>
     <div class="analogy"><strong>The lecture analogy:</strong> your AI is a student listening to a 3-hour lecture while taking notes. They pay sharp attention at the start (settling in), drift off in the middle, and tune back in for the conclusion. If you want them to recall a specific fact, don't put it in minute 90 of a 180-minute lecture. Put it in minute 5 or minute 175. Or say it twice, at both ends.</div>
   </aside>
+
+  <aside class="bangla">
+    <div class="bangla-head"><span class="icon">🇧🇩</span><span class="label">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>
+    <p>Liu et al. (2023) দেখিয়েছেন, ভাষা মডেল তার input-এর <em>শুরু</em> ও <em>শেষের</em> তথ্য খুব ভালো কাজে লাগায়, কিন্তু <em>মাঝখানে</em> চাপা পড়া তথ্যে প্রায় random-এর কাছাকাছি ফল দেয়। এটিই <strong>"Lost in the Middle"</strong>। তাঁরা লম্বা context-এর বিভিন্ন অবস্থানে "needle" তথ্য বসিয়ে retrieval accuracy মেপেছিলেন — ফলে <strong>U-আকৃতির curve</strong>: শুরুতে উঁচু, মাঝখানে ধস, শেষে আবার উঠে আসে। context যত লম্বা বা মডেল যত দুর্বল, মাঝের সমস্যা তত বেশি; তবে ১০০K+ context-এর frontier মডেলেও এটি থেকে যায়।</p>
+    <p>কেন হয়? (১) attention-এ অবস্থানগত পক্ষপাত আছে; RoPE, ALiBi, YaRN-এর মতো long-context extension সাহায্য করলেও পুরো সমাধান করে না। (২) pre-training ডেটায় বেশিরভাগ context ছোট ছিল, তাই মডেল দূরের তথ্য জোড়া দিতে শেখেনি। (৩) প্রথম ও শেষ অবস্থানকে বেশি গুরুত্ব দেওয়ার প্রবণতা (primacy ও recency) — মানুষের মধ্যেও দেখা যায়।</p>
+    <p>ছয়টি প্রতিকার:</p>
+    <ul>
+      <li><strong>Sandwich:</strong> জরুরি নির্দেশ system message-এর শুরুতে দিন এবং user message-এর শেষে আবার বলুন।</li>
+      <li><strong>Re-order docs:</strong> সবচেয়ে প্রাসঙ্গিক doc শুরুতে ও শেষে, মাঝারিগুলো মাঝখানে।</li>
+      <li><strong>Trim aggressively:</strong> ছোট context-এ recall ভালো; ৮K-তে আঁটলে ৫০K ব্যবহার করবেন না।</li>
+      <li><strong>Structured delimiters:</strong> জরুরি অংশ <code>&lt;important&gt;…&lt;/important&gt;</code> ট্যাগে মুড়ুন।</li>
+      <li><strong>Re-query:</strong> উত্তর না পেলে আংশিক উত্তর নিয়ে আবার query করুন — দুটো ছোট query একটি লম্বা query-র চেয়ে ভালো।</li>
+      <li><strong>"Answer here" marker:</strong> prompt শেষ করুন <code>"Based on the above, your answer:"</code> দিয়ে, যাতে মডেল উত্তরের আগে আবার পেছনে তাকায়।</li>
+    </ul>
+    <p>পরের গবেষণা (RULER, Summary-of-a-Haystack, BABILong, ২০২৪) বলছে: ভালো মডেলে U-curve চ্যাপ্টা হয় কিন্তু পুরোপুরি যায় না; পরিবর্তনশীল দৈর্ঘ্যের কাজ কঠিনতর; দীর্ঘ context জুড়ে multi-hop reasoning এখনও খোলা সমস্যা; আর RAG ও long-context একে অপরের পরিপূরক। <strong>ব্যবহারিক নিয়ম:</strong> যে তথ্য নির্ভরযোগ্যভাবে মনে রাখাতে চান, সেটি context-এর <strong>প্রথম ১০%</strong> বা <strong>শেষ ১০%</strong>-এ রাখুন; না পারলে দুই প্রান্তেই পুনরাবৃত্তি করুন; তাতেও না হলে ছোট context, external retrieval বা ভিন্ন architecture ব্যবহার করুন।</p>
+    <div class="analogy"><strong>দীর্ঘ বিয়ের অনুষ্ঠানের ঘোষণার উদাহরণ:</strong> তিন ঘণ্টার অনুষ্ঠানে অতিথিরা শুরুর স্বাগত বক্তৃতা আর শেষের খাবারের ঘোষণা ঠিকই মনে রাখে, কিন্তু মাঝখানে বলা "গাড়ি পার্কিং ওই গেটে" কথাটা অনেকেই মিস করে। তাই জরুরি ঘোষণা শুরুতে ও শেষে দুবার করুন, মাঝের সময়টা হালকা কথার জন্য রাখুন।</div>
+  </aside>
 </section>
 
 <section class="sources" id="sources">
@@ -1215,5 +1474,27 @@ messages = [
 </footer>
 
 </div>
+<script>
+(function () {
+  var open = null;
+  function close() { if (open) { open.remove(); open = null; document.body.style.overflow = ''; } }
+  function show(d) {
+    var svg = d.querySelector('svg'); if (!svg) return;
+    var o = document.createElement('div'); o.className = 'dz-overlay'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true');
+    var inner = document.createElement('div'); inner.className = 'dz-inner';
+    inner.appendChild(svg.cloneNode(true));
+    d.querySelectorAll('.diagram-caption').forEach(function (c) { inner.appendChild(c.cloneNode(true)); });
+    var b = document.createElement('button'); b.className = 'dz-close'; b.type = 'button'; b.textContent = 'Close ✕ (Esc)';
+    o.appendChild(inner); o.appendChild(b); o.addEventListener('click', close);
+    document.body.appendChild(o); document.body.style.overflow = 'hidden'; open = o; b.focus();
+  }
+  document.querySelectorAll('.diagram').forEach(function (d) {
+    d.setAttribute('tabindex', '0'); d.setAttribute('role', 'button'); d.setAttribute('aria-label', 'Enlarge diagram');
+    d.addEventListener('click', function () { show(d); });
+    d.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); show(d); } });
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+})();
+</script>
 </body>
 </html>

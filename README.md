@@ -1,6 +1,6 @@
 # All Necessary Topics Related to AI Engineering
 
-Three single-file HTML reference guides on the fundamentals every applied AI engineer needs. Each guide is **dual-voice**: a technical version (with diagrams, code, and cited primary research) and a layman's version (plain English with analogies) at the bottom of every topic.
+Four single-file HTML reference guides on the fundamentals every applied AI engineer needs. Each guide is **multi-voice**: a technical version (with diagrams, code, and cited primary research) and a layman's version (plain English with analogies) at the bottom of every topic. Every topic also ends with a **Bangla explanation (বাংলা ব্যাখ্যা)** panel.
 
 ## Guides
 
@@ -9,12 +9,13 @@ Three single-file HTML reference guides on the fundamentals every applied AI eng
 | **LLM Fundamentals** | 10 | [`llm-fundamentals.html`](llm-fundamentals.html) | ~100 KB |
 | **Prompt Engineering** | 8 | [`prompt-engineering.html`](prompt-engineering.html) | ~90 KB |
 | **Context Engineering** | 7 | [`context-engineering.html`](context-engineering.html) | ~80 KB |
+| **RAG & Knowledge Systems** | 10 | [`rag-knowledge-systems.html`](rag-knowledge-systems.html) | ~290 KB |
 
-An **index page** that links all three: [`index.html`](index.html).
+An **index page** that links all four: [`index.html`](index.html).
 
 ## How to view
 
-Open any file directly in a modern browser — no build step, no dependencies, no internet required. Everything is inline (CSS, SVG diagrams, code samples, citations).
+Open any file directly in a modern browser — no build step, no dependencies, no internet required. Click (or tap) any diagram to enlarge it; press Esc to close. Everything is inline (CSS, SVG diagrams, code samples, citations).
 
 ```bash
 # Linux
@@ -34,6 +35,9 @@ The eight techniques every prompt engineer reaches for — system/user/assistant
 
 ### Context Engineering
 How to fit an infinite task into a finite window — context window budgeting, conversation summarization and rolling memory, prompt caching strategies (Anthropic / OpenAI / Gemini), hierarchical memory (working / short-term / long-term / episodic), context compression and pruning (LLMLingua), tool result truncation, and the "Lost in the Middle" phenomenon with mitigation tactics.
+
+### RAG & Knowledge Systems
+How retrieval-augmented systems find, rank, and ground knowledge — chunking strategies (fixed, semantic, structural, late), vector databases (Qdrant, Pinecone, Weaviate, pgvector, Chroma, Milvus), hybrid search and reciprocal rank fusion, query rewriting / expansion / HyDE, multi-hop and agentic retrieval, reranking (Cohere, BGE, Voyage), metadata filtering and structured retrieval, GraphRAG, document parsing pipelines (Unstructured, LlamaParse, Docling), and multimodal RAG. Includes 30+ SVG diagrams.
 
 ## Source quality
 
@@ -56,6 +60,7 @@ Each citation ID was fetched and verified against the publisher's `citation_titl
 ├── llm-fundamentals.html       ← LLM Fundamentals (10 topics)
 ├── prompt-engineering.html     ← Prompt Engineering (8 topics)
 ├── context-engineering.html    ← Context Engineering (7 topics)
+├── rag-knowledge-systems.html  ← RAG & Knowledge Systems (10 topics)
 ├── README.md                   ← this file
 └── LICENSE                     ← MIT
 ```

@@ -132,6 +132,8 @@ footer {
   font-size: 12px;
   font-family: var(--mono);
 }
+html { scroll-behavior: smooth; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 </style>
 </head>
 <body>
@@ -140,7 +142,7 @@ footer {
 <header class="hero">
   <div class="eyebrow">Reference Guides · AI Engineering</div>
   <h1>All Necessary Topics Related to <span class="gradient">AI Engineering</span></h1>
-  <p class="lede">Three single-file HTML references covering the fundamentals every applied AI engineer needs: <strong>how LLMs work</strong>, <strong>how to talk to them</strong>, and <strong>how to manage what they remember</strong>. Each guide is dual-voice — a technical version (with diagrams, code, and cited papers) and a layman's version (plain English with analogies) at the bottom of every topic.</p>
+  <p class="lede">Four single-file HTML references covering the fundamentals every applied AI engineer needs: <strong>how LLMs work</strong>, <strong>how to talk to them</strong>, <strong>how to manage what they remember</strong>, and <strong>how to retrieve knowledge (RAG)</strong>. Each guide is dual-voice — a technical version (with diagrams, code, and cited papers) and a layman's version (plain English with analogies) at the bottom of every topic.</p>
 </header>
 
 <div class="cards">
@@ -194,12 +196,28 @@ footer {
     <a class="btn" href="context-engineering.html">Open guide →</a>
   </div>
 
+  <div class="card">
+    <div class="topics">10 topics · ~40 min read</div>
+    <h2>RAG &amp; Knowledge Systems</h2>
+    <p>How retrieval-augmented systems find, rank, and ground knowledge — from parsing and chunking to vector search, reranking, graphs, and multimodal retrieval.</p>
+    <ul>
+      <li>Chunking: fixed, semantic, structural, late chunking</li>
+      <li>Vector databases (Qdrant, Pinecone, Weaviate, pgvector, Chroma, Milvus)</li>
+      <li>Hybrid search (BM25 + vector) &amp; reciprocal rank fusion</li>
+      <li>Query rewriting, expansion, HyDE</li>
+      <li>Multi-hop &amp; agentic retrieval, GraphRAG</li>
+      <li>Reranking, metadata filtering, structured retrieval</li>
+      <li>Document parsing &amp; multimodal RAG</li>
+    </ul>
+    <a class="btn" href="rag-knowledge-systems.html">Open guide →</a>
+  </div>
+
 </div>
 
 <div class="about">
   <h3>About these guides</h3>
   <p>Each guide is a <strong>single self-contained HTML file</strong> — no build step, no dependencies, no internet required. Open directly in any modern browser. All citations resolve to arXiv papers and primary vendor documentation; each ID was fetched and verified against the publisher's metadata.</p>
-  <p>The "layman's version" panels at the bottom of every section use simple analogies so non-engineers (PMs, designers, curious developers) can follow along. Engineers get diagrams, comparison tables, and runnable snippets at the same source.</p>
+  <p>The "layman's version" panels at the bottom of every section use simple analogies so non-engineers (PMs, designers, curious developers) can follow along. Every section also ends with a <strong>বাংলা ব্যাখ্যা</strong> (Bangla explanation) panel. Engineers get diagrams, comparison tables, and runnable snippets at the same source.</p>
 </div>
 
 <footer>
