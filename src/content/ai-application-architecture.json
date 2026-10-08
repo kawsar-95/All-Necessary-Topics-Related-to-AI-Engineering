@@ -10,6 +10,16 @@
       "sub": "An LLM call is just one HTTP request. Building a <em>product</em> around it requires the same plumbing any modern app needs, plus a few new primitives: streaming, resumability, multi-tenancy, fallbacks, feature flags, and an API surface designed for partial results.",
       "body": [
         {
+          "type": "heading",
+          "level": 3,
+          "id": "s9-streaming-over-sse-websockets-http-chunked",
+          "html": "Streaming over SSE / WebSockets / HTTP chunked"
+        },
+        {
+          "type": "paragraph",
+          "html": "Users expect words to appear as the model writes them, not after a 3-second pause. Three transports:"
+        },
+        {
           "type": "list",
           "ordered": false,
           "items": [

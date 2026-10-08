@@ -1,5 +1,7 @@
-// One-time migration: scripts/legacy-content/*.json (HTML strings) to
-// src/content/<slug>.json (typed blocks), in the 13-part order.
+// One-time migration to src/content/<slug>.json (typed blocks), in the
+// 13-part order. Sources in scripts/legacy-content/:
+//   <old>.json  slug, title, lede, sources, section ids/nums/titles
+//   <old>.html  the original page; section sub/body/layman/bangla text
 // Run: node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/migrate-content.ts
 
 import { readFileSync, writeFileSync } from "node:fs";
@@ -11,6 +13,8 @@ import type { Lang } from "./migrate/code.ts";
 import { blocksText, collapse, compareText, inlineText, legacyText } from "./migrate/fidelity.ts";
 import type { Mismatch } from "./migrate/fidelity.ts";
 import { inlineFromHtml } from "./migrate/inline.ts";
+import { extractSection } from "./migrate/source.ts";
+import { parse } from "node-html-parser";
 
 type Part = { old: string; slug: string; title: string; tagline?: string };
 
@@ -38,6 +42,7 @@ const SECTION_ORDER: Record<string, string[]> = {
 // Keyed `${old}#${sectionId}#${voice}#${codeIndex}`, for blocks where detectLang is wrong.
 // The Python blocks below have no def/class/import line, so detection says "text".
 const CODE_LANG_OVERRIDES: Record<string, Lang> = {
+  "llm-fundamentals#s4#body#0": "python", // client.chat.completions.create(...) call
   "prompt-engineering#s1#body#0": "python", // messages = [...] with an f-string
   "prompt-engineering#s2#body#0": "python", // prompt = """...""" assignment
   "prompt-engineering#s4#body#2": "xml", // XML-tagged system message after one comment line
@@ -65,6 +70,7 @@ const warnings: string[] = [];
 const codeRows: { key: string; firstLine: string; lang: Lang; override: boolean }[] = [];
 const mismatches: { where: string; m: Mismatch }[] = [];
 const countLines: string[] = [];
+const restoreRows: { where: string; legacy: number; original: number }[] = [];
 let fallbackCount = 0;
 
 function countBlocks(blocks: Block[], counts: Record<string, number>): void {
@@ -74,6 +80,16 @@ function countBlocks(blocks: Block[], counts: Record<string, number>): void {
     if (block.type === "callout" || block.type === "analogy") countBlocks(block.blocks, counts);
     if (block.type === "panels") for (const p of block.panels) countBlocks(p.blocks, counts);
   }
+}
+
+function totalBlocks(blocks: Block[]): number {
+  return blocks.reduce((n, block) => {
+    if (block.type === "callout" || block.type === "analogy") return n + 1 + totalBlocks(block.blocks);
+    if (block.type === "panels") {
+      return n + 1 + block.panels.reduce((m, p) => m + totalBlocks(p.blocks), 0);
+    }
+    return n + 1;
+  }, 0);
 }
 
 function check(where: string, legacy: string, migrated: string): void {
@@ -96,6 +112,7 @@ for (const part of PARTS) {
   const legacy = JSON.parse(
     readFileSync(new URL(`${part.old}.json`, LEGACY_DIR), "utf8"),
   ) as LegacyFile;
+  const page = parse(readFileSync(new URL(`${part.old}.html`, LEGACY_DIR), "utf8"));
   const headingIds = new Set<string>();
   const counts: Record<string, number> = {};
 
@@ -103,14 +120,17 @@ for (const part of PARTS) {
   check(`${part.old}#lede`, legacyText(legacy.lede), collapse(inlineText(lede)));
 
   const sections: Section[] = reorder(legacy.sections, SECTION_ORDER[part.slug]).map((s, n) => {
+    // Section text comes from the original HTML page; the legacy JSON
+    // clipped many bodies. Ids, numbers, and titles come from the JSON.
+    const original = extractSection(page, s.id, `${part.old}.html`);
     const local: string[] = [];
-    const sub = inlineFromHtml(s.sub, local);
+    const sub = inlineFromHtml(original.sub, local);
     for (const w of local) warnings.push(`${part.old}#${s.id}#sub: ${w}`);
-    check(`${part.old}#${s.id}#sub`, legacyText(s.sub), collapse(inlineText(sub)));
+    check(`${part.old}#${s.id}#sub`, legacyText(original.sub), collapse(inlineText(sub)));
 
     const voice = (key: Voice): Block[] => {
       const where = `${part.old}#${s.id}#${key}`;
-      const parsed = parseBlocks(s[key], { where, warnings, headingIds, sectionId: s.id });
+      const parsed = parseBlocks(original[key], { where, warnings, headingIds, sectionId: s.id });
       const blocks = highlightBlocks(parsed, highlight, (code, i) => {
         const override = CODE_LANG_OVERRIDES[`${where}#${i}`];
         const lang = override ?? detectLang(code);
@@ -119,16 +139,30 @@ for (const part of PARTS) {
         return lang;
       });
       countBlocks(blocks, counts);
-      check(where, legacyText(s[key]), blocksText(blocks));
+      check(where, legacyText(original[key]), blocksText(blocks));
       return blocks;
     };
+
+    // Technical block count: legacy JSON body vs original HTML body.
+    const legacyBody = parseBlocks(s.body, {
+      where: `${part.old}#${s.id}#legacy-body`,
+      warnings: [],
+      headingIds: new Set<string>(),
+      sectionId: s.id,
+    });
+    const body = voice("body");
+    restoreRows.push({
+      where: `${part.slug}#${s.id}`,
+      legacy: totalBlocks(legacyBody),
+      original: totalBlocks(body),
+    });
 
     return {
       id: s.id,
       num: String(n + 1).padStart(2, "0"),
       title: s.title,
       sub,
-      body: voice("body"),
+      body,
       layman: voice("layman"),
       bangla: voice("bangla"),
     };
@@ -168,6 +202,11 @@ for (const row of codeRows) {
 }
 
 console.log(`\n## html fallback blocks: ${fallbackCount}`);
+
+console.log("\n## Technical blocks: legacy JSON body vs original HTML body (nested included)");
+console.log("| section | legacy JSON | original HTML |");
+console.log("|---|---|---|");
+for (const row of restoreRows) console.log(`| ${row.where} | ${row.legacy} | ${row.original} |`);
 
 const textCount = mismatches.filter(({ m }) => m.kind === "text").length;
 console.log(

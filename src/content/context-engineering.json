@@ -11,6 +11,16 @@
       "sub": "A model has a fixed-size working memory. Every byte you allocate competes with every other byte. Context engineering is the discipline of <em>deciding what lives where</em> — system prompt, history, tool definitions, retrieved docs, prior outputs, the user's actual request.",
       "body": [
         {
+          "type": "heading",
+          "level": 3,
+          "id": "s1-the-budget-model",
+          "html": "The budget model"
+        },
+        {
+          "type": "paragraph",
+          "html": "Treat the context window as a finite pie. Five claimants, each with a minimum allocation and a cost-per-token that varies:"
+        },
+        {
           "type": "diagram",
           "svg": "<svg viewBox=\"0 0 1100 320\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"Context window budget pie\">\n      \n      <text x=\"40\" y=\"32\" font-family=\"JetBrains Mono, monospace\" font-size=\"13\" fill=\"#a8b5c8\">budgeting a 200K-token window — illustrative allocations</text>\n\n      <g transform=\"translate(220, 170)\">\n        \n        \n        <path d=\"M0 0 L0 -120 A120 120 0 0 1 112.8 -42.4 Z\" fill=\"#22d3ee\" fill-opacity=\"0.65\" stroke=\"#22d3ee\"></path>\n        \n        <path d=\"M0 0 L112.8 -42.4 A120 120 0 0 1 110.4 46.6 Z\" fill=\"#a78bfa\" fill-opacity=\"0.65\" stroke=\"#a78bfa\"></path>\n        \n        <path d=\"M0 0 L110.4 46.6 A120 120 0 0 1 -110.4 46.6 Z\" fill=\"#34d399\" fill-opacity=\"0.65\" stroke=\"#34d399\"></path>\n        \n        <path d=\"M0 0 L-110.4 46.6 A120 120 0 0 1 -112.8 -42.4 Z\" fill=\"#fbbf24\" fill-opacity=\"0.65\" stroke=\"#fbbf24\"></path>\n        \n        <path d=\"M0 0 L-112.8 -42.4 A120 120 0 0 1 0 -120 Z\" fill=\"#f472b6\" fill-opacity=\"0.65\" stroke=\"#f472b6\"></path>\n\n        <text x=\"60\" y=\"-90\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\" fill=\"#0b0f17\" font-weight=\"700\">SYSTEM</text>\n        <text x=\"118\" y=\"0\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\" fill=\"#0b0f17\" font-weight=\"700\">TOOLS</text>\n        <text x=\"0\" y=\"90\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\" fill=\"#0b0f17\" font-weight=\"700\">RETRIEVAL</text>\n        <text x=\"-90\" y=\"55\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\" fill=\"#0b0f17\" font-weight=\"700\">HISTORY</text>\n        <text x=\"-72\" y=\"-30\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\" fill=\"#0b0f17\" font-weight=\"700\">USER+OUTPUT</text>\n      </g>\n\n      \n      <g transform=\"translate(450, 80)\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\">\n        <g><rect x=\"0\" y=\"0\" width=\"14\" height=\"14\" fill=\"#22d3ee\" fill-opacity=\"0.65\" stroke=\"#22d3ee\"></rect>\n           <text x=\"22\" y=\"11\" fill=\"#e2e8f0\">SYSTEM — persona, rules, schema</text>\n           <text x=\"280\" y=\"11\" fill=\"#cfd8e6\">≈ 8% · 16K tokens</text></g>\n        <g transform=\"translate(0,28)\">\n           <rect x=\"0\" y=\"0\" width=\"14\" height=\"14\" fill=\"#a78bfa\" fill-opacity=\"0.65\" stroke=\"#a78bfa\"></rect>\n           <text x=\"22\" y=\"11\" fill=\"#e2e8f0\">TOOLS — schemas, definitions</text>\n           <text x=\"280\" y=\"11\" fill=\"#cfd8e6\">≈ 7% · 14K tokens</text></g>\n        <g transform=\"translate(0,56)\">\n           <rect x=\"0\" y=\"0\" width=\"14\" height=\"14\" fill=\"#34d399\" fill-opacity=\"0.65\" stroke=\"#34d399\"></rect>\n           <text x=\"22\" y=\"11\" fill=\"#e2e8f0\">RETRIEVAL — RAG chunks</text>\n           <text x=\"280\" y=\"11\" fill=\"#cfd8e6\">≈ 40% · 80K tokens</text></g>\n        <g transform=\"translate(0,84)\">\n           <rect x=\"0\" y=\"0\" width=\"14\" height=\"14\" fill=\"#fbbf24\" fill-opacity=\"0.65\" stroke=\"#fbbf24\"></rect>\n           <text x=\"22\" y=\"11\" fill=\"#e2e8f0\">HISTORY — prior turns</text>\n           <text x=\"280\" y=\"11\" fill=\"#cfd8e6\">≈ 30% · 60K tokens</text></g>\n        <g transform=\"translate(0,112)\">\n           <rect x=\"0\" y=\"0\" width=\"14\" height=\"14\" fill=\"#f472b6\" fill-opacity=\"0.65\" stroke=\"#f472b6\"></rect>\n           <text x=\"22\" y=\"11\" fill=\"#e2e8f0\">USER + OUTPUT — current turn</text>\n           <text x=\"280\" y=\"11\" fill=\"#cfd8e6\">≈ 15% · 30K tokens</text></g>\n      </g>\n\n      <text x=\"40\" y=\"288\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\" fill=\"#a8b5c8\">retrieval usually dominates; reduce it first. system + tools are the floor.</text>\n    </svg>",
           "caption": "A 200K-token window broken into system + tools + retrieval + history + current turn. Percentages are typical for an agentic RAG app, not universal.",
@@ -126,6 +136,16 @@
       "title": "Conversation summarization & rolling memory",
       "sub": "A 50-turn chat is 50× the size of a 1-turn chat. Most of those tokens are <em>noise</em> — greetings, \"can you clarify,\" half-finished thoughts. Summarization trades raw history for compressed state, keeping the model coherent without the linear cost.",
       "body": [
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s2-when-to-summarize",
+          "html": "When to summarize"
+        },
+        {
+          "type": "paragraph",
+          "html": "Three triggers, in increasing aggressiveness:"
+        },
         {
           "type": "list",
           "ordered": true,
@@ -271,6 +291,49 @@
       "title": "Prompt caching strategies",
       "sub": "Frontier providers let you <strong>cache a prefix of your prompt</strong>: identical tokens at the start of a request cost dramatically less and run faster. Used well, caching drops 80–90% of the input bill for apps with stable system prompts and long retrieval sections.",
       "body": [
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s3-how-caching-works-anthropic-openai-gemini",
+          "html": "How caching works (Anthropic + OpenAI + Gemini)"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Provider",
+            "Mechanism",
+            "Cost",
+            "TTL",
+            "Min cache size"
+          ],
+          "rows": [
+            [
+              "<strong>Anthropic</strong>",
+              "Auto-cache of system + tools + first user message; explicit <code>cache_control</code> breakpoints for custom control",
+              "5–10× cheaper on cache hit (write pricing per tonne)",
+              "5 min (refreshes on hit)",
+              "1024 tokens (Claude 4 Sonnet), 4096 (Haiku)"
+            ],
+            [
+              "<strong>OpenAI</strong>",
+              "Auto-cache on prompts &gt;1024 tokens matching a recent prefix",
+              "50% off cached tokens",
+              "5–10 min (sliding window)",
+              "1024 tokens"
+            ],
+            [
+              "<strong>Gemini</strong>",
+              "Explicit <code>cachedContent</code> resource",
+              "~75% off (free for system+prompt, regular per-token for output)",
+              "Configurable, default ~60 min",
+              "2048 tokens (Flash), 4096 (Pro)"
+            ]
+          ]
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Anthropic's cache breakpoints</strong> are the most flexible: you mark up to 4 <em>ephemeral</em> blocks within a prompt. Anything before the breakpoint is cached; anything after is rebuilt each call. This lets you cache system + tools + retrieved docs (system), and pass only the new turn's user message.<a class=\"cite\" href=\"#src15\">[15]</a>"
+        },
         {
           "type": "heading",
           "level": 3,
@@ -446,6 +509,69 @@
         {
           "type": "heading",
           "level": 3,
+          "id": "s4-the-four-layer-model",
+          "html": "The four-layer model"
+        },
+        {
+          "type": "diagram",
+          "svg": "<svg viewBox=\"0 0 1100 280\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"Hierarchical memory layers\">\n      <text x=\"40\" y=\"32\" font-family=\"JetBrains Mono, monospace\" font-size=\"13\" fill=\"#a8b5c8\">hierarchical memory — fast/small layers close to the model, slow/large layers in storage</text>\n\n      <rect x=\"40\"  y=\"60\" width=\"240\" height=\"50\" rx=\"8\" fill=\"rgba(34,211,238,0.10)\" stroke=\"#22d3ee\"></rect>\n      <text x=\"160\" y=\"82\" text-anchor=\"middle\" font-family=\"Inter, sans-serif\" font-size=\"13\" font-weight=\"700\" fill=\"#22d3ee\">Working memory</text>\n      <text x=\"160\" y=\"100\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#cfd8e6\">in-context · current turn</text>\n\n      <rect x=\"40\"  y=\"130\" width=\"240\" height=\"50\" rx=\"8\" fill=\"rgba(167,139,250,0.10)\" stroke=\"#a78bfa\"></rect>\n      <text x=\"160\" y=\"152\" text-anchor=\"middle\" font-family=\"Inter, sans-serif\" font-size=\"13\" font-weight=\"700\" fill=\"#a78bfa\">Short-term</text>\n      <text x=\"160\" y=\"170\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#cfd8e6\">recent turns · this session</text>\n\n      <rect x=\"300\" y=\"130\" width=\"240\" height=\"50\" rx=\"8\" fill=\"rgba(52,211,153,0.10)\" stroke=\"#34d399\"></rect>\n      <text x=\"420\" y=\"152\" text-anchor=\"middle\" font-family=\"Inter, sans-serif\" font-size=\"13\" font-weight=\"700\" fill=\"#34d399\">Long-term</text>\n      <text x=\"420\" y=\"170\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#cfd8e6\">user prefs · known facts</text>\n\n      <rect x=\"560\" y=\"130\" width=\"240\" height=\"50\" rx=\"8\" fill=\"rgba(251,191,36,0.10)\" stroke=\"#fbbf24\"></rect>\n      <text x=\"680\" y=\"152\" text-anchor=\"middle\" font-family=\"Inter, sans-serif\" font-size=\"13\" font-weight=\"700\" fill=\"#fbbf24\">Episodic</text>\n      <text x=\"680\" y=\"170\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#cfd8e6\">past sessions · experiences</text>\n\n      <rect x=\"820\" y=\"130\" width=\"240\" height=\"50\" rx=\"8\" fill=\"rgba(244,114,182,0.10)\" stroke=\"#f472b6\"></rect>\n      <text x=\"940\" y=\"152\" text-anchor=\"middle\" font-family=\"Inter, sans-serif\" font-size=\"13\" font-weight=\"700\" fill=\"#f472b6\">External / Tools</text>\n      <text x=\"940\" y=\"170\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#cfd8e6\">RAG, databases, APIs</text>\n\n      <text x=\"40\"  y=\"220\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#a8b5c8\">size: small  ←————————————————→  unbounded</text>\n      <text x=\"40\"  y=\"240\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#a8b5c8\">latency: ns  ←————————————————→  ms–s</text>\n      <text x=\"40\"  y=\"260\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#a8b5c8\">\"attention\": always  ←—————————————→  only when retrieved</text>\n    </svg>",
+          "caption": "Four-layer hierarchical memory. Each layer trades size for attention: working memory is small but always attended; external storage is unbounded but only retrieved on demand.",
+          "captionBn": "এই ডায়াগ্রামে Working memory থেকে Short-term, Long-term, Episodic ও External / Tools পর্যন্ত চার-পাঁচ স্তরের hierarchical memory দেখানো হয়েছে। নিচের অক্ষগুলো পড়লে বোঝা যায়, ওপরের স্তর ছোট, দ্রুত ও সবসময় attended; নিচের স্তর বড়, ধীর ও শুধু প্রয়োজনে retrieve করা হয়।"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Layer",
+            "What lives there",
+            "Where it lives",
+            "Update cadence"
+          ],
+          "rows": [
+            [
+              "<strong>Working memory</strong>",
+              "The current prompt: system + tools + retrieved + current request",
+              "API request payload",
+              "Every call (ephemeral)"
+            ],
+            [
+              "<strong>Short-term</strong>",
+              "Recent turns of this session, recent tool results, recent decisions",
+              "Session store (DB row keyed by session_id)",
+              "Each turn, with rolling summarization"
+            ],
+            [
+              "<strong>Long-term</strong>",
+              "User preferences, known facts about the user, project context",
+              "Vector store + structured DB keyed by user_id",
+              "Slow: when explicit facts are extracted"
+            ],
+            [
+              "<strong>Episodic</strong>",
+              "Distilled \"memories\" of past sessions, lessons learned, what worked",
+              "Vector store keyed by user_id; written by a memory-update agent",
+              "End of session, or when triggered"
+            ],
+            [
+              "<strong>External / tools</strong>",
+              "The world: documents, code, databases, calendars, anything retrievable",
+              "Your DBs, RAG indices, search APIs",
+              "Retrieved on demand"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s4-the-memgpt-insight",
+          "html": "The MemGPT insight"
+        },
+        {
+          "type": "paragraph",
+          "html": "Packer et al. (2023) proposed treating the LLM's context like virtual memory: the model itself decides when to <em>evict</em> information from working memory to external storage, and when to <em>page it back in</em>. The model uses tool calls (<code>recall</code>, <code>archival_search</code>) to manipulate its own memory.<a class=\"cite\" href=\"#src2\">[2]</a> This is the architectural blueprint for every serious long-running AI agent in 2024–2025.<a class=\"cite\" href=\"#src14\">[14]</a>"
+        },
+        {
+          "type": "heading",
+          "level": 3,
           "id": "s4-the-memory-update-pattern",
           "html": "The memory-update pattern"
         },
@@ -543,8 +669,71 @@
       "sub": "When summarization is too lossy and you have no time to spare, <strong>compression</strong> removes redundancy and <strong>pruning</strong> drops irrelevant tokens. The goal: same information density, fewer tokens.",
       "body": [
         {
+          "type": "heading",
+          "level": 3,
+          "id": "s5-compression-techniques",
+          "html": "Compression techniques"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Technique",
+            "How it works",
+            "Compression ratio",
+            "Use case"
+          ],
+          "rows": [
+            [
+              "<strong>LLM summarisation</strong>",
+              "Ask the model to summarise; structured schema for fact preservation",
+              "5–20×",
+              "Conversation history, long documents"
+            ],
+            [
+              "<strong>LLMLingua</strong>",
+              "Small classifier prunes low-information words from prompts",
+              "5–20×",
+              "Latency-sensitive inference, prompt compression for cost"
+            ],
+            [
+              "<strong>Selective context</strong>",
+              "Use self-information (perplexity) to drop uninformative phrases",
+              "5×",
+              "RAG context pruning"
+            ],
+            [
+              "<strong>Embedding-based filtering</strong>",
+              "Score each chunk by relevance to the query, drop low-score chunks",
+              "Variable",
+              "RAG with many retrieved docs"
+            ],
+            [
+              "<strong>Token-budget knapsack</strong>",
+              "Greedy: include chunks in relevance order until budget is filled",
+              "Variable",
+              "RAG with strict context caps"
+            ],
+            [
+              "<strong>Deduplication</strong>",
+              "Near-duplicate detection (cosine &gt; 0.95), keep one copy",
+              "1.5–3×",
+              "RAG over a corpus with overlapping content"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s5-llmlingua-the-canonical-compression-model",
+          "html": "LLMLingua — the canonical compression model"
+        },
+        {
+          "type": "paragraph",
+          "html": "LLMLingua (Microsoft, 2023) trains a small classifier to predict which tokens are <em>informative</em> given the prompt; non-informative tokens are dropped. It can compress prompts 5–20× while preserving the LLM's ability to answer accurately.<a class=\"cite\" href=\"#src3\">[3]</a>"
+        },
+        {
           "type": "diagram",
-          "svg": "<svg viewBox=\"0 0 1100 200\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"LLMLingua compression pipeline\">\n      <text x=\"40\" y=\"32\" font-family=\"JetBrains Mono, monospace\" font-size=\"13\" fill=\"#a8b5c8\">LLMLingua pipeline: classifier marks low-info tokens for removal</text>\n\n      <rect x=\"40\" y=\"60\" width=\"600\" height=\"40\" rx=\"6\" fill=\"#0f172a\" stroke=\"#334155\"></rect>\n      <text x=\"56\" y=\"82\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#e2e8f0\">\"The user is asking about the weather in Dhaka which is the capital of Bangladesh...\"</text>\n\n      <line x1=\"660\" y1=\"80\" x2=\"730\" y2=\"80\" stroke=\"#94a3b8\" marker-end=\"url(#arr2)\"></line>\n      <text x=\"670\" y=\"68\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#a8b5c8\">classify</text>\n\n      <rect x=\"750\" y=\"60\" width=\"300\" height=\"40\" rx=\"6\" fill=\"rgba(34,211,238,0.10)\" stroke=\"#22d3ee\"></rect>\n      <text x=\"766\" y=\"82\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#22d3ee\">\"user asks Dhaka weather...\" (40% tokens)</text>\n\n      <text x=\"40\" y=\"140\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\" fill=\"#a8b5c8\">compression done BEFORE the LLM call — saves input tokens & latency</text>\n      <text x=\"40\" y=\"160\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\" fill=\"#a8b5c8\">some lossiness is acceptable for simple Q&A; not for factual lookups</text>\n    </svg>",
+          "svg": "<svg viewBox=\"0 0 1100 200\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"LLMLingua compression pipeline\">\n      <text x=\"40\" y=\"32\" font-family=\"JetBrains Mono, monospace\" font-size=\"13\" fill=\"#a8b5c8\">LLMLingua pipeline: classifier marks low-info tokens for removal</text>\n\n      <rect x=\"40\" y=\"60\" width=\"600\" height=\"40\" rx=\"6\" fill=\"#0f172a\" stroke=\"#334155\"></rect>\n      <text x=\"56\" y=\"82\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#e2e8f0\">\"The user is asking about the weather in Dhaka which is the capital of Bangladesh...\"</text>\n\n      <line x1=\"660\" y1=\"80\" x2=\"730\" y2=\"80\" stroke=\"#94a3b8\" marker-end=\"url(#arr2)\"></line>\n      <text x=\"670\" y=\"68\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#a8b5c8\">classify</text>\n\n      <rect x=\"750\" y=\"60\" width=\"300\" height=\"40\" rx=\"6\" fill=\"rgba(34,211,238,0.10)\" stroke=\"#22d3ee\"></rect>\n      <text x=\"766\" y=\"82\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#22d3ee\">\"user asks Dhaka weather...\" (40% tokens)</text>\n\n      <text x=\"40\" y=\"140\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\" fill=\"#a8b5c8\">compression done BEFORE the LLM call — saves input tokens &amp; latency</text>\n      <text x=\"40\" y=\"160\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\" fill=\"#a8b5c8\">some lossiness is acceptable for simple Q&amp;A; not for factual lookups</text>\n    </svg>",
           "caption": "LLMLingua and similar tools identify low-information phrases (\"the capital of Bangladesh\") and drop them while preserving the meaning.",
           "captionBn": "এখানে LLMLingua pipeline দেখানো হয়েছে: একটি classifier মূল prompt-এর কম-তথ্যপূর্ণ token চিহ্নিত করে, তারপর সংক্ষিপ্ত রূপ (প্রায় 40% tokens) তৈরি হয়। এই compression LLM call-এর আগেই হয়, ফলে input tokens ও latency কমে; তবে কিছু তথ্য হারাতে পারে।"
         },
@@ -674,6 +863,83 @@
       "sub": "A single tool call can return 100K tokens — a long code file, a thousand-row database result, a 50-page web page. Left unchecked, one tool result can fill your entire context window. Truncation is the discipline of keeping tool results <em>useful but bounded</em>.",
       "body": [
         {
+          "type": "heading",
+          "level": 3,
+          "id": "s6-the-truncation-toolkit",
+          "html": "The truncation toolkit"
+        },
+        {
+          "type": "panels",
+          "panels": [
+            {
+              "heading": "Length-based",
+              "blocks": [
+                {
+                  "type": "list",
+                  "ordered": false,
+                  "items": [
+                    "<strong>Hard cap:</strong> truncate to N tokens; append <code>[...truncated...]</code>.",
+                    "<strong>Head/tail:</strong> keep first K and last K tokens; drop the middle.",
+                    "<strong>Top-N lines:</strong> for structured output, keep first and last N lines."
+                  ]
+                }
+              ]
+            },
+            {
+              "heading": "Structure-based",
+              "blocks": [
+                {
+                  "type": "list",
+                  "ordered": false,
+                  "items": [
+                    "<strong>Keep schema, sample rows:</strong> for DB results, return schema + first 10 rows + count.",
+                    "<strong>Keep signatures:</strong> for code, return function signatures + types; drop bodies.",
+                    "<strong>Filter then return:</strong> ask the tool to return only what was asked."
+                  ]
+                }
+              ]
+            },
+            {
+              "heading": "Semantic",
+              "blocks": [
+                {
+                  "type": "list",
+                  "ordered": false,
+                  "items": [
+                    "<strong>Re-rank:</strong> return all, but mark top-K by relevance.",
+                    "<strong>Summarise on the fly:</strong> a small model summarises before returning.",
+                    "<strong>Embed-then-page:</strong> store in vector DB, return pointer + summary."
+                  ]
+                }
+              ]
+            },
+            {
+              "heading": "Smart bounds",
+              "blocks": [
+                {
+                  "type": "list",
+                  "ordered": false,
+                  "items": [
+                    "<strong>Reserve window:</strong> reserve tokens for tools in your budget (§1).",
+                    "<strong>Iterate:</strong> page through results; don't return the entire corpus.",
+                    "<strong>Just-in-time:</strong> store in object store, give reference, fetch on demand."
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s6-the-page-through-pattern",
+          "html": "The \"page through\" pattern"
+        },
+        {
+          "type": "paragraph",
+          "html": "The most production-friendly approach is to <strong>never return the whole result in one shot</strong>. Instead, the tool returns a small slice + a cursor, and the agent fetches more only if it needs to."
+        },
+        {
           "type": "code",
           "lang": "python",
           "code": "# A paginated search tool — returns 5 results + a cursor\ndef search_docs(query: str, cursor: str = None) -> dict:\n    results = vector_store.search(query, top_k=5, cursor=cursor)\n    return {\n        \"results\":      results.docs,            # < 2K tokens\n        \"next_cursor\":  results.next_cursor,\n        \"total\":        results.total_count,    # \"5,234 more\"\n    }\n\n# Agent can call search_docs again with the new cursor\n# if it wants to see more — bounded cost, iterative exploration.",
@@ -782,6 +1048,16 @@
       "sub": "Liu et al. (2023) showed a robust phenomenon: language models attend strongly to information at the <em>beginning</em> and <em>end</em> of their input, and perform close to random for information buried in the <em>middle</em>. The longer the context, the worse the middle. This single finding reframes how you should structure prompts.",
       "body": [
         {
+          "type": "heading",
+          "level": 3,
+          "id": "s7-the-evidence",
+          "html": "The evidence"
+        },
+        {
+          "type": "paragraph",
+          "html": "Liu et al. inserted random \"needle\" facts at varying positions in a long context and measured retrieval accuracy. Result: <strong>U-shaped performance curve</strong> — recall is high at the start, collapses in the middle, recovers at the end. The effect is worse for longer contexts and weaker models, but persists even in frontier models with 100K+ context windows.<a class=\"cite\" href=\"#src1\">[1]</a>"
+        },
+        {
           "type": "diagram",
           "svg": "<svg viewBox=\"0 0 1100 320\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"Lost in the middle U-curve\">\n      <text x=\"40\" y=\"32\" font-family=\"JetBrains Mono, monospace\" font-size=\"13\" fill=\"#a8b5c8\">retrieval accuracy by position in context (illustrative U-curve)</text>\n\n      \n      <line x1=\"60\" y1=\"60\" x2=\"60\" y2=\"240\" stroke=\"#334155\"></line>\n      <line x1=\"60\" y1=\"240\" x2=\"1060\" y2=\"240\" stroke=\"#334155\"></line>\n      <text x=\"46\" y=\"150\" text-anchor=\"middle\" transform=\"rotate(-90 46 150)\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#a8b5c8\">accuracy</text>\n      <text x=\"1060\" y=\"258\" text-anchor=\"end\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#a8b5c8\">position in context →</text>\n\n      \n      <path d=\"M 80 80 Q 200 78, 320 140 T 640 80 Q 800 78, 1000 90\" stroke=\"#fb7185\" stroke-width=\"2.5\" fill=\"none\"></path>\n      <text x=\"180\" y=\"70\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\" fill=\"#fb7185\" font-weight=\"600\">strong</text>\n      <text x=\"500\" y=\"170\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\" fill=\"#fb7185\" font-weight=\"600\">collapsed middle</text>\n      <text x=\"940\" y=\"68\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\" fill=\"#fb7185\" font-weight=\"600\">strong</text>\n\n      \n      <rect x=\"430\" y=\"60\" width=\"200\" height=\"180\" rx=\"8\" fill=\"rgba(244,114,182,0.05)\" stroke=\"#f472b6\" stroke-dasharray=\"3 3\"></rect>\n      <text x=\"530\" y=\"290\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\" fill=\"#f472b6\">↓ danger zone: put NOTHING critical here</text>\n\n      \n      <rect x=\"80\" y=\"40\" width=\"980\" height=\"6\" rx=\"2\" fill=\"#0f172a\" stroke=\"#334155\"></rect>\n      <rect x=\"80\" y=\"40\" width=\"120\" height=\"6\" rx=\"2\" fill=\"#34d399\" fill-opacity=\"0.6\"></rect>\n      <rect x=\"940\" y=\"40\" width=\"120\" height=\"6\" rx=\"2\" fill=\"#34d399\" fill-opacity=\"0.6\"></rect>\n      <rect x=\"430\" y=\"40\" width=\"100\" height=\"6\" rx=\"2\" fill=\"#fb7185\" fill-opacity=\"0.4\"></rect>\n    </svg>",
           "caption": "The U-curve: retrieval accuracy vs. position. Endpoints are reliable; the middle is risky. Place critical information at start or end.",
@@ -799,7 +1075,7 @@
           "items": [
             "→ <strong>Attention is biased by position.</strong> Transformers (without relative position encodings) have weaker attention to tokens far from the query token at the end. Long-context extensions (RoPE, ALiBi, YaRN) help but don't fully fix it.",
             "→ <strong>Training distribution.</strong> Most pre-training data has shorter contexts; models didn't learn to integrate information across long distances.",
-            "→ <strong>Positional primacy & recency.</strong> There's evidence models weight the first and last positions more heavily — the same bias that affects humans."
+            "→ <strong>Positional primacy &amp; recency.</strong> There's evidence models weight the first and last positions more heavily — the same bias that affects humans."
           ]
         },
         {

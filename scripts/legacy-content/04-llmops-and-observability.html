@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LLMOps & observability — An Engineer's Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bn: 'Noto Sans Bengali','Inter',system-ui,sans-serif;
+  --bg: #0b0f17;
+  --bg-card: #111827;
+  --bg-card-2: #0f172a;
+  --grid: rgba(148, 163, 184, 0.06);
+  --border: #1f2937;
+  --border-strong: #334155;
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-faint: #64748b;
+  --accent: #22d3ee;
+  --accent-2: #a78bfa;
+  --accent-3: #34d399;
+  --accent-warn: #fbbf24;
+  --accent-danger: #fb7185;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  --sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+body {
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 32px 96px;
+}
+.hero {
+  padding: 64px 0 48px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 32px;
+}
+.hero .eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+.hero h1 {
+  font-size: clamp(34px, 5vw, 56px);
+  font-weight: 800;
+  margin: 0 0 16px;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+.hero h1 .gradient {
+  background: linear-gradient(120deg, var(--accent) 0%, var(--accent-2) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.hero .lede {
+  font-size: 17px;
+  color: var(--text-dim);
+  max-width: 720px;
+  margin: 0;
+}
+.hero .meta {
+  margin-top: 24px;
+  display: flex; flex-wrap: wrap; gap: 12px 24px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-faint);
+}
+.hero .meta span { display: inline-flex; align-items: center; gap: 8px; }
+.hero .meta .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-3); box-shadow: 0 0 8px var(--accent-3); }
+
+.toc {
+  position: sticky; top: 0;
+  background: rgba(11, 15, 23, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 0 0 40px;
+  z-index: 10;
+}
+.toc-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 12px;
+}
+.toc ol {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 4px 12px;
+  margin: 0; padding: 0;
+  list-style: none;
+  counter-reset: toc;
+}
+.toc li { counter-increment: toc; }
+.toc a {
+  display: flex; gap: 10px; align-items: baseline;
+  padding: 6px 8px;
+  color: var(--text-dim);
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+.toc a:hover { background: var(--bg-card); color: var(--text); }
+.toc a::before {
+  content: counter(toc, decimal-leading-zero);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  min-width: 22px;
+}
+
+section { margin: 56px 0; padding-top: 16px; }
+.section-head {
+  display: flex; align-items: baseline; gap: 16px;
+  margin-bottom: 8px;
+}
+.section-num {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--accent);
+  background: rgba(34, 211, 238, 0.08);
+  border: 1px solid rgba(34, 211, 238, 0.25);
+  padding: 2px 10px;
+  border-radius: 4px;
+}
+section h2 {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0 0 8px;
+}
+section .sub {
+  color: var(--text-dim);
+  font-size: 16px;
+  margin: 0 0 28px;
+  max-width: 760px;
+}
+section h3 {
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 32px 0 12px;
+}
+section h4 {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-family: var(--mono);
+  margin: 24px 0 10px;
+}
+p { margin: 0 0 14px; }
+strong { color: var(--text); font-weight: 600; }
+code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--accent);
+}
+a { color: var(--accent); }
+
+.cite {
+  font-size: 0.78em;
+  vertical-align: super;
+  color: var(--accent);
+  text-decoration: none;
+  font-family: var(--mono);
+  padding: 0 1px;
+}
+.cite:hover { text-decoration: underline; }
+
+.diagram {
+  background: var(--bg-card-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 20px 0 24px;
+  overflow: hidden;
+  position: relative;
+}
+.diagram svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.diagram-caption {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+pre {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 16px 0 24px;
+}
+pre code {
+  background: transparent; border: none; padding: 0;
+  color: var(--text);
+  font-size: 13px;
+}
+.kw { color: var(--accent-2); }
+.str { color: var(--accent-3); }
+.num { color: var(--accent-warn); }
+.com { color: var(--text-faint); font-style: italic; }
+.fn { color: var(--accent); }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 13px;
+}
+th, td {
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+th {
+  background: var(--bg-card-2);
+  font-weight: 600;
+  color: var(--text);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-family: var(--mono);
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.015); }
+
+.callout {
+  border-left: 3px solid var(--accent);
+  background: rgba(34, 211, 238, 0.04);
+  padding: 14px 18px;
+  border-radius: 0 8px 8px 0;
+  margin: 18px 0;
+  font-size: 14px;
+}
+.callout.warn { border-left-color: var(--accent-warn); background: rgba(251, 191, 36, 0.04); }
+.callout.warn strong { color: var(--accent-warn); }
+.callout.danger { border-left-color: var(--accent-danger); background: rgba(251, 113, 133, 0.04); }
+.callout.danger strong { color: var(--accent-danger); }
+.callout.good { border-left-color: var(--accent-3); background: rgba(52, 211, 153, 0.04); }
+.callout.good strong { color: var(--accent-3); }
+
+.pill-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin: 16px 0 24px;
+}
+.pill {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.pill .label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.pill .val {
+  font-family: var(--mono);
+  font-size: 18px;
+  color: var(--accent);
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin: 16px 0 24px;
+}
+@media (max-width: 720px) {
+  .two-col { grid-template-columns: 1fr; }
+}
+.two-col .panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+.two-col .panel h4 { margin-top: 0; }
+
+/* LAYMAN */
+.layman {
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.05), rgba(251, 191, 36, 0.02));
+  border: 1px dashed rgba(251, 191, 36, 0.35);
+  border-radius: 12px;
+  padding: 18px 22px;
+  margin: 18px 0 8px;
+}
+.layman-head {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 10px;
+}
+.layman-head .icon {
+  font-size: 18px;
+  width: 32px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.layman-head .label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-warn);
+  font-weight: 600;
+}
+.layman-head .label small {
+  display: block;
+  color: var(--text-faint);
+  letter-spacing: 0.04em;
+  text-transform: none;
+  font-size: 11px;
+  margin-top: 2px;
+  font-weight: 400;
+}
+.layman p { margin: 0 0 12px; font-size: 15px; color: var(--text); line-height: 1.7; }
+.layman p:last-child { margin-bottom: 0; }
+.layman strong { color: #fde68a; }
+.layman code {
+  background: rgba(251, 191, 36, 0.08);
+  border-color: rgba(251, 191, 36, 0.25);
+  color: #fde68a;
+}
+.layman .analogy {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(251, 191, 36, 0.06);
+  border-left: 3px solid var(--accent-warn);
+  border-radius: 0 8px 8px 0;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.layman .analogy::before { content: "🍳 "; }
+
+/* BANGLA */
+.bangla {
+  background: linear-gradient(180deg, rgba(52, 211, 153, 0.06), rgba(52, 211, 153, 0.02));
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  border-radius: 12px;
+  padding: 18px 22px;
+  margin: 18px 0 8px;
+  font-family: var(--bn);
+}
+.bangla-head {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 10px;
+}
+.bangla-head .icon {
+  font-size: 18px;
+  width: 32px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(52, 211, 153, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.bangla-head .label {
+  font-family: var(--bn);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: var(--accent-3);
+  font-weight: 700;
+}
+.bangla-head .label small {
+  display: block;
+  color: var(--text-faint);
+  letter-spacing: 0.02em;
+  font-size: 12px;
+  margin-top: 2px;
+  font-weight: 400;
+}
+.bangla p { margin: 0 0 12px; font-family: var(--bn); font-size: 15px; color: var(--text); line-height: 1.9; }
+.bangla p:last-child { margin-bottom: 0; }
+.bangla strong { color: #6ee7b7; }
+.bangla code {
+  background: rgba(52, 211, 153, 0.08);
+  border-color: rgba(52, 211, 153, 0.25);
+  color: #6ee7b7;
+}
+.bangla ul { margin: 0 0 12px; padding-left: 22px; }
+.bangla li { font-family: var(--bn); font-size: 15px; color: var(--text); line-height: 1.9; margin-bottom: 4px; }
+.bangla .analogy {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(52, 211, 153, 0.06);
+  border-left: 3px solid var(--accent-3);
+  border-radius: 0 8px 8px 0;
+  font-family: var(--bn);
+  font-size: 14px;
+  line-height: 1.9;
+  color: var(--text-dim);
+}
+.bangla .analogy::before { content: "💡 "; }
+
+.sources {
+  margin-top: 80px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border);
+}
+.sources h2 { font-size: 22px; margin-bottom: 16px; }
+.sources ol { margin: 0; padding-left: 24px; font-size: 13px; color: var(--text-dim); }
+.sources li { margin-bottom: 8px; word-break: break-word; }
+.sources a { color: var(--text-dim); text-decoration: none; }
+.sources a:hover { color: var(--accent); }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 720px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+sup { font-size: 0.75em; }
+html { scroll-behavior: smooth; }
+section[id] { scroll-margin-top: 150px; }
+@media (max-width: 720px) { section[id] { scroll-margin-top: 16px; } }
+.shell { padding-left: clamp(16px, 4vw, 32px); padding-right: clamp(16px, 4vw, 32px); }
+.section-head { display: flex; align-items: center; gap: 14px; }
+.section-head h2 { margin: 0; line-height: 1.25; }
+.section-num { flex-shrink: 0; }
+.diagram { box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 8px 24px rgba(0,0,0,0.25); }
+.diagram-caption { line-height: 1.55; text-align: left; }
+.diagram-caption-bn {
+  margin-top: 6px;
+  font-family: var(--bn);
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--accent-3);
+  font-style: normal;
+  padding-left: 10px;
+  border-left: 2px solid rgba(52, 211, 153, 0.45);
+}
+.diagram-caption-bn::before { content: "বাংলা: "; font-weight: 600; }
+table { box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+tbody tr:nth-child(even) td { background: rgba(148, 163, 184, 0.035); }
+tbody tr:hover td { background: rgba(34, 211, 238, 0.05); }
+.toc a { transition: background .15s, color .15s; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.bangla, .layman { overflow-wrap: break-word; }
+.bangla p, .bangla li { text-align: left; }
+.bangla ul { padding-left: 22px; margin: 0 0 12px; }
+.bangla li { margin-bottom: 6px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+@media (max-width: 720px) {
+  table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
+  th, td { min-width: 110px; vertical-align: top; }
+  section, .two-col .panel, .layman, .bangla { min-width: 0; }
+  p code, li code, td code { overflow-wrap: anywhere; word-break: break-word; }
+  .two-col { grid-template-columns: minmax(0, 1fr); }
+  .toc { position: static; }
+}
+
+.diagram { padding: 18px; cursor: zoom-in; border-color: var(--border-strong, #334155); }
+.diagram::after {
+  content: "🔍 Click to enlarge";
+  position: absolute; top: 8px; right: 12px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.04em;
+  color: var(--text-dim); background: rgba(11, 15, 23, 0.85);
+  border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px;
+  opacity: 0.85; pointer-events: none;
+}
+.diagram:hover::after, .diagram:focus-visible::after { opacity: 1; color: var(--accent); border-color: var(--accent); }
+.diagram:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.diagram svg rect[stroke]:not([stroke="none"]) { stroke-width: 1.5; }
+.diagram svg text { paint-order: stroke; stroke: rgba(15, 23, 42, 0.55); stroke-width: 0.4px; }
+.diagram-caption { font-size: 13px; color: var(--text-dim); }
+@media (max-width: 720px) {
+  .diagram { overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 12px; }
+  .diagram svg { min-width: 780px; }
+  .diagram::after { content: "↔ Swipe · tap to enlarge"; }
+}
+.dz-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(5, 8, 14, 0.985);
+  display: flex; flex-direction: column; align-items: center;
+  overflow: auto; padding: 56px 16px 32px;
+  cursor: zoom-out;
+}
+.dz-overlay .dz-inner { width: max(1200px, 96vw); max-width: 2200px; flex-shrink: 0; }
+.dz-overlay svg { display: block; width: 100%; height: auto; background: var(--bg-card-2, #0f172a); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+.dz-overlay .diagram-caption { max-width: 1100px; margin-left: auto; margin-right: auto; font-size: 14px; }
+.dz-close {
+  position: fixed; top: 12px; right: 16px; z-index: 1001;
+  font-family: var(--mono); font-size: 12px; color: var(--text);
+  background: var(--bg-card); border: 1px solid var(--border-strong, #334155);
+  border-radius: 8px; padding: 6px 12px; cursor: pointer;
+}
+</style>
+<style>
+.inter-nav { margin-top: 64px; padding: 18px 22px; background: var(--bg-card-2); border: 1px solid var(--border); border-radius: 12px; }
+.inter-nav .toc-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 12px; }
+.inter-nav-list { font-size: 13px; line-height: 1.8; color: var(--text-dim); }
+.inter-nav-list a { color: var(--text-dim); text-decoration: none; padding: 2px 4px; border-radius: 4px; }
+.inter-nav-list a:hover { background: var(--bg-card); color: var(--accent); }
+.inter-nav-list a.current { color: var(--accent); background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.25); }
+</style>
+</head>
+<body>
+<div class="shell">
+<header class="hero">
+  <div class="eyebrow">Agents &amp; Agentic Systems · From an Engineer's Lens</div>
+  <h1>LLMOps & observability <span class="gradient">— chapter 04 of 9</span></h1>
+  <p class="lede">Tracing with Langfuse / LangSmith / Helicone / Arize Phoenix / Braintrust; per-request token, cost, and latency tracking; prompt and agent versioning; A/B testing; replay and debugging; drift detection when model upgrades silently change behaviour; feedback loops that grow your eval dataset. This is chapter <strong>04</strong> of a 9-part series; every chapter is a single self-contained HTML file. <strong style="color: var(--accent-warn);">Each section ships in two voices:</strong> the engineer's version (technical, with code &amp; diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।</p>
+  <div class="meta">
+    <span><span class="dot"></span>9 topics · ~50 min read</span>
+    <span>Built from primary papers &amp; vendor docs</span>
+    <span>Updated to Q3 2025</span>
+  </div>
+</header>
+<nav class="toc">
+  <div class="toc-title">Contents</div>
+  <ol>
+    <li><a href="#s4">LLMOps & observability</a></li>
+  </ol>
+</nav>
+<section id="s4">
+  <div class="section-head"><span class="section-num">04</span><h2>LLMOps &amp; observability</h2></div>
+  <p class="sub">Traditional DevOps answers "did the request return 200?" LLM apps need richer questions: <em>did the model return the right answer, at the right cost, in the right tone, with no leakage?</em> The discipline of answering those is <strong>LLMOps</strong>, and it has its own toolchain.</p>
+
+  <h3>Tracing</h3>
+  <p>An LLM <strong>trace</strong> is a tree of <em>spans</em>: the user request, the system prompt assembly, the LLM call, every tool invocation, the result. The four leading tracing tools in 2025:</p>
+  <table>
+    <thead><tr><th>Tool</th><th>Strength</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Langfuse</strong></td><td>Open-source, OpenTelemetry-native, self-hostable</td></tr>
+      <tr><td><strong>LangSmith</strong></td><td>Polished UI, deep LangChain integration</td></tr>
+      <tr><td><strong>Helicone</strong></td><td>Drop-in proxy that captures everything with one env-var change</td></tr>
+      <tr><td><strong>Arize Phoenix</strong></td><td>Evaluation-first, embeddings-aware drift detection</td></tr>
+      <tr><td><strong>Braintrust</strong></td><td>Eval + trace in one workspace</td></tr>
+    </tbody>
+  </table>
+
+  <div class="diagram">
+    <svg viewBox="0 0 1100 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Agent run as a tree of traced spans">
+      <text x="40" y="36" font-family="JetBrains Mono, monospace" font-size="12" fill="#a8b5c8">trace_id: 7f2c… | agent_run_id: 91 | user: u_8421</text>
+      <line x1="0" y1="48" x2="1100" y2="48" stroke="#1f2937"/>
+      <!-- Root -->
+      <rect x="40" y="64" width="280" height="42" rx="6" fill="#0f172a" stroke="#22d3ee"/>
+      <text x="56" y="82" font-family="JetBrains Mono, monospace" font-size="11" fill="#22d3ee">POST /agent/run (1.8 s)</text>
+      <text x="56" y="98" font-family="JetBrains Mono, monospace" font-size="10" fill="#94a3b8">user: "plan my Tokyo trip"</text>
+      <!-- Children -->
+      <rect x="360" y="64" width="220" height="42" rx="6" fill="#0f172a" stroke="#a78bfa"/>
+      <text x="376" y="82" font-family="JetBrains Mono, monospace" font-size="11" fill="#a78bfa">llm.plan (0.6 s, 412 tok)</text>
+      <text x="376" y="98" font-family="JetBrains Mono, monospace" font-size="10" fill="#94a3b8">plan: [search, weather, fx]</text>
+      <rect x="600" y="64" width="180" height="42" rx="6" fill="#0f172a" stroke="#34d399"/>
+      <text x="616" y="82" font-family="JetBrains Mono, monospace" font-size="11" fill="#34d399">tool.weather (0.2 s)</text>
+      <text x="616" y="98" font-family="JetBrains Mono, monospace" font-size="10" fill="#94a3b8">cached ✓</text>
+      <rect x="800" y="64" width="220" height="42" rx="6" fill="#0f172a" stroke="#fbbf24"/>
+      <text x="816" y="82" font-family="JetBrains Mono, monospace" font-size="11" fill="#fbbf24">tool.fx_rates (0.4 s)</text>
+      <text x="816" y="98" font-family="JetBrains Mono, monospace" font-size="10" fill="#94a3b8">usd_jpy: 154.2</text>
+      <rect x="360" y="130" width="220" height="42" rx="6" fill="#0f172a" stroke="#a78bfa"/>
+      <text x="376" y="148" font-family="JetBrains Mono, monospace" font-size="11" fill="#a78bfa">llm.synthesize (0.9 s)</text>
+      <text x="376" y="164" font-family="JetBrains Mono, monospace" font-size="10" fill="#94a3b8">487 tok out · cached prefix 80%</text>
+      <rect x="600" y="130" width="180" height="42" rx="6" fill="#0f172a" stroke="#34d399"/>
+      <text x="616" y="148" font-family="JetBrains Mono, monospace" font-size="11" fill="#34d399">tool.email.send (0.3 s)</text>
+      <text x="616" y="164" font-family="JetBrains Mono, monospace" font-size="10" fill="#94a3b8">user approved ✓</text>
+      <!-- Edges -->
+      <line x1="320" y1="86" x2="360" y2="86" stroke="#94a3b8"/>
+      <line x1="580" y1="76" x2="600" y2="76" stroke="#94a3b8"/>
+      <line x1="780" y1="86" x2="800" y2="86" stroke="#94a3b8"/>
+      <line x1="180" y1="106" x2="470" y2="130" stroke="#94a3b8"/>
+      <line x1="470" y1="172" x2="690" y2="172" stroke="#94a3b8"/>
+      <!-- Summary -->
+      <rect x="40" y="200" width="1020" height="48" rx="6" fill="#111827" stroke="#334155"/>
+      <text x="60" y="220" font-family="JetBrains Mono, monospace" font-size="11" fill="#a8b5c8">cost: $0.0042 · input 812 tok · output 487 tok · latency p50 1.6 s · p99 4.1 s</text>
+      <text x="60" y="240" font-family="JetBrains Mono, monospace" font-size="10" fill="#94a3b8">evals: faithfulness 0.91 · task_success 1.00 · no_pii_leak ✓</text>
+    </svg>
+    <div class="diagram-caption">A single agent run as a traced tree: parent (POST), LLM calls (in violet), tool calls (in green/yellow), approval gate, plus a cost and latency footer.</div>
+    <div class="diagram-caption diagram-caption-bn">একটি এজেন্ট রান traced tree হিসেবে: parent POST, LLM calls (বেগুনি), tool calls (সবুজ/হলুদ), approval gate, এবং খরচ ও latency ফুটার।</div>
+  </div>
+
+  <h3>Token, cost, and latency tracking</h3>
+  <p>Every request must record: <strong>input tokens</strong>, <strong>output tokens</strong>, <strong>model</strong>, <strong>cost</strong> (computed from vendor's pricing), <strong>latency</strong> (TTFT, total), and <strong>cache hit</strong>. Tag with <code>user_id</code>, <code>feature</code>, <code>experiment</code>. This data is the substrate for every other LLMOps question — "is feature X losing money?", "is the new model slower?"</p>
+
+  <h3>Prompt and agent versioning</h3>
+  <p>Prompts are code. Treat them like code: store in git, version them, review them via PR, deploy via CI. Each prompt version gets a stable ID; every trace carries the prompt ID. When something breaks, you can answer "what prompt version were users on?" instantly.</p>
+
+  <h3>A/B testing prompts and models in production</h3>
+  <p>Route traffic between two prompt versions (or two models) by <code>user_id</code> hash. Measure: cost, latency, evals run on the output, user feedback. Stop the experiment when one variant wins on the metric you chose (and you didn't peak on it after one bad afternoon).</p>
+
+  <h3>Replay and debugging</h3>
+  <p>When a user complains, you should be able to pull the trace, see every prompt and every model reply, identify the failure, and <strong>replay</strong> the exact request against a different model or prompt to verify the fix. Langfuse, Helicone, and LangSmith all give you a replay button.</p>
+
+  <h3>Drift detection (silent behaviour changes)</h3>
+  <p>When OpenAI swaps GPT-4 for GPT-4-0613 or Anthropic bumps the weights of a "same-named" model, your outputs drift in ways your offline evals won't catch. The fix: run a small fraction of production traffic (1–5%) through both the old and new model, compare evals, alert on delta. Arize Phoenix and Braintrust automate this.</p>
+
+  <h3>Feedback loops</h3>
+  <p>Capture thumbs-up / thumbs-down (or richer signals) and feed the failures into your eval dataset. After three months you'll have a thousand real failures that's worth more than ten thousand synthetic ones.</p>
+
+  <aside class="layman">
+    <div class="layman-head"><span class="icon">🔭</span><span class="label">Layman's version<small>plain English, no jargon</small></span></div>
+    <p><strong>LLMOps is "DevOps for AI apps."</strong> In a normal web app, you know if it crashed because you see a red error in your dashboard. In an AI app, the call might return 200 OK and the model might still be giving wrong answers, expensive answers, or biased answers. So you need new tools that watch for those things.</p>
+    <p><strong>Tracing = a flight recorder for every request.</strong> When a user says "your AI gave me a weird answer yesterday," you should be able to pull up the exact request, see every prompt, every model call, every tool it used, the cost, and the latency — in one view. The big tracing tools (Langfuse, LangSmith, Helicone, Arize Phoenix) all do this.</p>
+    <p><strong>Token and latency tracking is your new "errors dashboard.</strong> Every call should write down how many tokens it used, how much it cost, how fast it was, and whether the cache worked. Tag every call with who made it, what feature was running, and which experiment it was part of. Now you can answer "which feature is burning the budget?" instantly.</p>
+    <p><strong>Prompt versioning = prompts are code.</strong> Stop editing prompts in the admin panel. Put them in git, give them version IDs, deploy them through CI. When something breaks, you can say "users on version 7 reported this," not "uh, I changed the prompt last Tuesday."</p>
+    <p><strong>A/B testing = "let's see which version people like more."</strong> Send 50% of users to prompt A, 50% to prompt B. Measure cost, speed, thumbs-up rate. The winner becomes the default.</p>
+    <p><strong>Drift detection = "did the AI quietly get worse?"</strong> AI vendors upgrade models without telling you, and the new version might be subtly worse on your specific workload. The fix: send 5% of traffic through the new model, compare the answers, alert if quality dropped.</p>
+    <p><strong>Feedback loops = "learn from complaints."</strong> When users click thumbs-down, save that exact trace into your eval set. Three months from now you'll have hundreds of real-world failures to test against, worth more than thousands of synthetic ones.</p>
+    <div class="analogy"><strong>The black-box flight recorder analogy:</strong> every LLM call should leave a black-box flight recorder behind. The recorder should write down the prompt, the model's reply, the cost, the latency, which user, which feature, which experiment — so when something goes wrong (or silently degrades), you can replay the exact moment and figure out why.</div>
+  </aside>
+  <aside class="bangla">
+    <div class="bangla-head"><span class="icon">🇧🇩</span><span class="label">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>
+    <p><strong>LLMOps</strong> হলো "DevOps for AI apps"। সাধারণ ওয়েব অ্যাপে আপনি জানেন এটি ক্র্যাশ করেছে কারণ ড্যাশবোর্ডে লাল ত্রুটি দেখেন। AI অ্যাপে কল 200 OK ফেরত দিতে পারে, অথচ মডেল ভুল, ব্যয়বহুল বা পক্ষপাতদুষ্ট উত্তর দিতে পারে। তাই এই বিষয়গুলো দেখার নতুন সরঞ্জাম দরকার।</p>
+    <p><strong>Tracing = প্রতিটি request-এর জন্য flight recorder:</strong> ব্যবহারকারী বললে "আপনার AI গতকাল আমাকে অদ্ভুত উত্তর দিয়েছে," আপনি সেই নির্দিষ্ট request টেনে এনে প্রতিটি prompt, প্রতিটি model call, প্রতিটি ব্যবহৃত tool, খরচ ও latency এক দৃশ্যে দেখতে পারবেন। প্রধান tracing tools: Langfuse (open-source, OpenTelemetry-native, self-hostable), LangSmith (LangChain ইন্টিগ্রেশন), Helicone (একটি env-var দিয়ে সব ক্যাপচার), Arize Phoenix (evaluation-first), Braintrust (eval + trace এক জায়গায়)।</p>
+    <p><strong>Token, cost ও latency tracking:</strong> প্রতিটি request রেকর্ড করুক: <strong>input tokens</strong>, <strong>output tokens</strong>, <strong>model</strong>, <strong>cost</strong> (vendor-এর pricing থেকে হিসাব), <strong>latency</strong> (TTFT, total), ও <strong>cache hit</strong>। <code>user_id</code>, <code>feature</code>, <code>experiment</code> দিয়ে tag করুন। এই ডেটাই প্রতিটি অন্য LLMOps প্রশ্নের ভিত্তি।</p>
+    <p><strong>Prompt ও agent versioning:</strong> prompt হলো কোড। কোডের মতোই git-এ রাখুন, ভার্সন করুন, PR-এ review করুন, CI দিয়ে deploy করুন। প্রতিটি prompt version-এর একটি স্থিত ID থাকবে; প্রতিটি trace সেই prompt ID বহন করবে।</p>
+    <p><strong>A/B testing prompts ও models:</strong> <code>user_id</code> hash দিয়ে দুটি prompt version (বা দুটি model)-এর মধ্যে traffic রাউট করুন। Cost, latency, output-এ চালানো eval, ব্যবহারকারীর প্রতিক্রিয়া মাপুন। নির্বাচিত মেট্রিকে একটি ভ্যারিয়েন্ট জিতলে পরীক্ষা বন্ধ করুন।</p>
+    <p><strong>Replay ও debugging:</strong> ব্যবহারকারী অভিযোগ করলে trace টেনে এনে প্রতিটি prompt ও প্রতিটি model reply দেখুন, ব্যর্থতা চিহ্নিত করুন, এবং সেই exact request ভিন্ন model বা prompt-এ <strong>replay</strong> করে fix যাচাই করুন।</p>
+    <p><strong>Drift detection (silent behaviour changes):</strong> OpenAI GPT-4-কে GPT-4-0613 দিয়ে প্রতিস্থাপন করলে বা Anthropic "same-named" মডেলের weights আপডেট করলে, আপনার output-গুলো আপনার offline eval ধরতে পারবে না এমনভাবে drift করে। সমাধান: production traffic-এর একটি ছোট অংশ (১–৫%) একই সাথে পুরোনো ও নতুন মডেলের মধ্য দিয়ে চালান, eval তুলনা করুন, delta-তে সতর্কতা দিন। Arize Phoenix ও Braintrust এটি স্বয়ংক্রিয় করে।</p>
+    <p><strong>Feedback loops:</strong> thumbs-up / thumbs-down (বা সমৃদ্ধ সংকেত) ক্যাপচার করুন এবং ব্যর্থতাগুলো আপনার eval dataset-এ ফিড করুন। তিন মাস পর আপনার কাছে এক হাজার বাস্তব ব্যর্থতা থাকবে, যা দশ হাজার synthetic-এর চেয়ে বেশি মূল্যবান।</p>
+    <div class="analogy"><strong>Black-box flight recorder উপমা:</strong> প্রতিটি LLM কল একটি black-box flight recorder রেখে আসা উচিত। Recorder prompt, model reply, খরচ, latency, কোন ব্যবহারকারী, কোন feature, কোন experiment — সব লিখে রাখুক, যাতে কিছু ভুল হলে (বা নীরবে খারাপ হলে) আপনি সেই মুহূর্তটি replay করে বুঝতে পারেন কেন।</div>
+  </aside>
+</section>
+<section class="sources" id="sources">
+  <h2>Sources</h2>
+  <p style="color: var(--text-faint); font-size: 13px; margin-bottom: 16px;">All citations resolve to primary papers (arXiv), vendor documentation, and reference manuals from the publishers and project authors. Each ID was verified against the publisher's metadata at fetch time.</p>
+  <ol id="srcList">
+    <li id="src1"><a href="https://arxiv.org/abs/2210.03629">Yao et al., "ReAct: Synergizing Reasoning and Acting in Language Models" (ICLR 2023)</a></li>
+    <li id="src2"><a href="https://arxiv.org/abs/2305.04091">Wei et al., "Plan-and-Execute Agents" / "Chain-of-Thought Prompting Elicits Reasoning in Large Language Models" — NeurIPS 2022</a></li>
+    <li id="src3"><a href="https://arxiv.org/abs/2303.11381">Shinn et al., "Reflexion: Language Agents with Verbal Reinforcement Learning" — NeurIPS 2023</a></li>
+    <li id="src4"><a href="https://arxiv.org/abs/2305.18323">Xu et al., "ReWOO: Decoupling Reasoning from Observations for Efficient Augmented Language Models"</a></li>
+    <li id="src5"><a href="https://www.anthropic.com/engineering/built-multi-agent-research-system">Anthropic Engineering blog — "How we built our multi-agent research system" (2025)</a></li>
+    <li id="src6"><a href="https://langchain-ai.github.io/langgraph/">LangGraph — official documentation (LangChain)</a></li>
+    <li id="src7"><a href="https://temporal.io/blog/temporal-for-llm-agents">Temporal — "Durable Execution for LLM Agents"</a></li>
+    <li id="src8"><a href="https://arxiv.org/abs/2310.06825">Park et al., "Generative Agents: Interactive Simulacra of Human Behavior" — 2023</a></li>
+    <li id="src9"><a href="https://www.anthropic.com/news/3-5-models-and-computer-use">Anthropic — "Introducing computer use, a new Claude 3.5 Sonnet capability" (Oct 2024)</a></li>
+    <li id="src10"><a href="https://docs.anthropic.com/en/docs/build-with-claude/tool-use/overview">Anthropic — Tool use / function calling documentation</a></li>
+    <li id="src11"><a href="https://platform.openai.com/docs/guides/function-calling">OpenAI — Function calling guide</a></li>
+    <li id="src12"><a href="https://modelcontextprotocol.io/introduction">Anthropic — Model Context Protocol (MCP) specification</a></li>
+    <li id="src13"><a href="https://arxiv.org/abs/2309.06180">Kwon et al., "Efficient Memory Management for Large Language Model Serving with PagedAttention" — vLLM paper, SOSP 2023</a></li>
+    <li id="src14"><a href="https://arxiv.org/abs/2312.07104">Zheng et al., "SGLang: Efficient Execution of Structured Language Model Programs" — 2023</a></li>
+    <li id="src15"><a href="https://github.com/ggerganov/llama.cpp">llama.cpp — open-source GGUF-native inference (ggerganov)</a></li>
+    <li id="src16"><a href="https://arxiv.org/abs/2306.00978">Lin et al., "AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration" — MLSys 2024</a></li>
+    <li id="src17"><a href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching">Anthropic — Prompt caching documentation</a></li>
+    <li id="src18"><a href="https://arxiv.org/abs/2306.05685">Zheng et al., "Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena" — NeurIPS 2023</a></li>
+    <li id="src19"><a href="https://arxiv.org/abs/2309.15217">Es et al., "Ragas: Automated Evaluation of Information Retrieval Augmented Language Models" — 2023</a></li>
+    <li id="src20"><a href="https://arxiv.org/abs/2405.00072">Yue et al., "Large Language Model Cascades with Mixture of Thought Representations" — 2024</a></li>
+    <li id="src21"><a href="https://github.com/zilliztech/GPTCache">GPTCache — open-source semantic cache</a></li>
+    <li id="src22"><a href="https://arxiv.org/abs/2501.12948">Guo et al., "DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via RL" — 2025</a></li>
+    <li id="src23"><a href="https://arxiv.org/abs/2310.06839">Jiang et al., "LLMLingua: Compressing Prompts for Accelerated Inference of Large Language Models" — EMNLP 2023</a></li>
+    <li id="src24"><a href="https://docs.litellm.ai/">LiteLLM — unified interface for 100+ LLMs</a></li>
+    <li id="src25"><a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/">OWASP — "Top 10 for LLM Applications" (LLM01 Prompt Injection, 2025)</a></li>
+    <li id="src26"><a href="https://arxiv.org/abs/2212.08073">Bai et al., "Constitutional AI: Harmlessness from AI Feedback" — Anthropic, 2022</a></li>
+    <li id="src27"><a href="https://github.com/NVIDIA/NeMo-Guardrails">NVIDIA NeMo Guardrails — open-source toolkit</a></li>
+    <li id="src28"><a href="https://arxiv.org/abs/2409.12191">Qwen2-VL Team, "Qwen2-VL: Enhancing Vision-Language Model's Perception of the World at Any Resolution" — 2024</a></li>
+    <li id="src29"><a href="https://platform.openai.com/docs/guides/realtime">OpenAI — Realtime API documentation</a></li>
+    <li id="src30"><a href="https://platform.openai.com/docs/guides/production-best-practices">OpenAI — Production best practices guide</a></li>
+  </ol>
+</section>
+<div class="inter-nav"><div class="toc-title">All chapters in this guide</div><div class="inter-nav-list"><a href="agents-and-agentic-systems.html">01. Agents & agentic systems</a> · <a href="tool-use-and-integrations.html">02. Tool use & integrations (incl. MCP)</a> · <a href="inference.html">03. Inference (servers, quantization, providers)</a> · <a class="current" href="llmops-and-observability.html">04. LLMOps & observability</a> · <a href="evaluation-engineering.html">05. Evaluation engineering</a> · <a href="cost-and-performance-optimization.html">06. Cost & performance optimisation</a> · <a href="safety-security-and-guardrails.html">07. Safety, security & guardrails</a> · <a href="multimodal-engineering.html">08. Multimodal engineering (vision, voice, video)</a> · <a href="ai-application-architecture.html">09. AI application architecture</a></div></div>
+<footer style="margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--border); color: var(--text-faint); font-size: 12px;">
+  Built as a single-file reference. Open in any browser. Citations verified against each publisher's metadata at fetch time.
+</footer>
+</div>
+<script>
+(function () {
+  var open = null;
+  function close() { if (open) { open.remove(); open = null; document.body.style.overflow = ''; } }
+  function show(d) {
+    var svg = d.querySelector('svg'); if (!svg) return;
+    var o = document.createElement('div'); o.className = 'dz-overlay'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true');
+    var inner = document.createElement('div'); inner.className = 'dz-inner';
+    inner.appendChild(svg.cloneNode(true));
+    d.querySelectorAll('.diagram-caption').forEach(function (c) { inner.appendChild(c.cloneNode(true)); });
+    var b = document.createElement('button'); b.className = 'dz-close'; b.type = 'button'; b.textContent = 'Close ✕ (Esc)';
+    o.appendChild(inner); o.appendChild(b); o.addEventListener('click', close);
+    document.body.appendChild(o); document.body.style.overflow = 'hidden'; open = o; b.focus();
+  }
+  document.querySelectorAll('.diagram').forEach(function (d) {
+    d.setAttribute('tabindex', '0'); d.setAttribute('role', 'button'); d.setAttribute('aria-label', 'Enlarge diagram');
+    d.addEventListener('click', function () { show(d); });
+    d.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); show(d); } });
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+})();
+</script>
+</body>
+</html>

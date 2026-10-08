@@ -10,13 +10,23 @@
       "sub": "Text was the first modality. In 2025, every production AI app combines at least two of <strong>vision</strong>, <strong>voice</strong>, <strong>image generation</strong>, and <strong>video generation</strong>. Multimodal engineering is the discipline of choosing models, latency budgets, and pipelines for each.",
       "body": [
         {
+          "type": "heading",
+          "level": 3,
+          "id": "s8-vision-image-understanding-ocr-via-llm-document-ai",
+          "html": "Vision: image understanding, OCR-via-LLM, document AI"
+        },
+        {
+          "type": "paragraph",
+          "html": "Native multimodal models (GPT-4o, Claude 4, Gemini 2.5, Qwen3-VL) take images directly. The killer use cases:"
+        },
+        {
           "type": "list",
           "ordered": false,
           "items": [
             "<strong>OCR-via-LLM</strong>: an LLM beats Tesseract on messy photos, handwritten notes, and structured forms. Often no separate OCR step needed.<a class=\"cite\" href=\"#src28\">[28]</a>",
             "<strong>Document AI</strong>: PDF understanding with layout awareness (Claude, Mistral OCR, Qwen2-VL).",
             "<strong>Chart/diagram extraction</strong>: ask the model to read a chart and emit JSON.",
-            "<strong>Visual Q&A</strong>: \"what's wrong with this screenshot?\""
+            "<strong>Visual Q&amp;A</strong>: \"what's wrong with this screenshot?\""
           ]
         },
         {

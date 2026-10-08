@@ -10,6 +10,16 @@
       "sub": "An LLM is just a text generator until you give it <strong>tools</strong>: a way to call your API, run code, query a database, or read a file. Tool design is the difference between a chatbot demo and a production system. The single highest-leverage decision is the quality of your tool descriptions.",
       "body": [
         {
+          "type": "heading",
+          "level": 3,
+          "id": "s2-tool-function-schema-design",
+          "html": "Tool/function schema design"
+        },
+        {
+          "type": "paragraph",
+          "html": "A tool is a JSON Schema (or a Pydantic / Zod object) plus a short description that the LLM reads before deciding to call it. Anthropic and OpenAI both document the same rules:<a class=\"cite\" href=\"#src10\">[10]</a><a class=\"cite\" href=\"#src11\">[11]</a>"
+        },
+        {
           "type": "list",
           "ordered": false,
           "items": [

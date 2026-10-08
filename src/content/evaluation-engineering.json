@@ -12,6 +12,16 @@
         {
           "type": "heading",
           "level": 3,
+          "id": "s5-offline-evals-golden-datasets-regression-tests",
+          "html": "Offline evals: golden datasets, regression tests"
+        },
+        {
+          "type": "paragraph",
+          "html": "A <strong>golden dataset</strong> is a fixed set of (input, expected_output) pairs the model is run against on every change. Build it once, grow it from real failures, never let it decay. Run it in CI; block the release if accuracy drops below threshold."
+        },
+        {
+          "type": "heading",
+          "level": 3,
           "id": "s5-llm-as-judge",
           "html": "LLM-as-judge"
         },

@@ -10,6 +10,16 @@
       "sub": "LLM bills scale with usage. Three knobs let you cut cost by 5–50× without losing quality: <strong>cascade</strong> (cheap → expensive routing), <strong>cache</strong> (semantic, prefix, output), and <strong>compress</strong> (prompt compression, distillation).",
       "body": [
         {
+          "type": "heading",
+          "level": 3,
+          "id": "s6-model-cascading-cheap-expensive-routing",
+          "html": "Model cascading (cheap → expensive routing)"
+        },
+        {
+          "type": "paragraph",
+          "html": "Route easy requests to a small, cheap model; only escalate to a large, expensive one when the small model's confidence is low (use logprobs, self-critique, or a separate classifier).<a class=\"cite\" href=\"#src20\">[20]</a> A well-tuned cascade often reaches frontier quality at 30–70% of the cost."
+        },
+        {
           "type": "code",
           "lang": "python",
           "code": "# Two-tier cascade\ndef answer(q):\n    small = call(\"llama-3.1-8b\", q, max_tokens=200)\n    if small.confidence > 0.85 or is_simple(q):\n        return small.text\n    return call(\"claude-sonnet-4-5\", q, system=\"Refine this draft: \"+small.text)",

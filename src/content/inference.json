@@ -10,6 +10,72 @@
       "sub": "Every LLM call has two sides: the <strong>request</strong> you send and the <strong>inference</strong> that serves it. Most teams start by renting (Together, Fireworks, Groq, Cerebras, Replicate, AWS Bedrock). Once usage justifies it, you self-host with vLLM, TGI, SGLang, Ollama, or llama.cpp — and learn a different optimization vocabulary: KV cache, prefix caching, speculative decoding, continuous batching.",
       "body": [
         {
+          "type": "heading",
+          "level": 3,
+          "id": "s3-api-based-vs-self-hosted-inference",
+          "html": "API-based vs self-hosted inference"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Axis",
+            "Hosted API",
+            "Self-hosted"
+          ],
+          "rows": [
+            [
+              "Time to first token",
+              "Minutes",
+              "Weeks (GPU procurement + ops)"
+            ],
+            [
+              "Cost per 1M tokens",
+              "$0.10 – $15",
+              "$0.04 – $2 (at scale)"
+            ],
+            [
+              "Data privacy",
+              "Vendor's terms",
+              "You control everything"
+            ],
+            [
+              "Model selection",
+              "Vendor's catalogue",
+              "Anything you can fit on your GPU"
+            ],
+            [
+              "Peak traffic",
+              "Vendor scales",
+              "You scale (autoscaler, queues)"
+            ],
+            [
+              "Customisation",
+              "None / fine-tune API",
+              "Full (system prompts, prefixes, logprobs)"
+            ]
+          ]
+        },
+        {
+          "type": "callout",
+          "variant": "warn",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>Rule of thumb:</strong> start hosted. Move to self-hosting once your bill exceeds the cost of a half-time ML engineer plus two H100s."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s3-inference-servers",
+          "html": "Inference servers"
+        },
+        {
+          "type": "paragraph",
+          "html": "When you self-host, an <strong>inference server</strong> is the process that loads model weights into GPU memory and serves requests. The five that matter in 2025:"
+        },
+        {
           "type": "panels",
           "panels": [
             {

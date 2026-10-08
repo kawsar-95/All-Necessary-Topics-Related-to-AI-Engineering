@@ -10,6 +10,16 @@
       "sub": "A working definition, the boundary between \"agent\" and \"workflow,\" and the minimum set of components any production agent must have.",
       "body": [
         {
+          "type": "heading",
+          "level": 3,
+          "id": "s1-the-minimal-agent",
+          "html": "The minimal agent"
+        },
+        {
+          "type": "paragraph",
+          "html": "Strip away the marketing and every agent is the same shape: a loop that takes the current state, asks an LLM what to do next, executes the answer (a tool call, a structured response, or a final answer), and feeds the result back in. Where agents diverge from each other is <em>how</em> the loop is structured, what the state contains, and how failure is handled."
+        },
+        {
           "type": "code",
           "lang": "python",
           "code": "# The minimal agent in 12 lines\ndef agent_loop(goal, llm, tools, max_steps=20):\n    history = [{\"role\": \"user\", \"content\": goal}]\n    for step in range(max_steps):\n        response = llm.complete(history, tools=tools)\n        if response.finish_reason == \"stop\":\n            return response.text\n        result = tools.invoke(response.tool_call)\n        history.append({\"role\": \"tool\", \"content\": str(result)})\n    raise AgentTimeout(\"loop did not terminate\")",
@@ -114,6 +124,22 @@
       "title": "The four canonical agent loops",
       "sub": "Every agent loop you'll meet in production is a variation of one of these four patterns. Pick by the shape of your task, not by hype.",
       "body": [
+        {
+          "type": "diagram",
+          "svg": "<svg viewBox=\"0 0 1100 420\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"Four agent loop patterns\">\n      <g>\n        <rect x=\"40\" y=\"40\" width=\"500\" height=\"160\" rx=\"10\" fill=\"#0f172a\" stroke=\"#22d3ee\"></rect>\n        <text x=\"60\" y=\"68\" font-family=\"Inter, sans-serif\" font-size=\"14\" font-weight=\"700\" fill=\"#22d3ee\">ReAct — Reason + Act (interleaved)</text>\n        <text x=\"60\" y=\"92\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#a8b5c8\">loop until \"Finish\":</text>\n        <text x=\"60\" y=\"114\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#cfd8e6\">  Thought: ...   (private scratchpad)</text>\n        <text x=\"60\" y=\"134\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#cfd8e6\">  Action:   tool_call(...) (N used)</text>\n        <text x=\"60\" y=\"154\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#cfd8e6\">  Observation: &lt;tool result&gt;</text>\n        <text x=\"60\" y=\"180\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">Best for: short, reactive tasks; debugging-friendly traces. Yao et al., 2022.[1]</text>\n      </g>\n      <g>\n        <rect x=\"560\" y=\"40\" width=\"500\" height=\"160\" rx=\"10\" fill=\"#0f172a\" stroke=\"#a78bfa\"></rect>\n        <text x=\"580\" y=\"68\" font-family=\"Inter, sans-serif\" font-size=\"14\" font-weight=\"700\" fill=\"#a78bfa\">Plan-and-Execute — plan once, then act step-by-step</text>\n        <text x=\"580\" y=\"92\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#a8b5c8\">Plan: [\"search X\", \"fetch Y\", \"draft email\"]</text>\n        <text x=\"580\" y=\"114\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#cfd8e6\">for each step:</text>\n        <text x=\"580\" y=\"134\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#cfd8e6\">  agent_or_tool.run(step)</text>\n        <text x=\"580\" y=\"154\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#cfd8e6\">  replan if step failed</text>\n        <text x=\"580\" y=\"180\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">Best for: known-shape workflows; cheap replanning. Wang et al., 2023.[2]</text>\n      </g>\n      <g>\n        <rect x=\"40\" y=\"220\" width=\"500\" height=\"160\" rx=\"10\" fill=\"#0f172a\" stroke=\"#34d399\"></rect>\n        <text x=\"60\" y=\"248\" font-family=\"Inter, sans-serif\" font-size=\"14\" font-weight=\"700\" fill=\"#34d399\">Reflexion — act, then verbally self-criticise</text>\n        <text x=\"60\" y=\"272\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#a8b5c8\">loop until success or N attempts:</text>\n        <text x=\"60\" y=\"294\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#cfd8e6\">  attempt = ReAct(task, memory)</text>\n        <text x=\"60\" y=\"314\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#cfd8e6\">  reflect(attempt, env_feedback)</text>\n        <text x=\"60\" y=\"334\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#cfd8e6\">  memory.append(reflection)</text>\n        <text x=\"60\" y=\"360\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">Best for: tasks with clear success signal. Shinn et al., 2023.[3]</text>\n      </g>\n      <g>\n        <rect x=\"560\" y=\"220\" width=\"500\" height=\"160\" rx=\"10\" fill=\"#0f172a\" stroke=\"#fbbf24\"></rect>\n        <text x=\"580\" y=\"248\" font-family=\"Inter, sans-serif\" font-size=\"14\" font-weight=\"700\" fill=\"#fbbf24\">ReWOO — plan all tool calls upfront, no per-step LLM</text>\n        <text x=\"580\" y=\"272\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#a8b5c8\">Planner: produce (Plan, #E1, #E2, ...)</text>\n        <text x=\"580\" y=\"294\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#cfd8e6\">Worker:  exec all #Ei (no LLM between)</text>\n        <text x=\"580\" y=\"314\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#cfd8e6\">Solver:  read evidence, answer</text>\n        <text x=\"580\" y=\"340\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">Best for: retrieval-heavy tasks; 4–6× fewer tokens. Xu et al., 2023.[4]</text>\n      </g>\n    </svg>",
+          "caption": "The four canonical agent loops. Each trades off reasoning depth, token cost, latency, and recovery behaviour. Production systems usually compose them.",
+          "captionBn": "চারটি ক্যানোনিক্যাল agent লুপ: ReAct, Plan-and-Execute, Reflexion, এবং ReWOO।"
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s2-react-reason-act-interleaved",
+          "html": "ReAct — Reason + Act (interleaved)"
+        },
+        {
+          "type": "paragraph",
+          "html": "Introduced by Yao et al. in 2022,<a class=\"cite\" href=\"#src1\">[1]</a> ReAct is the simplest agent loop: the model writes a <em>Thought</em>, picks an <em>Action</em>, observes the result, repeats. The thought is in the model's private scratchpad and never shown to the user; only the final answer is. ReAct is the default loop in LangChain's <code>AgentExecutor</code> and most early agent frameworks."
+        },
         {
           "type": "code",
           "lang": "text",
@@ -259,6 +285,16 @@
         {
           "type": "heading",
           "level": 3,
+          "id": "s3-what-a-single-agent-gives-you",
+          "html": "What a single agent gives you"
+        },
+        {
+          "type": "paragraph",
+          "html": "A single agent is one LLM in one control loop with one tool surface. Every decision flows through one prompt, one model call, one trace. Debugging is \"read the trace.\""
+        },
+        {
+          "type": "heading",
+          "level": 3,
           "id": "s3-what-a-multi-agent-setup-gives-you",
           "html": "What a multi-agent setup gives you"
         },
@@ -389,6 +425,16 @@
         {
           "type": "heading",
           "level": 3,
+          "id": "s4-why-an-explicit-graph",
+          "html": "Why an explicit graph"
+        },
+        {
+          "type": "paragraph",
+          "html": "An implicit loop is fast to write and impossible to debug. After 30 tool calls, you can't tell which path the model took. An explicit graph makes the topology visible: every node has a name, every edge has a condition, every transition is recorded."
+        },
+        {
+          "type": "heading",
+          "level": 3,
           "id": "s4-langgraph",
           "html": "LangGraph"
         },
@@ -509,6 +555,16 @@
       "title": "Agent memory: scratchpad, semantic, procedural",
       "sub": "Three memory types show up again and again in the agent literature.<a class=\"cite\" href=\"#src8\">[8]</a>",
       "body": [
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s5-scratchpad-working-memory",
+          "html": "Scratchpad (working memory)"
+        },
+        {
+          "type": "paragraph",
+          "html": "The scratchpad is the model's private notes for the current run. When the run ends, the scratchpad is discarded."
+        },
         {
           "type": "heading",
           "level": 3,
@@ -640,6 +696,33 @@
       "sub": "Most production agents need at least one approval step.",
       "body": [
         {
+          "type": "heading",
+          "level": 3,
+          "id": "s6-the-risk-ladder",
+          "html": "The risk ladder"
+        },
+        {
+          "type": "list",
+          "ordered": true,
+          "items": [
+            "<strong>Read-only</strong>: search, fetch, query. Auto-approve.",
+            "<strong>Local-write</strong>: edit a file the agent owns. Auto-approve with a soft cap.",
+            "<strong>External-write</strong>: send an email, post to Slack. Approve per call.",
+            "<strong>Money</strong>: refund, charge, payout. Approve per call, plus a daily cap.",
+            "<strong>Destructive</strong>: delete a record. Two-person rule."
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s6-the-checkpoint-primitive",
+          "html": "The checkpoint primitive"
+        },
+        {
+          "type": "paragraph",
+          "html": "Every durable framework exposes a \"wait for human\" primitive. In LangGraph it's <code>interrupt</code>; in Temporal it's <code>wait_for_signal</code>; in Restate it's <code>await call().ack()</code>."
+        },
+        {
           "type": "code",
           "lang": "python",
           "code": "# LangGraph interrupt + resume\ndef send_email(state):\n    approval = interrupt({\n        \"to\": state[\"recipient\"],\n        \"subject\": state[\"subject\"],\n        \"body\": state[\"draft\"],\n    })\n    if not approval[\"approved\"]:\n        return {\"messages\": [\"User rejected email send.\"]}\n    email_client.send(approval)\n    return {\"messages\": [\"Email sent.\"]}",
@@ -732,6 +815,16 @@
       "title": "Subagents and delegation patterns",
       "sub": "When a single agent's task list grows too large for one context window, the natural move is to delegate.",
       "body": [
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s7-what-a-subagent-is",
+          "html": "What a subagent is"
+        },
+        {
+          "type": "paragraph",
+          "html": "A subagent is an agent launched by another agent. It has its own system prompt, its own tool surface, its own loop, and its own termination. It returns a final result to the parent — not intermediate state."
+        },
         {
           "type": "heading",
           "level": 3,
@@ -833,6 +926,16 @@
       "title": "Error recovery, retries, and self-correction",
       "sub": "Three escalating layers: retry the same call, fall back to a different one, or reflect on the failure and revise. Always bound retries.",
       "body": [
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s8-layer-1-retry",
+          "html": "Layer 1: retry"
+        },
+        {
+          "type": "paragraph",
+          "html": "Transient failures (rate limit, network blip, server overloaded) are best handled with a short retry. Exponential backoff is the default: 1s, 2s, 4s, 8s, with jitter to avoid thundering-herd. Cap at 3–5 attempts; beyond that, the failure is not transient."
+        },
         {
           "type": "code",
           "lang": "python",
@@ -943,6 +1046,16 @@
       "title": "Long-running agents and durable execution",
       "sub": "Agents that take minutes or hours face three problems a normal Python loop can't solve: crashes lose state, rate limits force waits, and human approvals force pauses. Durable execution engines solve all three.",
       "body": [
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s9-why-just-save-state-isn-t-enough",
+          "html": "Why \"just save state\" isn't enough"
+        },
+        {
+          "type": "paragraph",
+          "html": "The naive solution is to checkpoint the agent's state to disk every step. But \"the agent's state\" is more than the message log: it's the in-flight tool calls, the partial writes to external services, the human approval state, the retry counters. Saving the messages and losing the rest gives you a corrupt resume."
+        },
         {
           "type": "heading",
           "level": 3,
@@ -1069,6 +1182,16 @@
       "title": "Browser and computer-use agents",
       "sub": "The newest agent category uses a model that can see a screenshot and act with mouse/keyboard primitives. OpenAI's Operator and Anthropic's \"computer use\" are the marquee examples. They trade precision for generality.",
       "body": [
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s10-how-computer-use-works",
+          "html": "How computer use works"
+        },
+        {
+          "type": "paragraph",
+          "html": "The model receives a screenshot of the desktop (or a specific window) and a list of available actions: <code>mouse_move</code>, <code>left_click</code>, <code>right_click</code>, <code>type</code>, <code>key</code>, <code>screenshot</code>. It picks an action, the runtime executes it, captures a new screenshot, and feeds both back. The loop continues until the model emits a <code>done</code> action.<a class=\"cite\" href=\"#src9\">[9]</a>"
+        },
         {
           "type": "code",
           "lang": "python",

@@ -10,6 +10,16 @@
       "sub": "Traditional DevOps answers \"did the request return 200?\" LLM apps need richer questions: <em>did the model return the right answer, at the right cost, in the right tone, with no leakage?</em> The discipline of answering those is <strong>LLMOps</strong>, and it has its own toolchain.",
       "body": [
         {
+          "type": "heading",
+          "level": 3,
+          "id": "s4-tracing",
+          "html": "Tracing"
+        },
+        {
+          "type": "paragraph",
+          "html": "An LLM <strong>trace</strong> is a tree of <em>spans</em>: the user request, the system prompt assembly, the LLM call, every tool invocation, the result. The four leading tracing tools in 2025:"
+        },
+        {
           "type": "table",
           "headers": [
             "Tool",
