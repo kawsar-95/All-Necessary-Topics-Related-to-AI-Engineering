@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter, JetBrains_Mono, Noto_Sans_Bengali } from "next/font/google";
 import "./globals.css";
 import { getNavItems } from "@/lib/topics";
@@ -8,6 +8,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SearchPalette } from "@/components/navigation/SearchPalette";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { SidebarList } from "@/components/layout/SidebarList";
+import { ServiceWorker } from "@/components/layout/ServiceWorker";
 
 const fraunces = Fraunces({
   variable: "--font-fraunces",
@@ -43,6 +44,19 @@ export const metadata: Metadata = {
   },
   description:
     "Thirteen reference parts covering every topic an applied AI engineer needs, from LLM fundamentals and prompt engineering to agents, inference, evaluation, safety, and AI application architecture. Each topic in three voices: technical, layman, and বাংলা.",
+  appleWebApp: {
+    capable: true,
+    title: "AI Engineering",
+    statusBarStyle: "default",
+  },
+};
+
+// The browser colors its title bar to match the page background (globals.css).
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#0f1013" },
+    { media: "(prefers-color-scheme: light)", color: "#fbfaf7" },
+  ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -87,6 +101,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </footer>
           </div>
         </div>
+        <ServiceWorker />
       </body>
     </html>
   );

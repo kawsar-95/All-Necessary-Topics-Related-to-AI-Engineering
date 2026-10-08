@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import type { NavItem } from "@/lib/topics";
 import { MobileNav } from "./MobileNav";
+import { InstallButton } from "./InstallButton";
 import { ThemeToggle } from "./ThemeToggle";
 
 /** The menu button without behavior, shown until MobileNav can render. */
@@ -20,7 +21,7 @@ function MenuButtonPlaceholder() {
 
 /**
  * The sticky top bar: the menu button (below `lg`), the logo, and on the
- * right the search trigger slot and the theme switch.
+ * right the search trigger slot, the install button, and the theme switch.
  */
 export function SiteHeader({
   items,
@@ -51,6 +52,7 @@ export function SiteHeader({
         </Link>
         <div className="ml-auto flex items-center gap-2">
           {searchSlot}
+          <InstallButton />
           <ThemeToggle />
         </div>
       </div>
