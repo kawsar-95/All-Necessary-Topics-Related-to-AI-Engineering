@@ -4,6 +4,7 @@ import { Fraunces, Inter, JetBrains_Mono, Noto_Sans_Bengali } from "next/font/go
 import "./globals.css";
 import { getNavItems } from "@/lib/topics";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { SearchPalette } from "@/components/navigation/SearchPalette";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { SidebarList } from "@/components/layout/SidebarList";
 
@@ -52,7 +53,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${fraunces.variable} ${inter.variable} ${jetbrainsMono.variable} ${notoBengali.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-bg text-text">
-        <SiteHeader items={items} />
+        <SiteHeader items={items} searchSlot={<SearchPalette />} />
         <div className="lg:grid lg:grid-cols-[260px_minmax(0,1fr)]">
           <aside className="hidden border-r border-border lg:sticky lg:top-14 lg:block lg:h-[calc(100vh-3.5rem)] lg:self-start lg:overflow-y-auto">
             <Suspense fallback={<SidebarList items={items} activeSlug={null} />}>
