@@ -243,122 +243,248 @@
       ],
       "practice": [
         {
-          "title": "Turn a flat log into a trace",
-          "goal": "Build a span tree from a log and see why a request can return 200 and still fail the user.",
-          "steps": [
-            "Read the log in Prompt A. Before you ask, guess which step took the longest time.",
-            "Start a <strong>new</strong> chat. Send Prompt A. Compare the tree with your guess.",
-            "Check two durations by subtracting the start time from the end time. Does the total match the model's number?",
-            "In the <strong>same</strong> chat, send Prompt B. Read what the model says about the 200 status."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "Here is the flat log of one agent run (invented data):\n\n10:02:11.000 REQUEST_START POST /chat user=u_204 prompt_id=support-v7\n10:02:11.020 SPAN_START build_system_prompt\n10:02:11.040 SPAN_END   build_system_prompt\n10:02:11.040 SPAN_START llm_call_1 model=model-x\n10:02:12.440 SPAN_END   llm_call_1 in_tokens=1200 out_tokens=60 decision=\"call tool search_orders\"\n10:02:12.440 SPAN_START tool_search_orders args={\"customer\":\"u_204\"}\n10:02:16.940 SPAN_END   tool_search_orders status=timeout\n10:02:16.940 SPAN_START llm_call_2 model=model-x\n10:02:18.140 SPAN_END   llm_call_2 in_tokens=1350 out_tokens=80\n10:02:18.150 REQUEST_END status=200 answer=\"Sorry, I could not check your order right now.\"\n\nTasks:\n1. Draw this run as a trace: a tree of spans with indentation. Show the duration of each span in seconds.\n2. Name the slowest span and say what share of the total time it used.\n3. Name the span where the real problem started."
+          "en": {
+            "title": "Turn a flat log into a trace",
+            "why": "When a user says \"your chatbot gave a bad answer\", a flat log of lines is hard to read. A trace shows each step and its time, so you find the broken step fast.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Look at the log in this prompt. Guess which step took the longest. Then copy the prompt, paste it, and press Enter.",
+                "prompt": "Here is the flat log of one agent run (invented data). A span is one step of the run, with a start and an end.\n\n10:02:11.000 REQUEST_START POST /chat user=u_204 prompt_id=support-v7\n10:02:11.020 SPAN_START build_system_prompt\n10:02:11.040 SPAN_END   build_system_prompt\n10:02:11.040 SPAN_START llm_call_1 model=model-x\n10:02:12.440 SPAN_END   llm_call_1 in_tokens=1200 out_tokens=60 decision=\"call tool search_orders\"\n10:02:12.440 SPAN_START tool_search_orders args={\"customer\":\"u_204\"}\n10:02:16.940 SPAN_END   tool_search_orders status=timeout\n10:02:16.940 SPAN_START llm_call_2 model=model-x\n10:02:18.140 SPAN_END   llm_call_2 in_tokens=1350 out_tokens=80\n10:02:18.150 REQUEST_END status=200 answer=\"Sorry, I could not check your order right now.\"\n\nTasks:\n1. Draw this run as a trace: a tree of spans, with indentation. Show the duration of each span in seconds.\n2. Name the slowest span and say what share of the total time it used.\n3. Name the span where the real problem started.",
+                "expect": "A tree with the request on top and four steps below it. The slowest span is <code>tool_search_orders</code>, about <strong>4.5 s</strong>, which is about <strong>63%</strong> of the <strong>7.15 s</strong> total. The problem started there (timeout).",
+                "example": "REQUEST POST /chat (7.15 s)\n  build_system_prompt (0.02 s)\n  llm_call_1 (1.4 s)\n  tool_search_orders (4.5 s) status=timeout\n  llm_call_2 (1.2 s)\nSlowest span: tool_search_orders, 4.5 s, about 63% of 7.15 s.\nThe real problem started in tool_search_orders, which timed out."
+              },
+              {
+                "chat": "same",
+                "do": "Check one duration by hand: subtract the start time of the tool span (12.440) from its end time (16.940).",
+                "expect": "<strong>4.5</strong> seconds. It matches the model's tree."
+              },
+              {
+                "chat": "same",
+                "do": "Copy this prompt, paste it in the same chat, and press Enter. Read what the model says about the 200 status.",
+                "prompt": "The request returned status 200. A classic DevOps dashboard shows green for it. Explain in 3 short sentences what a plain 200 check misses for this run. Then list 4 fields that the trace should carry so that I can find this failure later.",
+                "expect": "The model says 200 only means the server replied. The answer was still useless for the user. It lists fields like prompt version, model, token counts, cost, latency, and the tool status.",
+                "example": "A 200 only says the server replied. It does not say the answer was good. Here the tool timed out, so the user got \"Sorry, I could not check your order\". The dashboard stays green while the user fails.\nFields: prompt_id, model name, token counts and cost, tool status and latency."
+              }
+            ],
+            "learned": "A <strong>trace</strong> is a tree of <strong>spans</strong>. A span is one step, such as an LLM call or a tool call, with its time. The tree shows that the tool call took 63% of the time and failed. The server still returned 200, so a plain status check saw nothing wrong. LLM apps need traces to see where the answer broke.",
+            "done": "You have a span tree with 4 steps, you know the slowest one (4.5 s), and you have a list of 4 fields to log.",
+            "check": {
+              "question": "Why is status 200 not enough to call this request healthy?",
+              "answer": "The server answered, but the answer was wrong for the user, because the tool timed out. LLMOps asks whether the answer was right. A trace of spans shows where it failed."
             },
-            {
-              "label": "Prompt B",
-              "text": "The request returned status 200. A classic DevOps dashboard shows green for it. Explain in 3 short sentences what a plain 200 check misses for this run. Then list 4 fields that the trace should carry so that I can find this failure later."
-            }
-          ],
-          "lookFor": [
-            "The tool span runs from 12.440 to 16.940, so it takes 4.5 seconds. That is the slowest span, about 63% of the 7.15 second total.",
-            "The tree has the request as the parent, and the two LLM calls and the tool call as children. The problem started in the tool span (timeout).",
-            "Good field lists include prompt_id, model, token counts, cost, latency, and the tool status."
-          ],
-          "check": {
-            "question": "Why is status 200 not enough to call this request healthy?",
-            "answer": "The server answered, but the answer was wrong for the user, because the tool timed out. LLMOps asks whether the model gave the right answer, so a trace of spans (LLM calls and tool calls) is needed to see where it failed."
+            "challenge": "Change the log so that a second tool call starts at the same time as the first one. Ask the model to redraw the tree. How does the total time change?"
           },
-          "challenge": "Add a second tool call to the log that runs at the same time as the first one. Ask the model to redraw the tree. How does the total time change?"
+          "bn": {
+            "title": "Flat log থেকে trace বানাও",
+            "why": "কোনো user যখন বলে \"তোমার chatbot খারাপ উত্তর দিয়েছে\", তখন একসারি flat log পড়া কঠিন। Trace প্রতিটা ধাপ আর তার সময় দেখায়, তাই ভাঙা ধাপটা তাড়াতাড়ি খুঁজে পাওয়া যায়।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt-এর log দেখো। আন্দাজ করো কোন ধাপে সবচেয়ে বেশি সময় লেগেছে। তারপর prompt টা copy করো, paste করে Enter চাপো।",
+                "prompt": "এখানে একটা agent run-এর flat log আছে (বানানো data)। Span হলো run-এর একটা ধাপ, যার একটা শুরু আর একটা শেষ আছে।\n\n10:02:11.000 REQUEST_START POST /chat user=u_204 prompt_id=support-v7\n10:02:11.020 SPAN_START build_system_prompt\n10:02:11.040 SPAN_END   build_system_prompt\n10:02:11.040 SPAN_START llm_call_1 model=model-x\n10:02:12.440 SPAN_END   llm_call_1 in_tokens=1200 out_tokens=60 decision=\"call tool search_orders\"\n10:02:12.440 SPAN_START tool_search_orders args={\"customer\":\"u_204\"}\n10:02:16.940 SPAN_END   tool_search_orders status=timeout\n10:02:16.940 SPAN_START llm_call_2 model=model-x\n10:02:18.140 SPAN_END   llm_call_2 in_tokens=1350 out_tokens=80\n10:02:18.150 REQUEST_END status=200 answer=\"Sorry, I could not check your order right now.\"\n\nকাজ:\n1. এই run-টাকে trace হিসেবে আঁকো: span-এর একটা tree, indentation দিয়ে। প্রতিটা span-এর সময় সেকেন্ডে দেখাও।\n2. সবচেয়ে ধীর span-এর নাম বলো, আর মোট সময়ের কত ভাগ সেটা নিয়েছে বলো।\n3. আসল সমস্যা কোন span-এ শুরু হয়েছে, বলো।",
+                "expect": "একটা tree, উপরে request আর নিচে চারটা ধাপ। সবচেয়ে ধীর span হলো <code>tool_search_orders</code>, প্রায় <strong>4.5 s</strong>, যা মোট <strong>7.15 s</strong>-এর প্রায় <strong>63%</strong>। সমস্যা ওখানেই শুরু (timeout)।",
+                "example": "REQUEST POST /chat (7.15 s)\n  build_system_prompt (0.02 s)\n  llm_call_1 (1.4 s)\n  tool_search_orders (4.5 s) status=timeout\n  llm_call_2 (1.2 s)\nসবচেয়ে ধীর span: tool_search_orders, 4.5 s, 7.15 s-এর প্রায় 63%।\nআসল সমস্যা শুরু হয়েছে tool_search_orders-এ, যেটা timeout হয়েছে।"
+              },
+              {
+                "chat": "same",
+                "do": "একটা সময় নিজে হাতে মিলিয়ে দেখো: tool span-এর শেষের সময় (16.940) থেকে শুরুর সময় (12.440) বিয়োগ করো।",
+                "expect": "<strong>4.5</strong> সেকেন্ড। এটা model-এর tree-র সাথে মেলে।"
+              },
+              {
+                "chat": "same",
+                "do": "এই prompt টা copy করো, একই chat-এ paste করে Enter চাপো। 200 status নিয়ে model কী বলে, পড়ো।",
+                "prompt": "Request-টা status 200 ফেরত দিয়েছে। পুরনো ধরনের DevOps dashboard এটার জন্য সবুজ দেখায়। ৩টা ছোট বাক্যে বলো, শুধু 200 দেখলে এই run-এর কোন জিনিসটা ধরা পড়ে না। তারপর trace-এ কোন ৪টা field রাখা উচিত তার list দাও, যাতে পরে এই failure খুঁজে পাওয়া যায়।",
+                "expect": "Model বলবে 200 শুধু বোঝায় server সাড়া দিয়েছে। উত্তরটা তবুও user-এর কোনো কাজে লাগেনি। সে prompt version, model, token সংখ্যা, cost, latency আর tool status-এর মতো field-এর list দেবে।",
+                "example": "200 শুধু বলে server সাড়া দিয়েছে। উত্তর ভালো ছিল কি না, সেটা বলে না। এখানে tool timeout হয়েছে, তাই user পেয়েছে \"Sorry, I could not check your order\"। Dashboard সবুজই থাকে, অথচ user ব্যর্থ হয়।\nField: prompt_id, model-এর নাম, token সংখ্যা ও cost, tool status ও latency।"
+              }
+            ],
+            "learned": "<strong>Trace</strong> হলো <strong>span</strong>-এর একটা tree। Span হলো একটা ধাপ, যেমন LLM call বা tool call, তার সময়সহ। Tree দেখাচ্ছে tool call মোট সময়ের 63% নিয়েছে আর fail করেছে। Server তবুও 200 ফেরত দিয়েছে, তাই শুধু status দেখলে কিছু ধরা পড়ত না। LLM app-এ উত্তর কোথায় ভেঙেছে দেখতে trace লাগে।",
+            "done": "তোমার কাছে ৪ ধাপের একটা span tree আছে, তুমি সবচেয়ে ধীর ধাপটা (4.5 s) জানো, আর log-এ রাখার ৪টা field-এর list আছে।",
+            "check": {
+              "question": "Status 200 দেখেই এই request-কে সুস্থ বলা যায় না কেন?",
+              "answer": "Server সাড়া দিয়েছে, কিন্তু tool timeout হওয়ায় user-এর জন্য উত্তরটা ভুল ছিল। LLMOps জানতে চায় উত্তরটা ঠিক ছিল কি না। Span-এর trace দেখায় কোথায় ভেঙেছে।"
+            },
+            "challenge": "Log বদলে এমন করো যাতে দ্বিতীয় একটা tool call প্রথমটার সাথে একই সময়ে শুরু হয়। Model-কে tree আবার আঁকতে বলো। মোট সময় কীভাবে বদলায়?"
+          }
         },
         {
-          "title": "Find which feature loses money",
-          "goal": "Turn token logs into cost per feature, and see how tags make the question answerable.",
-          "steps": [
-            "Look at the six log rows in Prompt A. Guess which feature loses money.",
-            "Start a <strong>new</strong> chat. Send Prompt A. Check the cost of request 4 by hand with the invented prices.",
-            "In the <strong>same</strong> chat, send Prompt B. Read the estimate and the warning.",
-            "Write down which tags in the log made these answers possible."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "Here are logged LLM requests (invented data). Prices per 1 million tokens: small model = 0.20 USD input and 0.80 USD output. Large model = 3.00 USD input and 15.00 USD output.\n\nid | feature       | user | model | in_tokens | out_tokens | latency_s\n1  | autocomplete  | u1   | small | 300       | 20         | 0.4\n2  | autocomplete  | u2   | small | 280       | 25         | 0.5\n3  | autocomplete  | u1   | small | 310       | 18         | 0.4\n4  | report_writer | u3   | large | 12000     | 1500       | 14.2\n5  | report_writer | u4   | large | 9000      | 1200       | 11.8\n6  | report_writer | u3   | large | 15000     | 2000       | 18.5\n\nRevenue: each autocomplete request earns 0.001 USD. Each report_writer request earns 0.04 USD.\n\nTasks:\n1. Compute the cost of each request in USD. Show the formula once, then give a table.\n2. Sum cost and revenue per feature.\n3. Say which feature loses money, and by how much per request on average."
+          "en": {
+            "title": "Find which feature loses money",
+            "why": "When your app has several AI features, the monthly bill is one big number. You must know which feature costs more than it earns, or you cannot fix it.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Look at the 6 log rows in this prompt. Guess which feature loses money. Then copy the prompt, paste it, and press Enter.",
+                "prompt": "Here are logged LLM requests (invented data). Prices per 1 million tokens: small model = 0.20 USD input and 0.80 USD output. Large model = 3.00 USD input and 15.00 USD output.\n\nid | feature       | user | model | in_tokens | out_tokens | latency_s\n1  | autocomplete  | u1   | small | 300       | 20         | 0.4\n2  | autocomplete  | u2   | small | 280       | 25         | 0.5\n3  | autocomplete  | u1   | small | 310       | 18         | 0.4\n4  | report_writer | u3   | large | 12000     | 1500       | 14.2\n5  | report_writer | u4   | large | 9000      | 1200       | 11.8\n6  | report_writer | u3   | large | 15000     | 2000       | 18.5\n\nRevenue: each autocomplete request earns 0.001 USD. Each report_writer request earns 0.04 USD.\n\nTasks:\n1. Compute the cost of each request in USD. Show the formula once, then give a table.\n2. Sum cost and revenue per feature.\n3. Say which feature loses money, and by how much per request on average.",
+                "expect": "Autocomplete costs a tiny fraction of a cent and earns a profit. <strong>report_writer loses money</strong>: its average cost is about <strong>0.0595 USD</strong> per request, but it earns 0.04 USD. The average loss is about <strong>0.0195 USD</strong>.",
+                "example": "Cost = in_tokens × in_price ÷ 1,000,000 + out_tokens × out_price ÷ 1,000,000\n1: 0.000076  2: 0.000076  3: 0.0000764\n4: 0.0585  5: 0.045  6: 0.075\nautocomplete: cost about 0.00023 USD, revenue 0.003 USD. Profit.\nreport_writer: cost 0.1785 USD, revenue 0.12 USD. Loss 0.0585 USD, about 0.0195 USD per request.\nreport_writer loses money."
+              },
+              {
+                "chat": "same",
+                "do": "Check request 4 by hand with a calculator: 12,000 × 3 ÷ 1,000,000, plus 1,500 × 15 ÷ 1,000,000.",
+                "expect": "0.036 + 0.0225 = <strong>0.0585 USD</strong>. It matches the table, and it is more than the 0.04 USD this request earns."
+              },
+              {
+                "chat": "same",
+                "do": "Copy this prompt, paste it in the same chat, and press Enter. Read the new cost and the warning.",
+                "prompt": "Now suppose we move report_writer to the small model. Use the same token counts for requests 4, 5, and 6. What is the new average cost per request? What must we measure before we make this change in production? Answer in under 100 words.",
+                "expect": "A new average cost of about <strong>0.0037 USD</strong> per request. A good answer also says to check the answer quality first, for example with evals (tests that score answers).",
+                "example": "On the small model, the average cost is about 0.0037 USD per request (0.0036, 0.0028, and 0.0046 for requests 4, 5, 6). That is below the 0.04 USD revenue.\nBefore the change, measure answer quality with evals on real report requests. A cheaper model may write worse reports, so also watch user feedback and latency."
+              }
+            ],
+            "learned": "Every request has input tokens and output tokens. Multiply them by the model's price and you get the cost of that request. Add the <strong>tags</strong> (labels) in the log, such as feature and model, and you can group the cost by feature. Without the feature tag, you could not answer \"which feature loses money?\". A cheaper model lowers cost, but you must check quality too.",
+            "done": "You have a cost for each of the 6 requests, you know which feature loses money, and you checked request 4 by hand.",
+            "check": {
+              "question": "Which logged fields let you answer \"is this feature losing money?\"",
+              "answer": "Input tokens, output tokens, and the model give the cost, using the vendor's prices. The feature tag groups the requests. Without these fields the data cannot answer the question."
             },
-            {
-              "label": "Prompt B",
-              "text": "Now suppose we move report_writer to the small model. Use the same token counts for requests 4, 5, and 6. What is the new average cost per request? What must we measure before we make this change in production? Answer in under 100 words."
-            }
-          ],
-          "lookFor": [
-            "Request 4 costs 12,000 × 3 ÷ 1,000,000 = 0.036 USD for input, plus 0.0225 USD for output, so 0.0585 USD in total. This is above the 0.04 USD it earns.",
-            "report_writer loses money on all three requests. autocomplete costs a tiny fraction of a cent and makes a profit.",
-            "In Prompt B, the new cost is a few tenths of a cent, but a good answer says to check output quality with evals first. Verify the arithmetic yourself."
-          ],
-          "check": {
-            "question": "Which logged fields let you answer 'is this feature losing money?'",
-            "answer": "Input tokens, output tokens, and model give the cost, using the vendor's prices. The feature tag groups the requests, and latency and user tags answer other questions later. Without these tags the data cannot answer the question."
+            "challenge": "Add a rule: half of the large-model input tokens are cached, and cached tokens cost 10% of the normal price. Ask the model to recompute. Does report_writer still lose money?"
           },
-          "challenge": "Add a cache_hit column to Prompt A where half of the large-model input tokens are cached at 10% of the price. Ask the model to recompute. Does report_writer still lose money?"
+          "bn": {
+            "title": "কোন feature লোকসানে চলছে, খুঁজে বের করো",
+            "why": "তোমার app-এ কয়েকটা AI feature থাকলে মাসের bill একটাই বড় সংখ্যা। কোন feature আয়ের চেয়ে বেশি খরচ করছে, সেটা না জানলে তুমি তা ঠিক করতে পারবে না।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt-এর ৬টা log সারি দেখো। আন্দাজ করো কোন feature লোকসানে। তারপর prompt টা copy করো, paste করে Enter চাপো।",
+                "prompt": "এখানে log করা কয়েকটা LLM request আছে (বানানো data)। প্রতি 1 million token-এর দাম: small model = input 0.20 USD আর output 0.80 USD। Large model = input 3.00 USD আর output 15.00 USD।\n\nid | feature       | user | model | in_tokens | out_tokens | latency_s\n1  | autocomplete  | u1   | small | 300       | 20         | 0.4\n2  | autocomplete  | u2   | small | 280       | 25         | 0.5\n3  | autocomplete  | u1   | small | 310       | 18         | 0.4\n4  | report_writer | u3   | large | 12000     | 1500       | 14.2\n5  | report_writer | u4   | large | 9000      | 1200       | 11.8\n6  | report_writer | u3   | large | 15000     | 2000       | 18.5\n\nআয়: প্রতিটা autocomplete request 0.001 USD আয় করে। প্রতিটা report_writer request 0.04 USD আয় করে।\n\nকাজ:\n1. প্রতিটা request-এর cost USD-তে বের করো। Formula একবার দেখাও, তারপর একটা table দাও।\n2. প্রতিটা feature-এর cost আর আয় যোগ করো।\n3. কোন feature লোকসানে আছে আর গড়ে প্রতি request-এ কত লোকসান, বলো।",
+                "expect": "Autocomplete-এর খরচ এক পয়সার ভগ্নাংশ, আর সেটা লাভে। <strong>report_writer লোকসানে</strong>: তার গড় cost প্রতি request-এ প্রায় <strong>0.0595 USD</strong>, কিন্তু আয় 0.04 USD। গড় লোকসান প্রায় <strong>0.0195 USD</strong>।",
+                "example": "Cost = in_tokens × in_price ÷ 1,000,000 + out_tokens × out_price ÷ 1,000,000\n1: 0.000076  2: 0.000076  3: 0.0000764\n4: 0.0585  5: 0.045  6: 0.075\nautocomplete: cost প্রায় 0.00023 USD, আয় 0.003 USD। লাভ।\nreport_writer: cost 0.1785 USD, আয় 0.12 USD। লোকসান 0.0585 USD, প্রতি request-এ প্রায় 0.0195 USD।\nreport_writer লোকসানে চলছে।"
+              },
+              {
+                "chat": "same",
+                "do": "Calculator দিয়ে 4 নম্বর request নিজে হাতে মিলাও: 12,000 × 3 ÷ 1,000,000, সাথে 1,500 × 15 ÷ 1,000,000।",
+                "expect": "0.036 + 0.0225 = <strong>0.0585 USD</strong>। এটা table-এর সাথে মেলে, আর এই request-এর আয় 0.04 USD-এর চেয়ে বেশি।"
+              },
+              {
+                "chat": "same",
+                "do": "এই prompt টা copy করো, একই chat-এ paste করে Enter চাপো। নতুন cost আর সতর্কবার্তাটা পড়ো।",
+                "prompt": "এবার ধরো আমরা report_writer-কে small model-এ নিয়ে যাচ্ছি। 4, 5 আর 6 নম্বর request-এ একই token সংখ্যা ধরো। প্রতি request-এর নতুন গড় cost কত? Production-এ এই বদল করার আগে আমাদের কী মেপে দেখতে হবে? 100 শব্দের কম লিখে উত্তর দাও।",
+                "expect": "প্রতি request-এ নতুন গড় cost প্রায় <strong>0.0037 USD</strong>। ভালো উত্তরে এটাও থাকবে যে আগে উত্তরের মান যাচাই করতে হবে, যেমন eval দিয়ে (যে test উত্তরের নম্বর দেয়)।",
+                "example": "Small model-এ গড় cost প্রতি request-এ প্রায় 0.0037 USD (4, 5, 6 নম্বর request-এ 0.0036, 0.0028 আর 0.0046)। এটা 0.04 USD আয়ের অনেক নিচে।\nবদলের আগে আসল report request-এ eval দিয়ে উত্তরের মান মাপো। সস্তা model খারাপ report লিখতে পারে, তাই user feedback আর latency-ও দেখো।"
+              }
+            ],
+            "learned": "প্রতিটা request-এ input token আর output token থাকে। Model-এর দাম দিয়ে গুণ করলে সেই request-এর cost পাওয়া যায়। Log-এ <strong>tag</strong> (লেবেল) থাকলে, যেমন feature আর model, তুমি feature ধরে cost ভাগ করতে পারো। Feature tag না থাকলে \"কোন feature লোকসানে?\" প্রশ্নের উত্তর দেওয়া যেত না। সস্তা model cost কমায়, কিন্তু মানও যাচাই করতে হয়।",
+            "done": "তোমার কাছে ৬টা request-এর প্রত্যেকটার cost আছে, কোন feature লোকসানে তুমি জানো, আর 4 নম্বর request তুমি হাতে মিলিয়েছ।",
+            "check": {
+              "question": "\"এই feature কি লোকসানে?\" প্রশ্নের উত্তর দিতে log-এর কোন field লাগে?",
+              "answer": "Input token, output token আর model থেকে vendor-এর দাম দিয়ে cost পাওয়া যায়। Feature tag request-গুলোকে ভাগ করে। এই field না থাকলে data দিয়ে প্রশ্নটার উত্তর দেওয়া যায় না।"
+            },
+            "challenge": "একটা নিয়ম যোগ করো: large model-এর input token-এর অর্ধেক cache করা, আর cache করা token-এর দাম স্বাভাবিক দামের 10%। Model-কে আবার হিসাব করতে বলো। report_writer কি এখনো লোকসানে?"
+          }
         },
         {
-          "title": "Decide when to stop an A/B test",
-          "goal": "See why you pick the metric first and wait for enough data before you declare a winner between two prompt versions.",
-          "steps": [
-            "Read the data in Prompt A. On paper, decide: ship v8 after day 1, or wait for day 7? Write your reason.",
-            "Start a <strong>new</strong> chat. Send Prompt A. Compare the model's advice with your decision.",
-            "In the <strong>same</strong> chat, send Prompt B. Read why the split uses a hash of user_id."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "We test two versions of our support-bot prompt in production (invented data). Traffic is split by a hash of user_id. Version support-v7 is the current prompt. Version support-v8 is a new, longer prompt.\n\nAfter day 1 (afternoon):\n- v7: 40 thumbs-up out of 60 rated answers\n- v8: 45 thumbs-up out of 60 rated answers\n\nAfter day 7:\n- v7: 290 thumbs-up out of 420 rated answers, average cost 0.8 cents per answer, average latency 2.1 s\n- v8: 292 thumbs-up out of 420 rated answers, average cost 1.1 cents per answer, average latency 3.3 s\n\nTasks:\n1. Compute the thumbs-up rate for each version at day 1 and at day 7.\n2. Should we stop and ship v8 after day 1? Why or why not?\n3. What should we do at day 7?\n4. Which metrics should we have chosen before the test started?\nBe short and direct."
+          "en": {
+            "title": "Decide when to stop an A/B test",
+            "why": "When you test a new prompt in production, an early good result is tempting. If you ship too soon, you may pay more for a prompt that is not better.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Read the numbers in this prompt. Decide: ship v8 after day 1, or wait for day 7? Write your reason. Then copy the prompt, paste it, and press Enter.",
+                "prompt": "We test two versions of our support-bot prompt in production (invented data). Traffic is split by a hash of user_id. Version support-v7 is the current prompt. Version support-v8 is a new, longer prompt.\n\nAfter day 1 (afternoon):\n- v7: 40 thumbs-up out of 60 rated answers\n- v8: 45 thumbs-up out of 60 rated answers\n\nAfter day 7:\n- v7: 290 thumbs-up out of 420 rated answers, average cost 0.8 cents per answer, average latency 2.1 s\n- v8: 292 thumbs-up out of 420 rated answers, average cost 1.1 cents per answer, average latency 3.3 s\n\nTasks:\n1. Compute the thumbs-up rate for each version at day 1 and at day 7.\n2. Should we stop and ship v8 after day 1? Why or why not?\n3. What should we do at day 7?\n4. Which metrics should we have chosen before the test started?\nBe short and direct.",
+                "expect": "Day 1: v7 is <strong>66.7%</strong>, v8 is <strong>75.0%</strong>. Day 7: v7 is <strong>69.0%</strong>, v8 is <strong>69.5%</strong>. The early gap almost disappears. At day 7 v8 is about equal in quality but costs more and is slower. Most models say keep v7.",
+                "example": "1. Day 1: v7 40/60 = 66.7%, v8 45/60 = 75.0%. Day 7: v7 290/420 = 69.0%, v8 292/420 = 69.5%.\n2. No. One afternoon with 60 ratings per version is too little data. Chance can make v8 look better.\n3. Keep v7. v8 is about the same in quality, but it costs 1.1 cents instead of 0.8 and is slower (3.3 s instead of 2.1 s).\n4. Choose the main metric, a cost limit, a latency limit, and the test length before the test starts."
+              },
+              {
+                "chat": "same",
+                "do": "Copy this prompt, paste it in the same chat, and press Enter. Read why the split uses a hash of the user_id.",
+                "prompt": "We split traffic by a hash of user_id (a fixed rule that sends each user to the same version every time). Why do we do that, and not pick at random for every message? Also, why should every trace carry the prompt version ID, such as support-v8? Answer in 4 short sentences.",
+                "expect": "Four short sentences. The hash keeps each user on one version, so a user does not see two different bots. The version ID in every trace tells you which prompt made each answer.",
+                "example": "A hash sends each user to the same version every time. A random pick per message could show one user two different bots in one chat. The version ID in every trace shows which prompt made each answer. Then you can say \"users on support-v8 got more timeouts\" and find the bad version fast."
+              }
+            ],
+            "learned": "With few ratings, <strong>chance</strong> can make one version look better. After 60 ratings v8 led by 8 points. After 420 ratings the lead was 0.5 points. You choose the metric (and the cost and latency limits) <strong>before</strong> the test, and you stop only when one version clearly wins on that metric. A prompt can win on feedback and still be a bad trade if it is slower and costs more.",
+            "done": "You have the thumbs-up rates at day 1 (66.7% and 75.0%) and at day 7 (69.0% and 69.5%), and a decision for each day.",
+            "check": {
+              "question": "Why is it wrong to stop the test after one good afternoon?",
+              "answer": "With few ratings, chance can make one version look better. You choose the metric first and stop only when one version clearly wins on it. Cost and latency also count."
             },
-            {
-              "label": "Prompt B",
-              "text": "Why do we split traffic by a hash of user_id, and not at random for every message? Also, why should every trace carry the prompt version ID, such as support-v8? Answer in 4 short sentences."
-            }
-          ],
-          "lookFor": [
-            "Day 1: v7 is 66.7% and v8 is 75.0%. Day 7: v7 is 69.0% and v8 is 69.5%. The early gap almost disappears.",
-            "Most models say that one afternoon with 60 ratings per version is too little data, and that stopping early on a good result is a mistake.",
-            "At day 7, v8 is about the same quality, but it costs more and is slower. A sensible answer keeps v7, unless another metric favors v8."
-          ],
-          "check": {
-            "question": "Why is it wrong to stop the test after one good afternoon?",
-            "answer": "With few ratings, chance can make one variant look better. You should choose the metric first, and stop only when one variant clearly wins on that metric. Cost and latency also count, because a prompt can win on feedback and still be a bad trade."
+            "challenge": "Change the day 7 numbers so that v8 wins on thumbs-up by 8 points but costs 40% more. Ask the model to help you decide. What extra information do you want?"
           },
-          "challenge": "Change the day 7 numbers so that v8 wins on thumbs-up by 8 points but costs 40% more. Ask the model to help you decide. What extra information would you want?"
+          "bn": {
+            "title": "A/B test কখন থামাবে, ঠিক করো",
+            "why": "তুমি যখন production-এ নতুন prompt test করবে, শুরুর একটা ভালো result লোভ দেখায়। খুব তাড়াতাড়ি ship করলে তুমি এমন prompt-এর জন্য বেশি টাকা দিতে পারো, যা আসলে ভালো না।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt-এর সংখ্যাগুলো পড়ো। ঠিক করো: ১ম দিনের পরই v8 ship করবে, না ৭ম দিন পর্যন্ত অপেক্ষা করবে? কারণ লিখে রাখো। তারপর prompt টা copy করো, paste করে Enter চাপো।",
+                "prompt": "আমরা production-এ আমাদের support-bot-এর prompt-এর দুটো version test করছি (বানানো data)। Traffic ভাগ করা হয়েছে user_id-র hash দিয়ে। Version support-v7 হলো এখনকার prompt। Version support-v8 একটা নতুন, লম্বা prompt।\n\n১ম দিনের বিকেল পর:\n- v7: 60টা rate করা উত্তরের মধ্যে 40টা thumbs-up\n- v8: 60টা rate করা উত্তরের মধ্যে 45টা thumbs-up\n\n৭ম দিন পর:\n- v7: 420টা rate করা উত্তরের মধ্যে 290টা thumbs-up, প্রতি উত্তরে গড় cost 0.8 cent, গড় latency 2.1 s\n- v8: 420টা rate করা উত্তরের মধ্যে 292টা thumbs-up, প্রতি উত্তরে গড় cost 1.1 cent, গড় latency 3.3 s\n\nকাজ:\n1. ১ম দিনে আর ৭ম দিনে প্রতিটা version-এর thumbs-up হার বের করো।\n2. ১ম দিনের পর কি আমাদের থেমে v8 ship করা উচিত? কেন বা কেন নয়?\n3. ৭ম দিনে আমাদের কী করা উচিত?\n4. Test শুরুর আগে আমাদের কোন metric বেছে নেওয়া উচিত ছিল?\nছোট আর সরাসরি উত্তর দাও।",
+                "expect": "১ম দিন: v7 <strong>66.7%</strong>, v8 <strong>75.0%</strong>। ৭ম দিন: v7 <strong>69.0%</strong>, v8 <strong>69.5%</strong>। শুরুর ব্যবধান প্রায় মিলিয়ে গেছে। ৭ম দিনে v8-এর মান প্রায় সমান, কিন্তু cost বেশি আর ধীর। বেশিরভাগ model বলবে v7 রাখো।",
+                "example": "1. ১ম দিন: v7 40/60 = 66.7%, v8 45/60 = 75.0%। ৭ম দিন: v7 290/420 = 69.0%, v8 292/420 = 69.5%।\n2. না। প্রতি version-এ মাত্র 60টা rating নিয়ে একটা বিকেল অনেক কম data। Chance-এর কারণে v8 ভালো দেখাতে পারে।\n3. v7 রাখো। v8-এর মান প্রায় একই, কিন্তু তার cost 0.8 cent-এর বদলে 1.1 cent আর সে ধীর (2.1 s-এর বদলে 3.3 s)।\n4. Test শুরুর আগেই মূল metric, cost-এর সীমা, latency-র সীমা আর test কত দিন চলবে, ঠিক করা উচিত ছিল।"
+              },
+              {
+                "chat": "same",
+                "do": "এই prompt টা copy করো, একই chat-এ paste করে Enter চাপো। পড়ো, ভাগ করতে user_id-র hash কেন ব্যবহার করা হয়।",
+                "prompt": "আমরা user_id-র hash দিয়ে traffic ভাগ করি (একটা স্থির নিয়ম, যা প্রতিটা user-কে সবসময় একই version-এ পাঠায়)। আমরা এটা করি কেন, প্রতিটা message-এ random বাছি না কেন? আর প্রতিটা trace-এ support-v8-এর মতো prompt version ID রাখা উচিত কেন? ৪টা ছোট বাক্যে উত্তর দাও।",
+                "expect": "চারটা ছোট বাক্য। Hash প্রতিটা user-কে একটা version-এই রাখে, তাই user দুটো আলাদা bot দেখে না। প্রতিটা trace-এ version ID থাকলে বোঝা যায় কোন prompt কোন উত্তর বানিয়েছে।",
+                "example": "Hash প্রতিটা user-কে সবসময় একই version-এ পাঠায়। প্রতি message-এ random বাছলে এক user একই chat-এ দুটো আলাদা bot দেখতে পারে। প্রতিটা trace-এ version ID থাকলে বোঝা যায় কোন prompt কোন উত্তর বানিয়েছে। তখন তুমি বলতে পারো \"support-v8-এর user-রা বেশি timeout পেয়েছে\" আর খারাপ version তাড়াতাড়ি খুঁজে পাও।"
+              }
+            ],
+            "learned": "Rating কম হলে <strong>chance</strong>-এর কারণে একটা version ভালো দেখাতে পারে। 60টা rating-এ v8 এগিয়ে ছিল 8 পয়েন্ট। 420টা rating-এ এগিয়ে থাকা নেমে এল 0.5 পয়েন্টে। Metric (আর cost ও latency-র সীমা) তুমি test-এর <strong>আগে</strong> ঠিক করো, আর থামো শুধু তখন, যখন একটা version সেই metric-এ পরিষ্কারভাবে জেতে। কোনো prompt feedback-এ জিতেও খারাপ লেনদেন হতে পারে, যদি সে ধীর হয় আর বেশি cost করে।",
+            "done": "তোমার কাছে ১ম দিনের (66.7% আর 75.0%) আর ৭ম দিনের (69.0% আর 69.5%) thumbs-up হার আছে, আর প্রতিটা দিনের জন্য একটা সিদ্ধান্ত আছে।",
+            "check": {
+              "question": "একটা ভালো বিকেল দেখেই test থামিয়ে দেওয়া ভুল কেন?",
+              "answer": "Rating কম হলে chance-এর কারণে একটা version ভালো দেখাতে পারে। আগে metric ঠিক করো, আর থামো শুধু যখন একটা version সেই metric-এ পরিষ্কারভাবে জেতে। Cost আর latency-ও গোনায় ধরতে হয়।"
+            },
+            "challenge": "৭ম দিনের সংখ্যা এমন বদলাও যাতে v8 thumbs-up-এ 8 পয়েন্টে জেতে কিন্তু cost 40% বেশি। Model-কে সিদ্ধান্ত নিতে সাহায্য করতে বলো। তুমি আর কোন তথ্য চাইবে?"
+          }
         },
         {
-          "title": "Catch silent model drift",
-          "goal": "Compare old and new outputs of the 'same' model and see changes that normal tests may miss.",
-          "steps": [
-            "Read the five cases in Prompt A. Mark by eye which ones changed, and how.",
-            "Start a <strong>new</strong> chat. Send Prompt A. Compare the model's list of changes with yours.",
-            "In the <strong>same</strong> chat, send Prompt B. Read the eval case it writes. Does the expected output look right?"
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "Our app asks a model to extract JSON like {\"name\": ..., \"amount_bdt\": ...} from a message. The vendor updated the model behind the same model name. We ran 5 production inputs through the old and new versions (invented data).\n\n1. Input: \"Rahim paid 1,200 taka\"\n   OLD: {\"name\":\"Rahim\",\"amount_bdt\":1200}\n   NEW: {\"name\":\"Rahim\",\"amount_bdt\":1200}\n2. Input: \"Sumi sent 5k BDT\"\n   OLD: {\"name\":\"Sumi\",\"amount_bdt\":5000}\n   NEW: {\"name\":\"Sumi\",\"amount_bdt\":\"5k\"}\n3. Input: \"Tanvir paid 300 taka and Mina paid 450 taka\"\n   OLD: [{\"name\":\"Tanvir\",\"amount_bdt\":300},{\"name\":\"Mina\",\"amount_bdt\":450}]\n   NEW: {\"name\":\"Tanvir\",\"amount_bdt\":300}\n4. Input: \"Lina paid 75 taka\"\n   OLD: {\"name\":\"Lina\",\"amount_bdt\":75}\n   NEW: Sure! Here is the JSON: {\"name\":\"Lina\",\"amount_bdt\":75}\n5. Input: \"Arif paid 2,000 taka\"\n   OLD: {\"name\":\"Arif\",\"amount_bdt\":2000}\n   NEW: {\"name\":\"Arif\",\"amount_bdt\":2000}\n\nTasks:\n1. For each case say SAME or CHANGED, and name the type of change.\n2. For each change, write one automatic check (a rule a program can test).\n3. Say what share of live traffic we should send through both models, and what we should alert on."
+          "en": {
+            "title": "Catch silent model drift",
+            "why": "A vendor can update a model without changing its name. Your code stays the same, but your JSON can break. You need a way to catch this before your users do.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Read the 5 cases in this prompt. Mark which ones changed. Then copy the prompt, paste it, and press Enter. Compare the model's list with yours.",
+                "prompt": "Our app asks a model to extract JSON like {\"name\": ..., \"amount_bdt\": ...} from a message. The vendor updated the model behind the same model name. We ran 5 production inputs through the old and new versions (invented data).\n\n1. Input: \"Rahim paid 1,200 taka\"\n   OLD: {\"name\":\"Rahim\",\"amount_bdt\":1200}\n   NEW: {\"name\":\"Rahim\",\"amount_bdt\":1200}\n2. Input: \"Sumi sent 5k BDT\"\n   OLD: {\"name\":\"Sumi\",\"amount_bdt\":5000}\n   NEW: {\"name\":\"Sumi\",\"amount_bdt\":\"5k\"}\n3. Input: \"Tanvir paid 300 taka and Mina paid 450 taka\"\n   OLD: [{\"name\":\"Tanvir\",\"amount_bdt\":300},{\"name\":\"Mina\",\"amount_bdt\":450}]\n   NEW: {\"name\":\"Tanvir\",\"amount_bdt\":300}\n4. Input: \"Lina paid 75 taka\"\n   OLD: {\"name\":\"Lina\",\"amount_bdt\":75}\n   NEW: Sure! Here is the JSON: {\"name\":\"Lina\",\"amount_bdt\":75}\n5. Input: \"Arif paid 2,000 taka\"\n   OLD: {\"name\":\"Arif\",\"amount_bdt\":2000}\n   NEW: {\"name\":\"Arif\",\"amount_bdt\":2000}\n\nTasks:\n1. For each case say SAME or CHANGED, and name the type of change.\n2. For each change, write one automatic check (a rule a program can test).\n3. Say what share of live traffic we should send through both models, and what we should alert on.",
+                "expect": "Cases 1 and 5 are <strong>SAME</strong>. Cases 2, 3, and 4 are <strong>CHANGED</strong>: a wrong type (text, not a number), a lost second person, and extra text around the JSON.",
+                "example": "1 SAME\n2 CHANGED: amount_bdt is the text \"5k\", not a number. Check: amount_bdt must be a number.\n3 CHANGED: the list became one object, Mina is lost. Check: the number of people in the output equals the number in the input.\n4 CHANGED: extra text around the JSON. Check: the whole reply must parse as JSON.\n5 SAME\nSend 1-5% of live traffic through both models. Alert when the check pass rates differ."
+              },
+              {
+                "chat": "same",
+                "do": "Copy this prompt, paste it in the same chat, and press Enter. Check that the expected output makes sense.",
+                "prompt": "A user clicked thumbs-down on this answer.\nInput: \"Karim paid 1.5 lakh taka\" (1 lakh = 100,000)\nOutput: {\"name\":\"Karim\",\"amount_bdt\":1.5}\n\nTurn this failure into one test case for our eval dataset. Give the input, the expected output, and the rule that checks it. Then say in 2 sentences why a thousand real failures like this are more useful than synthetic tests.",
+                "expect": "One test case. The input is the Karim sentence, the expected output has <code>\"amount_bdt\": 150000</code>, and the rule says the amount must equal 150000. Then 2 sentences about real failures.",
+                "example": "Input: \"Karim paid 1.5 lakh taka\"\nExpected output: {\"name\":\"Karim\",\"amount_bdt\":150000}\nRule: the JSON parses, and amount_bdt equals 150000 (a number).\nReal failures come from real users, so they show the cases that break your app. Synthetic tests only cover what you already thought of."
+              }
+            ],
+            "learned": "<strong>Drift</strong> means the model changes its behaviour while its name stays the same. Cases 1 and 5 look fine, so a test with only simple inputs would find nothing. The harder cases broke. To catch drift, send a small part of live traffic (1-5%) through the old and new model, compare the check results, and alert on the difference. Real failures from users become new test cases.",
+            "done": "You have a list of 3 changed cases with one check for each, and one new test case for Karim.",
+            "check": {
+              "question": "Why can offline evals miss this kind of change?",
+              "answer": "The model name stayed the same, so nothing in your code changed. A fixed test set may not contain the cases that broke. Running a small share of real traffic through both models finds the difference."
             },
-            {
-              "label": "Prompt B",
-              "text": "A user clicked thumbs-down on this answer.\nInput: \"Karim paid 1.5 lakh taka\" (1 lakh = 100,000)\nOutput: {\"name\":\"Karim\",\"amount_bdt\":1.5}\n\nTurn this failure into one test case for our eval dataset. Give the input, the expected output, and the rule that checks it. Then say in 2 sentences why a thousand real failures like this are more useful than synthetic tests."
-            }
-          ],
-          "lookFor": [
-            "Cases 2, 3, and 4 changed. Case 2 has a wrong type (a string, not a number). Case 3 lost the second person. Case 4 added extra text around the JSON.",
-            "Cases 1 and 5 are the same, so a test that uses only simple inputs would show no problem.",
-            "The model should suggest running a small share of traffic, often 1–5%, through both versions and alerting on the difference in eval results."
-          ],
-          "check": {
-            "question": "Why can offline evals miss this kind of change?",
-            "answer": "The model name stayed the same, so nothing in your code changed, and a fixed test set may not contain the cases that broke. Drift detection runs a small share of real production traffic through the old and new model, compares eval scores, and alerts on the difference."
+            "challenge": "Add a 6th case where the new model does better than the old one. Ask the model to separate regressions (got worse) from improvements. Why is an alert for one direction only not enough?"
           },
-          "challenge": "Add one more case to Prompt A where the new model behaves better than the old one. Ask the model to separate regressions from improvements. Why is a one-way alert not enough?"
+          "bn": {
+            "title": "নীরবে model বদলে যাওয়া ধরো",
+            "why": "Vendor নাম না বদলেই একটা model আপডেট করতে পারে। তোমার code একই থাকে, কিন্তু তোমার JSON ভেঙে যেতে পারে। User ধরার আগে তুমি যেন এটা ধরতে পারো, তার একটা উপায় দরকার।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt-এর ৫টা case পড়ো। কোনগুলো বদলেছে, দাগ দাও। তারপর prompt টা copy করো, paste করে Enter চাপো। Model-এর list-এর সাথে নিজেরটা মেলাও।",
+                "prompt": "আমাদের app একটা model-কে দিয়ে message থেকে {\"name\": ..., \"amount_bdt\": ...}-এর মতো JSON বের করায়। Vendor একই model নামের পেছনের model আপডেট করেছে। আমরা 5টা production input পুরনো আর নতুন version দিয়ে চালিয়েছি (বানানো data)।\n\n1. Input: \"Rahim paid 1,200 taka\"\n   OLD: {\"name\":\"Rahim\",\"amount_bdt\":1200}\n   NEW: {\"name\":\"Rahim\",\"amount_bdt\":1200}\n2. Input: \"Sumi sent 5k BDT\"\n   OLD: {\"name\":\"Sumi\",\"amount_bdt\":5000}\n   NEW: {\"name\":\"Sumi\",\"amount_bdt\":\"5k\"}\n3. Input: \"Tanvir paid 300 taka and Mina paid 450 taka\"\n   OLD: [{\"name\":\"Tanvir\",\"amount_bdt\":300},{\"name\":\"Mina\",\"amount_bdt\":450}]\n   NEW: {\"name\":\"Tanvir\",\"amount_bdt\":300}\n4. Input: \"Lina paid 75 taka\"\n   OLD: {\"name\":\"Lina\",\"amount_bdt\":75}\n   NEW: Sure! Here is the JSON: {\"name\":\"Lina\",\"amount_bdt\":75}\n5. Input: \"Arif paid 2,000 taka\"\n   OLD: {\"name\":\"Arif\",\"amount_bdt\":2000}\n   NEW: {\"name\":\"Arif\",\"amount_bdt\":2000}\n\nকাজ:\n1. প্রতিটা case-এর জন্য বলো SAME না CHANGED, আর বদলের ধরন কী।\n2. প্রতিটা বদলের জন্য একটা automatic check লেখো (এমন নিয়ম যা একটা program পরীক্ষা করতে পারে)।\n3. Live traffic-এর কত অংশ দুই model দিয়েই চালানো উচিত, আর কিসের উপর alert দেওয়া উচিত, বলো।",
+                "expect": "১ আর ৫ নম্বর case <strong>SAME</strong>। ২, ৩ আর ৪ নম্বর <strong>CHANGED</strong>: ভুল type (সংখ্যার বদলে লেখা), দ্বিতীয় মানুষটা হারিয়ে যাওয়া, আর JSON-এর চারপাশে বাড়তি লেখা।",
+                "example": "1 SAME\n2 CHANGED: amount_bdt এখন \"5k\" নামের লেখা, সংখ্যা নয়। Check: amount_bdt অবশ্যই সংখ্যা হতে হবে।\n3 CHANGED: list একটা object হয়ে গেছে, Mina হারিয়ে গেছে। Check: output-এ মানুষের সংখ্যা input-এর সংখ্যার সমান হতে হবে।\n4 CHANGED: JSON-এর চারপাশে বাড়তি লেখা। Check: পুরো উত্তরটা JSON হিসেবে parse হতে হবে।\n5 SAME\nLive traffic-এর 1-5% দুই model দিয়েই চালাও। Check-এর pass rate আলাদা হলে alert দাও।"
+              },
+              {
+                "chat": "same",
+                "do": "এই prompt টা copy করো, একই chat-এ paste করে Enter চাপো। দেখো, expected output টা ঠিক মনে হচ্ছে কি না।",
+                "prompt": "একজন user এই উত্তরে thumbs-down দিয়েছে।\nInput: \"Karim paid 1.5 lakh taka\" (1 lakh = 100,000)\nOutput: {\"name\":\"Karim\",\"amount_bdt\":1.5}\n\nএই failure-টাকে আমাদের eval dataset-এর জন্য একটা test case বানাও। Input, expected output আর যে নিয়ম দিয়ে এটা পরীক্ষা হবে, তা দাও। তারপর ২ বাক্যে বলো, এই রকম হাজারটা আসল failure বানানো test-এর চেয়ে বেশি কাজের কেন।",
+                "expect": "একটা test case। Input হলো Karim-এর বাক্য, expected output-এ <code>\"amount_bdt\": 150000</code> আছে, আর নিয়ম বলে amount অবশ্যই 150000 হতে হবে। তারপর আসল failure নিয়ে ২টা বাক্য।",
+                "example": "Input: \"Karim paid 1.5 lakh taka\"\nExpected output: {\"name\":\"Karim\",\"amount_bdt\":150000}\nনিয়ম: JSON parse হয়, আর amount_bdt একটা সংখ্যা এবং সেটা 150000।\nআসল failure আসে আসল user-দের কাছ থেকে, তাই সেগুলো দেখায় কোন case তোমার app ভাঙে। বানানো test শুধু সেটাই ধরে, যা তুমি আগে ভেবেছ।"
+              }
+            ],
+            "learned": "<strong>Drift</strong> মানে model-এর নাম একই থেকে যায়, কিন্তু তার আচরণ বদলে যায়। ১ আর ৫ নম্বর case ঠিক দেখাচ্ছে, তাই শুধু সহজ input-এর test কিছুই ধরত না। কঠিন case-গুলো ভেঙেছে। Drift ধরতে live traffic-এর অল্প অংশ (1-5%) পুরনো আর নতুন model দিয়ে চালাও, check-এর result মেলাও, আর পার্থক্যে alert দাও। User-দের আসল failure নতুন test case হয়ে যায়।",
+            "done": "তোমার কাছে ৩টা বদলে যাওয়া case-এর list আছে, প্রতিটার একটা করে check সহ, আর Karim-এর জন্য একটা নতুন test case আছে।",
+            "check": {
+              "question": "Offline eval এই ধরনের বদল মিস করতে পারে কেন?",
+              "answer": "Model-এর নাম একই ছিল, তাই তোমার code-এ কিছু বদলায়নি। একটা স্থির test set-এ হয়তো ভেঙে যাওয়া case-গুলোই নেই। আসল traffic-এর একটা ছোট অংশ দুই model দিয়েই চালালে পার্থক্য ধরা পড়ে।"
+            },
+            "challenge": "৬ নম্বর একটা case যোগ করো, যেখানে নতুন model পুরনোর চেয়ে ভালো করে। Model-কে regression (খারাপ হওয়া) আর improvement আলাদা করতে বলো। শুধু এক দিকের alert যথেষ্ট নয় কেন?"
+          }
         }
       ]
     }

@@ -145,35 +145,80 @@
       ],
       "practice": [
         {
-          "title": "Budget an 8,000-token context window",
-          "goal": "See that fixed costs and reserved output shrink the room for history and retrieval, and that a plan can overflow the window.",
-          "steps": [
-            "Do the sum yourself first. Add all six items from Prompt A on paper. Write your total.",
-            "Send Prompt A in a <strong>new</strong> chat. Compare the total of the AI with your total.",
-            "In the <strong>same</strong> chat, send Prompt B. Check that the new plan really fits in 8,000 tokens.",
-            "Add the numbers of the new plan yourself. Look for any error in the arithmetic of the AI."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "A chat app has a context window of 8,000 tokens.\nFixed costs:\n- System prompt: 1,500 tokens\n- Tool definitions: 2,000 tokens\n- Current user turn: 300 tokens\n- Reserved for the answer: 1,000 tokens\nThe team wants to add:\n- Chat history: 2,500 tokens\n- Retrieved chunks: 6 chunks of 700 tokens each\n\nTask:\n1. Show a table with every item and the total.\n2. Say if the plan fits. Say how many tokens it is over or under.\n3. If history stays at 2,500 tokens, how many 700-token chunks fit?\nShow your arithmetic."
+          "en": {
+            "title": "Fit a plan into an 8,000-token window",
+            "why": "When you build a chat app that searches documents, the AI can read only a fixed amount of text at once. You must check that everything fits, or the answer gets cut off.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. The AI will add up the numbers.",
+                "prompt": "A chat app has a context window of 8,000 tokens.\nFixed costs:\n- System prompt: 1,500 tokens\n- Tool definitions: 2,000 tokens\n- Current user turn: 300 tokens\n- Reserved for the answer: 1,000 tokens\nThe team wants to add:\n- Chat history: 2,500 tokens\n- Retrieved chunks (small pieces of documents found by search): 6 chunks of 700 tokens each\n\nTask:\n1. Show a table with every item and the total.\n2. Say if the plan fits. Say how many tokens it is over or under.\n3. If history stays at 2,500 tokens, how many 700-token chunks fit?\nShow your arithmetic.",
+                "expect": "A table with a total of <strong>11,500</strong> tokens. The plan does not fit: it is <strong>3,500</strong> tokens over. Only <strong>1</strong> chunk fits.",
+                "example": "Item | Tokens\nSystem prompt | 1,500\nTool definitions | 2,000\nCurrent user turn | 300\nReserved for answer | 1,000\nChat history | 2,500\n6 chunks x 700 | 4,200\nTotal | 11,500\n\nThe plan does not fit. It is 11,500 - 8,000 = 3,500 tokens over.\nWithout chunks the total is 7,300, so 700 tokens are free. Only 1 chunk of 700 tokens fits."
+              },
+              {
+                "chat": "same",
+                "do": "On paper, add the six numbers: 1,500 + 2,000 + 300 + 1,000 + 2,500 + 4,200. Compare your total with the total of the AI.",
+                "expect": "Your total is <strong>11,500</strong>. If the AI gave a different total, the AI made a mistake."
+              },
+              {
+                "chat": "same",
+                "do": "Copy this prompt, paste it, and press Enter. The AI will make a smaller plan that fits.",
+                "prompt": "Now make a plan that fits in 8,000 tokens. Rules: keep the 1,000-token answer reserve, keep 3 chunks of 700 tokens each, and load only 1,000 tokens of tool definitions now (the rest load later, only when needed). Keep the system prompt (1,500) and the current user turn (300). Shrink the history by summarizing it. Give a new table with the largest history that fits, and how many tokens are left over.",
+                "expect": "A new table. The largest history is <strong>2,100</strong> tokens, and about <strong>0</strong> tokens are left over.",
+                "example": "Item | Tokens\nSystem prompt | 1,500\nTool definitions (loaded now) | 1,000\nCurrent user turn | 300\nReserved for answer | 1,000\n3 chunks x 700 | 2,100\nSummarized history | 2,100\nTotal | 8,000\n\nThe largest history that fits is 2,100 tokens. Tokens left over: 0."
+              },
+              {
+                "chat": "same",
+                "do": "Check the new plan on paper: 1,500 + 1,000 + 300 + 1,000 + 2,100. Then add the history size of the AI. The total must be 8,000 or less.",
+                "expect": "The first sum is <strong>5,900</strong>. With a history of 2,100 the total is <strong>8,000</strong>. If the AI chose another history size, the total must still be 8,000 or less."
+              }
+            ],
+            "learned": "The <strong>context window</strong> is the most text the AI can read at one time, and the answer must fit inside it too. In the first plan, the fixed parts plus the documents were bigger than the window. To fix it, you had to cut several parts at once: a smaller history, fewer tools, and fewer chunks. Always keep room for the answer, or it gets cut off.",
+            "done": "You have the total of the first plan (11,500) and a new plan that adds up to 8,000 or less.",
+            "check": {
+              "question": "Why must you keep room for the answer when you plan what fits?",
+              "answer": "The window holds the input and the answer together. If you keep no room for the answer, the answer gets cut off, and nothing warns you."
             },
-            {
-              "label": "Prompt B",
-              "text": "Now make a plan that fits. Rules: keep the 1,000-token answer reserve, keep 3 chunks of 700 tokens, and load only 1,000 tokens of tool definitions (the rest load lazily). Shrink the history by summarizing. Give a new table with the maximum history size and the headroom."
-            }
-          ],
-          "lookFor": [
-            "The first plan is about 3,500 tokens over the window. Most people do not expect such a big overflow.",
-            "Only one 700-token chunk fits if history and the fixed costs stay as they are.",
-            "The fix needs several changes at once: a smaller history, lazy tools, and fewer chunks. One change is not enough.",
-            "Models sometimes make a small arithmetic error. Your own sum is the check."
-          ],
-          "check": {
-            "question": "Why must you subtract the reserved output tokens before you decide how much retrieval fits?",
-            "answer": "The window holds the input and the answer together. If you do not reserve output tokens, the answer gets cut off, and this fails silently. So the retrieval budget is the window minus system, tools, current turn, and reserved output."
+            "challenge": "Change the window in the first prompt to 32,000 tokens and send it again. Does the plan fit now? Which part would you still limit first, and why?"
           },
-          "challenge": "Change the window in Prompt A to 32,000 tokens and ask which of the five claimants you would still limit first. Say why."
+          "bn": {
+            "title": "8,000 token-এর window-তে plan মেলাও",
+            "why": "তুমি যখন document search করে উত্তর দেয় এমন chat app বানাবে, তখন AI একসঙ্গে শুধু নির্দিষ্ট পরিমাণ text পড়তে পারে। সবকিছু আঁটছে কি না না দেখলে উত্তর মাঝপথে কেটে যায়।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, chat-এ paste করে Enter চাপো। AI সংখ্যাগুলো যোগ করবে।",
+                "prompt": "একটা chat app-এর context window 8,000 token।\nনির্দিষ্ট খরচ:\n- System prompt: 1,500 token\n- Tool definition: 2,000 token\n- ব্যবহারকারীর বর্তমান message: 300 token\n- উত্তরের জন্য আলাদা করে রাখা: 1,000 token\nটিম আরও যোগ করতে চায়:\n- Chat history: 2,500 token\n- Retrieved chunk (search করে পাওয়া document-এর ছোট ছোট অংশ): 6টা chunk, প্রতিটা 700 token\n\nকাজ:\n1. প্রতিটা item আর মোট সংখ্যা দিয়ে একটা table বানাও।\n2. Plan-টা window-তে আঁটে কি না বলো। কত token বেশি বা কম, সেটাও বলো।\n3. History 2,500 token-ই থাকলে 700 token-এর কয়টা chunk আঁটে?\nতোমার হিসাব দেখাও।",
+                "expect": "একটা table, মোট <strong>11,500</strong> token। Plan-টা আঁটে না: <strong>3,500</strong> token বেশি। শুধু <strong>1</strong>টা chunk আঁটে।",
+                "example": "Item | Token\nSystem prompt | 1,500\nTool definition | 2,000\nবর্তমান message | 300\nউত্তরের জন্য রাখা | 1,000\nChat history | 2,500\n6টা chunk x 700 | 4,200\nমোট | 11,500\n\nPlan-টা আঁটে না। 11,500 - 8,000 = 3,500 token বেশি।\nChunk বাদ দিলে মোট 7,300, তাই 700 token খালি থাকে। শুধু 700 token-এর 1টা chunk আঁটে।"
+              },
+              {
+                "chat": "same",
+                "do": "কাগজে ছয়টা সংখ্যা যোগ করো: 1,500 + 2,000 + 300 + 1,000 + 2,500 + 4,200। তোমার যোগফল AI-এর মোটের সঙ্গে মেলাও।",
+                "expect": "তোমার যোগফল <strong>11,500</strong>। AI-এর মোট অন্য হলে AI ভুল করেছে।"
+              },
+              {
+                "chat": "same",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। AI এবার ছোট একটা plan বানাবে, যেটা আঁটে।",
+                "prompt": "এবার 8,000 token-এ আঁটে এমন একটা plan বানাও। নিয়ম: উত্তরের জন্য 1,000 token আলাদা রাখো, 700 token-এর 3টা chunk রাখো, আর এখন শুধু 1,000 token-এর tool definition load করো (বাকিগুলো পরে, দরকার হলে load হবে)। System prompt (1,500) আর বর্তমান message (300) রাখো। History summary করে ছোট করো। একটা নতুন table দাও: সবচেয়ে বড় কত token-এর history আঁটে, আর কত token বাকি থাকে।",
+                "expect": "একটা নতুন table। সবচেয়ে বড় history <strong>2,100</strong> token, আর বাকি থাকে প্রায় <strong>0</strong> token।",
+                "example": "Item | Token\nSystem prompt | 1,500\nTool definition (এখন load হবে) | 1,000\nবর্তমান message | 300\nউত্তরের জন্য রাখা | 1,000\n3টা chunk x 700 | 2,100\nSummary করা history | 2,100\nমোট | 8,000\n\nসবচেয়ে বড় history 2,100 token। বাকি থাকে: 0 token।"
+              },
+              {
+                "chat": "same",
+                "do": "নতুন plan কাগজে মেলাও: 1,500 + 1,000 + 300 + 1,000 + 2,100। তারপর AI-এর দেওয়া history-র size যোগ করো। মোট 8,000 বা তার কম হতে হবে।",
+                "expect": "প্রথম যোগফল <strong>5,900</strong>। History 2,100 হলে মোট <strong>8,000</strong>। AI অন্য size দিলেও মোট 8,000 বা তার কম হতে হবে।"
+              }
+            ],
+            "learned": "<strong>Context window</strong> হলো AI একসঙ্গে সবচেয়ে বেশি যতটুকু text পড়তে পারে, আর উত্তরটাকেও এর ভেতরেই আঁটতে হয়। প্রথম plan-এ নির্দিষ্ট অংশগুলো আর document মিলে window-র চেয়ে বড় হয়ে গিয়েছিল। ঠিক করতে একসঙ্গে কয়েকটা জিনিস কাটতে হলো: ছোট history, কম tool, কম chunk। উত্তরের জন্য সবসময় জায়গা রাখো, নইলে উত্তর কেটে যায়।",
+            "done": "তোমার কাছে প্রথম plan-এর মোট (11,500) আর একটা নতুন plan আছে, যার যোগফল 8,000 বা তার কম।",
+            "check": {
+              "question": "কী কী আঁটবে সেটা ঠিক করার সময় উত্তরের জন্য জায়গা রাখতে হয় কেন?",
+              "answer": "Window-তে input আর উত্তর একসঙ্গে থাকে। উত্তরের জন্য জায়গা না রাখলে উত্তর কেটে যায়, আর কেউ তোমাকে সতর্কও করে না।"
+            },
+            "challenge": "প্রথম prompt-এ window বদলে 32,000 token করে আবার পাঠাও। Plan এখন আঁটে কি? কোন অংশটা তুমি তবুও আগে সীমিত করবে, আর কেন?"
+          }
         }
       ]
     },
@@ -353,35 +398,80 @@
       ],
       "practice": [
         {
-          "title": "Compare a naive and a structured summary",
-          "goal": "See which facts a vague summary drops, and how a fixed schema keeps them.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. Copy the summary.",
-            "Send Prompt B in another <strong>new</strong> chat. Copy the summary.",
-            "Count how many of these 6 facts each summary keeps: 85,000 tk, bKash, new only, under 1.6 kg, 16 GB RAM, call Friday after 5 pm.",
-            "Find the one open question in the chat. Check if each summary shows it."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "Summarise this conversation in 2 sentences.\n\nUser: I want a laptop for my son. He studies computer science in Chittagong.\nAssistant: What is your budget?\nUser: Maximum 85,000 tk. I will pay by bKash, so the shop must accept it.\nAssistant: Do you prefer a new or a used laptop?\nUser: New only. Used ones gave us problems before.\nAssistant: Do you need a big screen?\nUser: No. He carries it every day. Lighter than 1.6 kg please.\nAssistant: I suggest 16 GB RAM and a 512 GB SSD.\nUser: OK, 16 GB RAM. I am not sure about 512 GB. Ask me again later.\nAssistant: Noted. I will check shops in Agrabad and send you a list.\nUser: Good. Call me on Friday after 5 pm. My number is 01700-000000."
+          "en": {
+            "title": "Compare a vague and a structured summary",
+            "why": "When you build a chatbot with long chats, you must shrink old messages into a summary. A bad summary can drop the budget or a promised call time, and the bot then gives wrong help.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Copy the summary to a note.",
+                "prompt": "Summarise this conversation in 2 sentences.\n\nUser: I want a laptop for my son. He studies computer science in Chittagong.\nAssistant: What is your budget?\nUser: Maximum 85,000 tk. I will pay by bKash, so the shop must accept it.\nAssistant: Do you prefer a new or a used laptop?\nUser: New only. Used ones gave us problems before.\nAssistant: Do you need a big screen?\nUser: No. He carries it every day. Lighter than 1.6 kg please.\nAssistant: I suggest 16 GB RAM and a 512 GB SSD.\nUser: OK, 16 GB RAM. I am not sure about 512 GB. Ask me again later.\nAssistant: Noted. I will check shops in Agrabad and send you a list.\nUser: Good. Call me on Friday after 5 pm. My number is 01700-000000.",
+                "expect": "A summary of 2 sentences. It usually keeps the main goal, but it often drops some exact details.",
+                "example": "A parent wants to buy a new laptop with 16 GB RAM for his son, who studies computer science in Chittagong. The assistant will check shops in Agrabad and send a list, and the parent asks for a call on Friday."
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it in a new chat, and press Enter. Copy the summary to a note.",
+                "prompt": "Summarise this conversation as JSON with exactly these keys: user_goal (one sentence), decisions_made (list), open_questions (list), key_facts_learned (list), entities (list of names, ids, numbers), user_preferences (list), tool_results_to_remember (list). Keep exact numbers. Do not add facts.\n\nUser: I want a laptop for my son. He studies computer science in Chittagong.\nAssistant: What is your budget?\nUser: Maximum 85,000 tk. I will pay by bKash, so the shop must accept it.\nAssistant: Do you prefer a new or a used laptop?\nUser: New only. Used ones gave us problems before.\nAssistant: Do you need a big screen?\nUser: No. He carries it every day. Lighter than 1.6 kg please.\nAssistant: I suggest 16 GB RAM and a 512 GB SSD.\nUser: OK, 16 GB RAM. I am not sure about 512 GB. Ask me again later.\nAssistant: Noted. I will check shops in Agrabad and send you a list.\nUser: Good. Call me on Friday after 5 pm. My number is 01700-000000.",
+                "expect": "A JSON text with 7 keys. The numbers, such as <em>85,000 tk</em> and <em>1.6 kg</em>, are in the lists.",
+                "example": "{\n  \"user_goal\": \"Buy a laptop for his son, who studies computer science in Chittagong\",\n  \"decisions_made\": [\"New laptop only\", \"16 GB RAM\"],\n  \"open_questions\": [\"Whether to get a 512 GB SSD\"],\n  \"key_facts_learned\": [\"Budget: maximum 85,000 tk\", \"Pays by bKash\", \"Lighter than 1.6 kg\"],\n  \"entities\": [\"Agrabad\", \"01700-000000\"],\n  \"user_preferences\": [\"New only\", \"Light laptop, carried every day\", \"Call on Friday after 5 pm\"],\n  \"tool_results_to_remember\": []\n}"
+              },
+              {
+                "chat": "same",
+                "do": "Count how many of these 6 facts each summary keeps: 85,000 tk, bKash, new only, under 1.6 kg, 16 GB RAM, call Friday after 5 pm.",
+                "expect": "The 2-sentence summary keeps fewer facts, often only 2 or 3. The JSON summary keeps most of them, often all 6."
+              },
+              {
+                "chat": "same",
+                "do": "Find the one question the user did not answer yet (the size of the SSD). Check if each summary shows it.",
+                "expect": "The JSON summary shows it in <code>open_questions</code>. The short summary often leaves it out."
+              }
+            ],
+            "learned": "A summary is a <strong>lossy</strong> copy: the AI throws some details away to make the text short. A vague request like <em>in 2 sentences</em> loses exact numbers first. A fixed list of slots (the JSON keys) makes the AI keep a place for each kind of fact. The longer summary costs more tokens, but it loses less.",
+            "done": "You have 2 summaries, and for each one you counted how many of the 6 facts it keeps.",
+            "check": {
+              "question": "Why is a summary a bad source of truth for an exact number such as a budget?",
+              "answer": "A summary is a lossy copy. Exact numbers, decisions, and quotes disappear first. Use the summary as a guide, and keep key facts in a fixed slot or in the original chat log."
             },
-            {
-              "label": "Prompt B",
-              "text": "Summarise this conversation as JSON with exactly these keys: user_goal (one sentence), decisions_made (list), open_questions (list), key_facts_learned (list), entities (list of names, ids, numbers), user_preferences (list), tool_results_to_remember (list). Keep exact numbers. Do not add facts.\n\nUser: I want a laptop for my son. He studies computer science in Chittagong.\nAssistant: What is your budget?\nUser: Maximum 85,000 tk. I will pay by bKash, so the shop must accept it.\nAssistant: Do you prefer a new or a used laptop?\nUser: New only. Used ones gave us problems before.\nAssistant: Do you need a big screen?\nUser: No. He carries it every day. Lighter than 1.6 kg please.\nAssistant: I suggest 16 GB RAM and a 512 GB SSD.\nUser: OK, 16 GB RAM. I am not sure about 512 GB. Ask me again later.\nAssistant: Noted. I will check shops in Agrabad and send you a list.\nUser: Good. Call me on Friday after 5 pm. My number is 01700-000000."
-            }
-          ],
-          "lookFor": [
-            "The 2-sentence summary often keeps the goal but drops exact numbers, the payment method, or the call time.",
-            "The schema forces a slot for each kind of fact, so the numbers and the open question usually survive.",
-            "The structured summary is longer. It trades some tokens for less loss.",
-            "Check the JSON for invented facts. A summary can add errors too."
-          ],
-          "check": {
-            "question": "Why is a summary a bad source of truth for an exact number such as a budget?",
-            "answer": "Summarisation is lossy compression. Exact numbers, decisions, and quoted text disappear first. Use the summary as an index, and keep key facts in a structured slot or in the original log."
+            "challenge": "Add 4 more turns to the chat that change the budget to 90,000 tk. Make the JSON summary again. Does it show the new number and not the old one?"
           },
-          "challenge": "Add 4 more turns to the chat that change the budget to 90,000 tk. Summarise again with Prompt B. Does the summary show the new value and not the old one?"
+          "bn": {
+            "title": "অস্পষ্ট আর structured summary-র তুলনা করো",
+            "why": "তুমি যখন লম্বা chat-এর chatbot বানাবে, তখন পুরনো message ছোট একটা summary-তে আনতে হবে। খারাপ summary-তে budget বা ফোনের সময়ের মতো জিনিস হারিয়ে যেতে পারে, আর তখন bot ভুল সাহায্য দেয়।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, chat-এ paste করে Enter চাপো। Summary-টা একটা note-এ copy করে রাখো।",
+                "prompt": "এই কথোপকথনটা 2টা বাক্যে summary করো।\n\nUser: আমি আমার ছেলের জন্য একটা laptop কিনতে চাই। সে চট্টগ্রামে computer science পড়ে।\nAssistant: আপনার budget কত?\nUser: সর্বোচ্চ 85,000 tk। আমি bKash-এ টাকা দেব, তাই দোকানকে bKash নিতে হবে।\nAssistant: নতুন laptop চান, না পুরনো?\nUser: শুধু নতুন। পুরনোগুলো নিয়ে আগে সমস্যা হয়েছে।\nAssistant: বড় screen লাগবে?\nUser: না। সে রোজ সঙ্গে নিয়ে যায়। 1.6 kg-র চেয়ে হালকা চাই।\nAssistant: আমি 16 GB RAM আর 512 GB SSD সুপারিশ করি।\nUser: ঠিক আছে, 16 GB RAM। 512 GB নিয়ে আমি নিশ্চিত না। পরে আবার জিজ্ঞেস করবেন।\nAssistant: ঠিক আছে। আমি আগ্রাবাদের দোকানগুলো দেখে আপনাকে একটা list পাঠাব।\nUser: ভালো। শুক্রবার বিকাল 5টার পরে আমাকে ফোন করবেন। আমার নম্বর 01700-000000।",
+                "expect": "2 বাক্যের একটা summary। সাধারণত মূল লক্ষ্য থাকে, কিন্তু কিছু সঠিক তথ্য প্রায়ই বাদ পড়ে।",
+                "example": "একজন অভিভাবক চট্টগ্রামে computer science পড়া ছেলের জন্য 16 GB RAM-এর একটা নতুন laptop কিনতে চান। Assistant আগ্রাবাদের দোকান দেখে list পাঠাবে, আর অভিভাবক শুক্রবার ফোন করতে বলেছেন।"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, নতুন chat-এ paste করে Enter চাপো। Summary-টা একটা note-এ copy করে রাখো। JSON-এর key গুলো English-এই থাকবে।",
+                "prompt": "এই কথোপকথনটা JSON আকারে summary করো। ঠিক এই key গুলো ব্যবহার করো: user_goal (এক বাক্য), decisions_made (list), open_questions (list), key_facts_learned (list), entities (নাম, id, সংখ্যার list), user_preferences (list), tool_results_to_remember (list)। সঠিক সংখ্যা রাখো। নতুন কোনো তথ্য যোগ কোরো না।\n\nUser: আমি আমার ছেলের জন্য একটা laptop কিনতে চাই। সে চট্টগ্রামে computer science পড়ে।\nAssistant: আপনার budget কত?\nUser: সর্বোচ্চ 85,000 tk। আমি bKash-এ টাকা দেব, তাই দোকানকে bKash নিতে হবে।\nAssistant: নতুন laptop চান, না পুরনো?\nUser: শুধু নতুন। পুরনোগুলো নিয়ে আগে সমস্যা হয়েছে।\nAssistant: বড় screen লাগবে?\nUser: না। সে রোজ সঙ্গে নিয়ে যায়। 1.6 kg-র চেয়ে হালকা চাই।\nAssistant: আমি 16 GB RAM আর 512 GB SSD সুপারিশ করি।\nUser: ঠিক আছে, 16 GB RAM। 512 GB নিয়ে আমি নিশ্চিত না। পরে আবার জিজ্ঞেস করবেন।\nAssistant: ঠিক আছে। আমি আগ্রাবাদের দোকানগুলো দেখে আপনাকে একটা list পাঠাব।\nUser: ভালো। শুক্রবার বিকাল 5টার পরে আমাকে ফোন করবেন। আমার নম্বর 01700-000000।",
+                "expect": "৭টা key-সহ একটা JSON text। <em>85,000 tk</em> আর <em>1.6 kg</em>-এর মতো সংখ্যা list-গুলোতে থাকে।",
+                "example": "{\n  \"user_goal\": \"চট্টগ্রামে computer science পড়া ছেলের জন্য একটা laptop কেনা\",\n  \"decisions_made\": [\"শুধু নতুন laptop\", \"16 GB RAM\"],\n  \"open_questions\": [\"512 GB SSD নেওয়া হবে কি না\"],\n  \"key_facts_learned\": [\"Budget সর্বোচ্চ 85,000 tk\", \"bKash-এ টাকা দেবে\", \"1.6 kg-র চেয়ে হালকা\"],\n  \"entities\": [\"আগ্রাবাদ\", \"01700-000000\"],\n  \"user_preferences\": [\"শুধু নতুন\", \"হালকা laptop, রোজ সঙ্গে নেয়\", \"শুক্রবার বিকাল 5টার পরে ফোন\"],\n  \"tool_results_to_remember\": []\n}"
+              },
+              {
+                "chat": "same",
+                "do": "এই ৬টা তথ্যের কয়টা প্রতিটা summary-তে আছে, গুনো: 85,000 tk, bKash, শুধু নতুন, 1.6 kg-র কম, 16 GB RAM, শুক্রবার বিকাল 5টার পরে ফোন।",
+                "expect": "২ বাক্যের summary-তে কম তথ্য থাকে, প্রায়ই মাত্র ২ বা ৩টা। JSON summary-তে বেশিরভাগ থাকে, প্রায়ই ৬টাই।"
+              },
+              {
+                "chat": "same",
+                "do": "যে প্রশ্নের উত্তর ব্যবহারকারী এখনো দেয়নি, সেটা খোঁজো (SSD-র size)। দেখো প্রতিটা summary-তে সেটা আছে কি না।",
+                "expect": "JSON summary-তে সেটা <code>open_questions</code>-এ থাকে। ছোট summary-তে প্রায়ই সেটা বাদ পড়ে।"
+              }
+            ],
+            "learned": "Summary হলো একটা <strong>lossy</strong> copy: text ছোট করতে AI কিছু তথ্য ফেলে দেয়। <em>2 বাক্যে</em>-র মতো অস্পষ্ট অনুরোধে সঠিক সংখ্যা সবার আগে হারায়। নির্দিষ্ট slot-এর list (JSON key গুলো) থাকলে AI প্রতিটা ধরনের তথ্যের জন্য জায়গা রাখে। লম্বা summary-তে token বেশি লাগে, কিন্তু হারায় কম।",
+            "done": "তোমার কাছে 2টা summary আছে, আর প্রতিটায় ৬টা তথ্যের কয়টা আছে তুমি গুনেছ।",
+            "check": {
+              "question": "Budget-এর মতো সঠিক সংখ্যার জন্য summary ভরসার উৎস না কেন?",
+              "answer": "Summary একটা lossy copy। সঠিক সংখ্যা, সিদ্ধান্ত আর উদ্ধৃতি সবার আগে হারায়। Summary-কে পথ দেখানোর জন্য ব্যবহার করো, আর জরুরি তথ্য নির্দিষ্ট slot-এ বা আসল chat log-এ রাখো।"
+            },
+            "challenge": "Chat-এ আরও 4টা turn যোগ করো, যেখানে budget বদলে 90,000 tk হয়। আবার JSON summary বানাও। নতুন সংখ্যাটা কি আছে, পুরনোটা নেই?"
+          }
         }
       ]
     },
@@ -621,35 +711,70 @@
       ],
       "practice": [
         {
-          "title": "Predict cache hits for two prompt layouts",
-          "goal": "See that a cache covers only the unchanged start of a prompt, so the order of the parts decides the cost.",
-          "steps": [
-            "Read Layout X and Layout Y in Prompt A. Guess which layout is cheaper for Request 2. Write your guess.",
-            "Send Prompt A in a <strong>new</strong> chat. Compare the numbers with your guess.",
-            "In the <strong>same</strong> chat, send Prompt B. See what one typo does to the cache.",
-            "Check the cost sums yourself. Models can make arithmetic errors."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "Prefix caching rule: the cache covers only the longest run of identical lines from the top of the prompt. The first line that differs, and every line after it, is a cache miss. A cached token costs 0.1 units. An uncached token costs 1 unit.\n\nLayout X (same lines in Request 1 and Request 2, except the ones marked CHANGES):\nLine 1: Current time (15 tokens) - CHANGES each request\nLine 2: System rules (1,800 tokens)\nLine 3: Tool schemas (2,200 tokens)\nLine 4: User question (100 tokens) - CHANGES each request\n\nLayout Y:\nLine 1: System rules (1,800 tokens)\nLine 2: Tool schemas (2,200 tokens)\nLine 3: Current time (15 tokens) - CHANGES each request\nLine 4: User question (100 tokens) - CHANGES each request\n\nFor Request 2 in each layout, give a table: cached tokens, uncached tokens, and cost in units. Then say which layout is cheaper and by what percent."
+          "en": {
+            "title": "See which prompt layout costs less",
+            "why": "When your app sends the same long system prompt in every call, the provider can cache it and charge less. If you put a changing line at the top, you lose that saving and pay full price.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. The AI will work out the cost of two layouts.",
+                "prompt": "Prefix caching rule: the cache covers only the longest run of identical lines from the top of the prompt. The first line that differs, and every line after it, is a cache miss (full price). A cached token costs 0.1 units. An uncached token costs 1 unit.\n\nLayout X. Request 1 and Request 2 have the same lines, except the lines marked CHANGES:\nLine 1: Current time (15 tokens) - CHANGES each request\nLine 2: System rules (1,800 tokens)\nLine 3: Tool schemas (2,200 tokens)\nLine 4: User question (100 tokens) - CHANGES each request\n\nLayout Y. The same rule applies:\nLine 1: System rules (1,800 tokens)\nLine 2: Tool schemas (2,200 tokens)\nLine 3: Current time (15 tokens) - CHANGES each request\nLine 4: User question (100 tokens) - CHANGES each request\n\nFor Request 2 in each layout, give a table: cached tokens, uncached tokens, and cost in units. Then say which layout is cheaper and by about what percent.",
+                "expect": "Layout X: 0 cached, 4,115 uncached, cost <strong>4,115</strong> units. Layout Y: 4,000 cached, 115 uncached, cost <strong>515</strong> units. Layout Y is cheaper by about <strong>87%</strong>.",
+                "example": "Layout X: cached 0, uncached 4,115 (15 + 1,800 + 2,200 + 100). Cost: 4,115 units.\nLayout Y: cached 4,000 (1,800 + 2,200), uncached 115 (15 + 100). Cost: 4,000 x 0.1 + 115 = 400 + 115 = 515 units.\n\nLayout Y is cheaper. It saves 4,115 - 515 = 3,600 units, which is about 87.5%."
+              },
+              {
+                "chat": "same",
+                "do": "Copy this prompt, paste it, and press Enter. See what one small typo fix does.",
+                "prompt": "Now a developer fixes one typo inside the System rules of Layout Y. The fix happens between Request 1 and Request 2, and it changes 1 character. What are the cached tokens, uncached tokens, and cost for Request 2 now? Explain in 2 sentences.",
+                "expect": "0 cached tokens, 4,115 uncached tokens, and a cost of <strong>4,115</strong> units. The cache is lost from the changed line down.",
+                "example": "Cached tokens: 0. Uncached tokens: 4,115. Cost: 4,115 units.\nThe typo is in the System rules, which is the first line. So Request 2 no longer matches the cached start, and every line after it is a miss too."
+              },
+              {
+                "chat": "same",
+                "do": "Check the cost of Layout Y on paper: 4,000 x 0.1, then add 115 x 1. Compare with the AI cost.",
+                "expect": "<strong>400</strong> + <strong>115</strong> = <strong>515</strong> units."
+              }
+            ],
+            "learned": "A <strong>prompt cache</strong> remembers the start of a prompt that the provider already read, so the same start costs less next time (here 0.1 instead of 1). The cache matches from the top and stops at the first line that changed. In Layout X the time was on line 1, so nothing matched. In Layout Y the changing lines were last, so 4,000 tokens matched.",
+            "done": "You have the cost of Request 2 for Layout X (4,115), for Layout Y (515), and for Layout Y after the typo (4,115).",
+            "check": {
+              "question": "Where should changing content go in a prompt that uses caching, and why?",
+              "answer": "Put the parts that stay the same first (system prompt, tools) and the parts that change last (time, user message). The cache keeps only an identical start, and a 1-character change breaks the cache for everything after it."
             },
-            {
-              "label": "Prompt B",
-              "text": "Now a developer fixes one typo inside the System rules in Layout Y, between Request 1 and Request 2. The typo fix changes 1 character. What are the cached tokens, uncached tokens, and cost for Request 2 now? Explain in 2 sentences."
-            }
-          ],
-          "lookFor": [
-            "In Layout X the time is on line 1, so almost nothing is cached. Request 2 costs about 4,115 units.",
-            "In Layout Y about 4,000 tokens are cached. Request 2 costs about 515 units, which is close to 87% less.",
-            "After the typo fix, the System rules differ, so the cache misses from that line down. The cost goes back to a full-price call.",
-            "The two layouts hold the same words. Only the order changed."
-          ],
-          "check": {
-            "question": "Where should changing content go in a prompt that uses caching, and why?",
-            "answer": "Put stable parts first (system prompt, tools, static documents) and changing parts last (time, user message). The cache keeps only an identical prefix, and a one-character change busts the cache for everything after it."
+            "challenge": "Ask the AI to rewrite Layout Y for an app that also loads new news articles on every call. Where should the articles go, and should the provider cache them?"
           },
-          "challenge": "Ask the AI to rewrite Layout Y for an app that also retrieves new news articles on every call. Where do the articles go, and should they be cached?"
+          "bn": {
+            "title": "কোন prompt layout-এ খরচ কম, দেখো",
+            "why": "তোমার app যদি প্রতিটা call-এ একই লম্বা system prompt পাঠায়, provider সেটা cache করে কম দাম নিতে পারে। যে লাইন বদলায় সেটা উপরে রাখলে এই সাশ্রয় হারায়, আর তুমি পুরো দাম দাও।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, chat-এ paste করে Enter চাপো। AI দুটো layout-এর খরচ বের করবে।",
+                "prompt": "Prefix caching-এর নিয়ম: cache শুধু prompt-এর উপর থেকে একই রকম লাইনের সবচেয়ে লম্বা ধারাকে ঢাকে। যে লাইনটা প্রথম আলাদা হয়, আর তার পরের সব লাইন, cache miss (পুরো দাম)। Cache করা token-এর দাম 0.1 unit। Cache না করা token-এর দাম 1 unit।\n\nLayout X। Request 1 আর Request 2-এর লাইন একই, শুধু CHANGES লেখা লাইনগুলো বদলায়:\nLine 1: বর্তমান সময় (15 token) - প্রতি request-এ CHANGES\nLine 2: System rules (1,800 token)\nLine 3: Tool schemas (2,200 token)\nLine 4: ব্যবহারকারীর প্রশ্ন (100 token) - প্রতি request-এ CHANGES\n\nLayout Y। একই নিয়ম:\nLine 1: System rules (1,800 token)\nLine 2: Tool schemas (2,200 token)\nLine 3: বর্তমান সময় (15 token) - প্রতি request-এ CHANGES\nLine 4: ব্যবহারকারীর প্রশ্ন (100 token) - প্রতি request-এ CHANGES\n\nপ্রতিটা layout-এর Request 2-এর জন্য একটা table দাও: cached token, uncached token, আর unit-এ খরচ। তারপর বলো কোন layout সস্তা, আর প্রায় কত শতাংশ।",
+                "expect": "Layout X: 0 cached, 4,115 uncached, খরচ <strong>4,115</strong> unit। Layout Y: 4,000 cached, 115 uncached, খরচ <strong>515</strong> unit। Layout Y প্রায় <strong>87%</strong> সস্তা।",
+                "example": "Layout X: cached 0, uncached 4,115 (15 + 1,800 + 2,200 + 100)। খরচ: 4,115 unit।\nLayout Y: cached 4,000 (1,800 + 2,200), uncached 115 (15 + 100)। খরচ: 4,000 x 0.1 + 115 = 400 + 115 = 515 unit।\n\nLayout Y সস্তা। এতে 4,115 - 515 = 3,600 unit বাঁচে, যা প্রায় 87.5%।"
+              },
+              {
+                "chat": "same",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। দেখো একটা ছোট typo ঠিক করলে কী হয়।",
+                "prompt": "এখন একজন developer Layout Y-এর System rules-এর ভেতরে একটা typo ঠিক করল। এটা Request 1 আর Request 2-এর মাঝখানে হয়, আর 1টা অক্ষর বদলায়। এখন Request 2-এর cached token, uncached token আর খরচ কত? 2 বাক্যে ব্যাখ্যা করো।",
+                "expect": "0 cached token, 4,115 uncached token, আর খরচ <strong>4,115</strong> unit। বদলে যাওয়া লাইন থেকে নিচের সবটাই cache হারায়।",
+                "example": "Cached token: 0। Uncached token: 4,115। খরচ: 4,115 unit।\nTypo-টা System rules-এ, যা প্রথম লাইন। তাই Request 2 আর cache করা শুরুর অংশের সঙ্গে মেলে না, আর তার পরের সব লাইনও miss হয়।"
+              },
+              {
+                "chat": "same",
+                "do": "কাগজে Layout Y-এর খরচ মেলাও: 4,000 x 0.1, তারপর 115 x 1 যোগ করো। AI-এর খরচের সঙ্গে মেলাও।",
+                "expect": "<strong>400</strong> + <strong>115</strong> = <strong>515</strong> unit।"
+              }
+            ],
+            "learned": "<strong>Prompt cache</strong> এমন prompt-এর শুরুর অংশ মনে রাখে, যেটা provider আগে পড়ে ফেলেছে। তাই একই শুরু পরেরবার সস্তা হয় (এখানে 1-এর বদলে 0.1)। Cache উপর থেকে মেলায়, আর যে লাইনটা প্রথম বদলেছে সেখানে থেমে যায়। Layout X-এ সময় ছিল line 1-এ, তাই কিছুই মেলেনি। Layout Y-এ যে লাইন বদলায় সেগুলো শেষে ছিল, তাই 4,000 token মিলেছে।",
+            "done": "তোমার কাছে Request 2-এর খরচ আছে: Layout X-এ (4,115), Layout Y-এ (515), আর typo-র পরে Layout Y-এ (4,115)।",
+            "check": {
+              "question": "Caching ব্যবহার করা prompt-এ যে অংশ বদলায় সেটা কোথায় রাখতে হয়, আর কেন?",
+              "answer": "যে অংশ বদলায় না (system prompt, tool) সেটা আগে রাখো, আর যে অংশ বদলায় (সময়, user message) সেটা শেষে। Cache শুধু হুবহু একই শুরুর অংশ রাখে, আর 1টা অক্ষর বদলালে তার পরের সবকিছুর cache নষ্ট হয়।"
+            },
+            "challenge": "AI-কে Layout Y নতুন করে লিখতে বলো, এমন app-এর জন্য যেটা প্রতিটা call-এ নতুন খবরের article-ও load করে। Article গুলো কোথায় যাবে, আর provider-এর কি সেগুলো cache করা উচিত?"
+          }
         }
       ]
     },
@@ -830,35 +955,70 @@
       ],
       "practice": [
         {
-          "title": "Sort memories into four layers",
-          "goal": "See how different kinds of information belong to different memory layers, and how an old memory can be wrong.",
-          "steps": [
-            "Before you send anything, sort the 8 items of Prompt A into layers yourself. Use the five layers named in the prompt.",
-            "Send Prompt A in a <strong>new</strong> chat. Compare the AI sort with yours. Note each difference.",
-            "Send Prompt B in another <strong>new</strong> chat. Read what the AI does with each stored memory.",
-            "Check the new memory records: do they have a date and a confidence?"
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "An AI support agent uses hierarchical memory with five places: Working memory (the current prompt), Short-term (this session, in a session store), Long-term (user facts, in a vector store and database), Episodic (lessons from past sessions), and External (documents and databases read on demand).\n\nFor each item, choose one place, say where it is stored, and say when it is updated:\n1. The current user question: 'My router light is red.'\n2. The last 6 turns of this chat.\n3. The user prefers answers in Bangla.\n4. A 40-page router manual in PDF.\n5. Lesson from last week: 'Step-by-step answers with photos solved this user's problem fast.'\n6. Result of a tool call 2 turns ago: line status = up.\n7. The user's name and city.\n8. The company's price database.\nAnswer in a table. Mark any item that could fit two places."
+          "en": {
+            "title": "Sort 8 memories into memory layers",
+            "why": "When you build a support agent that talks to the same user for weeks, it must know what to keep in the prompt, what to store, and what to fetch later. It must also notice when an old memory is no longer true.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. The AI will sort 8 items into memory layers.",
+                "prompt": "An AI support agent has five memory places:\n- Working memory: the current prompt\n- Short-term: this chat session, kept in a session store\n- Long-term: facts about the user, kept in a database\n- Episodic: lessons from past sessions\n- External: documents and databases, read only when needed\n\nFor each item below, choose one place, say where it is stored, and say when it is updated:\n1. The current user question: \"My router light is red.\"\n2. The last 6 turns of this chat.\n3. The user prefers answers in Bangla.\n4. A 40-page router manual in PDF.\n5. Lesson from last week: \"Step-by-step answers with photos solved this user's problem fast.\"\n6. Result of a tool call 2 turns ago: line status = up.\n7. The user's name and city.\n8. The company's price database.\nAnswer in a table. Mark any item that could fit two places.",
+                "expect": "A table with 8 rows. For example, the router manual goes to <em>External</em>, and the red-light question goes to <em>Working memory</em>. Some rows, such as the tool result, can fit two places.",
+                "example": "1. Current question: Working memory. In the prompt. Every call.\n2. Last 6 turns: Short-term. Session store. Every turn.\n3. Prefers Bangla: Long-term. User database. When the user says it.\n4. 40-page manual: External. Document index. Read when needed.\n5. Lesson from last week: Episodic. Memory store. End of session.\n6. Tool result 2 turns ago: Short-term (could be Working). Session store. Each turn.\n7. Name and city: Long-term. User database. When first learned.\n8. Price database: External. Company database. Read when needed."
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it in a new chat, and press Enter. The AI will fix old memories.",
+                "prompt": "You are the memory manager of a cooking assistant. Today is 2026-06-01.\nStored memories:\nM1 (saved 2025-01-10, confidence 0.9): The user is vegetarian.\nM2 (saved 2025-02-02, confidence 0.9): The user lives in Sylhet.\nNew user message: \"Plan a dinner for my friends tomorrow. I started eating fish last month, and I moved to Dhaka in April.\"\n\nFor M1 and M2, choose: keep, update, or ask the user to confirm. Give a reason. Then write the new memory records with a date and a confidence.",
+                "expect": "M2 is <strong>updated</strong> to Dhaka. M1 is updated (the user now eats fish) or the AI asks to confirm. The new records have a date and a confidence.",
+                "example": "M1: Update. The user now eats fish, so \"vegetarian\" is not fully true. The AI may ask if the user still avoids meat.\nM2: Update. The user moved to Dhaka in April 2026, so Sylhet is old.\n\nNew records:\nN1 (saved 2026-06-01, confidence 0.8): The user eats fish since May 2026, but may still avoid meat.\nN2 (saved 2026-06-01, confidence 0.9): The user lives in Dhaka since April 2026."
+              },
+              {
+                "chat": "same",
+                "do": "Look at the new memory records. Check that each one has a date and a confidence number.",
+                "expect": "Each record has a date like <em>2026-06-01</em> and a number like <em>0.9</em>. If one is missing, ask the AI to add it."
+              }
+            ],
+            "learned": "Each kind of information has its own place. The prompt (working memory) is small, but the AI always reads it. Big things such as a manual stay outside and are fetched only when needed. A saved memory can become wrong, like M2 here. So each memory needs a <strong>timestamp</strong> (the date it was saved) and a <strong>confidence</strong> (a number for how sure you are).",
+            "done": "You have a table of 8 sorted items and 2 new memory records, each with a date and a confidence.",
+            "check": {
+              "question": "Why does a stored memory need a date and a confidence number?",
+              "answer": "A fact from an old session can become wrong when the user says something new. The date and the confidence let the system trust new facts more, or ask the user to confirm an old one."
             },
-            {
-              "label": "Prompt B",
-              "text": "You are the memory manager of a cooking assistant. Today is 2026-06-01.\nStored memories:\nM1 (saved 2025-01-10, confidence 0.9): The user is vegetarian.\nM2 (saved 2025-02-02, confidence 0.9): The user lives in Sylhet.\nNew user message: 'Plan a dinner for my friends tomorrow. I started eating fish last month, and I moved to Dhaka in April.'\n\nFor M1 and M2, choose: keep, update, or ask the user to confirm. Give a reason. Then write the new memory records with a date and a confidence."
-            }
-          ],
-          "lookFor": [
-            "The current question goes to working memory. The router manual and the price database go to External. They are fetched on demand, not stored in the prompt.",
-            "Some items are ambiguous, for example the tool result (short-term or working) and the lesson (episodic or long-term). Your sort may differ from the AI sort, and both can be reasonable.",
-            "The AI should see that both M1 and M2 are stale, and that the new message contradicts them.",
-            "Good answers add timestamps and a confidence to every memory, so old facts can be weighed or checked."
-          ],
-          "check": {
-            "question": "Why does a long-term memory need a timestamp and a confidence score?",
-            "answer": "Long-term memories drift: a fact from an old session can be contradicted by what the user says now. A timestamp and a confidence let the system weight by recency, or ask the user to confirm a possibly stale memory."
+            "challenge": "Send the second prompt again in a new chat, but change the new message to: <em>I eat differently now.</em> Does the AI ask a question, or does it guess?"
           },
-          "challenge": "Send Prompt B again, but make the new message vague: 'I eat differently now.' Does the AI ask a question or does it guess?"
+          "bn": {
+            "title": "৮টা memory-কে layer অনুযায়ী সাজাও",
+            "why": "তুমি যখন এমন একটা support agent বানাবে যে একই user-এর সঙ্গে সপ্তাহের পর সপ্তাহ কথা বলে, তখন তাকে জানতে হবে কী prompt-এ থাকবে, কী store হবে, আর কী পরে আনা হবে। আর পুরনো কোনো memory আর সত্য না থাকলে সেটাও ধরতে হবে।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, chat-এ paste করে Enter চাপো। AI ৮টা item-কে memory layer-এ সাজাবে।",
+                "prompt": "একটা AI support agent-এর পাঁচটা memory-র জায়গা আছে:\n- Working memory: বর্তমান prompt\n- Short-term: এই chat session, session store-এ রাখা\n- Long-term: user-এর তথ্য, database-এ রাখা\n- Episodic: আগের session থেকে পাওয়া শিক্ষা\n- External: document আর database, শুধু দরকারের সময় পড়া হয়\n\nনিচের প্রতিটা item-এর জন্য একটা জায়গা বেছে নাও, কোথায় store হয় বলো, আর কখন update হয় বলো:\n1. ব্যবহারকারীর বর্তমান প্রশ্ন: \"আমার router-এর আলো লাল।\"\n2. এই chat-এর শেষ ৬টা turn।\n3. ব্যবহারকারী বাংলায় উত্তর পছন্দ করে।\n4. PDF আকারে ৪০ পৃষ্ঠার একটা router manual।\n5. গত সপ্তাহের শিক্ষা: \"ছবিসহ ধাপে ধাপে উত্তর দিলে এই user-এর সমস্যা তাড়াতাড়ি মিটেছে।\"\n6. ২ turn আগের একটা tool call-এর ফল: line status = up।\n7. ব্যবহারকারীর নাম আর শহর।\n8. কোম্পানির দামের database।\nউত্তর একটা table-এ দাও। যে item দুই জায়গায় মানায়, সেটা চিহ্নিত করো।",
+                "expect": "৮টা সারির একটা table। যেমন, router manual যায় <em>External</em>-এ, আর লাল আলোর প্রশ্ন যায় <em>Working memory</em>-তে। কিছু সারি, যেমন tool-এর ফল, দুই জায়গায় মানাতে পারে।",
+                "example": "1. বর্তমান প্রশ্ন: Working memory। Prompt-এ। প্রতি call-এ।\n2. শেষ ৬ turn: Short-term। Session store। প্রতি turn-এ।\n3. বাংলা পছন্দ: Long-term। User database। user বললে।\n4. ৪০ পৃষ্ঠার manual: External। Document index। দরকারে পড়া হয়।\n5. গত সপ্তাহের শিক্ষা: Episodic। Memory store। session শেষে।\n6. ২ turn আগের tool-এর ফল: Short-term (Working-ও হতে পারে)। Session store। প্রতি turn-এ।\n7. নাম আর শহর: Long-term। User database। প্রথম জানার সময়।\n8. দামের database: External। কোম্পানির database। দরকারে পড়া হয়।"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, নতুন chat-এ paste করে Enter চাপো। AI পুরনো memory ঠিক করবে।",
+                "prompt": "তুমি একটা রান্নার assistant-এর memory manager। আজকের তারিখ 2026-06-01।\nStore করা memory:\nM1 (সংরক্ষণ 2025-01-10, confidence 0.9): ব্যবহারকারী নিরামিষভোজী।\nM2 (সংরক্ষণ 2025-02-02, confidence 0.9): ব্যবহারকারী সিলেটে থাকে।\nব্যবহারকারীর নতুন message: \"কাল আমার বন্ধুদের জন্য একটা রাতের খাবারের plan করো। আমি গত মাসে মাছ খাওয়া শুরু করেছি, আর এপ্রিলে ঢাকায় চলে এসেছি।\"\n\nM1 আর M2-এর জন্য বেছে নাও: রাখো, update করো, নাকি user-কে confirm করতে বলো। কারণ লেখো। তারপর তারিখ আর confidence-সহ নতুন memory record লেখো।",
+                "expect": "M2 ঢাকায় <strong>update</strong> হয়। M1 update হয় (এখন সে মাছ খায়), অথবা AI confirm করতে বলে। নতুন record-এ তারিখ আর confidence থাকে।",
+                "example": "M1: Update করো। ব্যবহারকারী এখন মাছ খায়, তাই \"নিরামিষভোজী\" পুরোপুরি সত্য না। মাংস এখনো এড়ায় কি না, AI জিজ্ঞেস করতে পারে।\nM2: Update করো। ব্যবহারকারী এপ্রিল 2026-এ ঢাকায় এসেছে, তাই সিলেট এখন পুরনো।\n\nনতুন record:\nN1 (সংরক্ষণ 2026-06-01, confidence 0.8): ব্যবহারকারী মে 2026 থেকে মাছ খায়, কিন্তু মাংস এখনো এড়াতে পারে।\nN2 (সংরক্ষণ 2026-06-01, confidence 0.9): ব্যবহারকারী এপ্রিল 2026 থেকে ঢাকায় থাকে।"
+              },
+              {
+                "chat": "same",
+                "do": "নতুন memory record গুলো দেখো। প্রতিটায় একটা তারিখ আর একটা confidence সংখ্যা আছে কি না, মিলিয়ে নাও।",
+                "expect": "প্রতিটা record-এ <em>2026-06-01</em>-এর মতো তারিখ আর <em>0.9</em>-এর মতো সংখ্যা থাকে। কোনোটায় না থাকলে AI-কে যোগ করতে বলো।"
+              }
+            ],
+            "learned": "প্রতিটা ধরনের তথ্যের নিজের জায়গা আছে। Prompt (working memory) ছোট, কিন্তু AI সবসময় সেটা পড়ে। Manual-এর মতো বড় জিনিস বাইরে থাকে, আর শুধু দরকারে আনা হয়। Store করা memory ভুল হয়ে যেতে পারে, যেমন এখানে M2। তাই প্রতিটা memory-র একটা <strong>timestamp</strong> (কবে save হয়েছে) আর একটা <strong>confidence</strong> (কতটা নিশ্চিত, তার একটা সংখ্যা) দরকার।",
+            "done": "তোমার কাছে ৮টা item-এর সাজানো table আর ২টা নতুন memory record আছে, প্রতিটায় তারিখ আর confidence আছে।",
+            "check": {
+              "question": "Store করা memory-র কেন তারিখ আর confidence সংখ্যা লাগে?",
+              "answer": "পুরনো session-এর কোনো তথ্য user নতুন কিছু বললে ভুল হয়ে যেতে পারে। তারিখ আর confidence থাকলে system নতুন তথ্যে বেশি ভরসা করতে পারে, বা পুরনোটা user-কে confirm করতে বলতে পারে।"
+            },
+            "challenge": "দ্বিতীয় prompt আবার নতুন chat-এ পাঠাও, কিন্তু নতুন message বদলে লেখো: <em>আমি এখন অন্যভাবে খাই।</em> AI কি প্রশ্ন করে, নাকি আন্দাজ করে?"
+          }
         }
       ]
     },
@@ -1071,35 +1231,80 @@
       ],
       "practice": [
         {
-          "title": "Prune chunks, then compress a paragraph",
-          "goal": "See how pruning removes irrelevant or duplicate chunks, and how compression shortens text while it keeps the key facts.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. Note which chunks the AI keeps and which it drops.",
-            "Check the dropped chunks yourself. Did the AI remove a duplicate? Did it keep a chunk that has the answer?",
-            "Send Prompt B in a <strong>new</strong> chat. Compare the compressed text with the original.",
-            "Check that every number and the word 'not' survive in the compressed text."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "Question: How long does standard delivery take in Dhaka?\n\nRetrieved chunks:\nC1: Standard delivery in Dhaka takes 2 working days. Express delivery arrives the same day if you order before 12:00.\nC2: Standard delivery inside Dhaka city takes 2 working days.\nC3: Our office is closed on Fridays and public holidays.\nC4: Delivery outside Dhaka takes 4 to 6 working days.\nC5: The company was founded in 2014 and has 120 staff.\nC6: Returns are accepted within 7 days if the box is sealed.\n\nTask:\n1. Give each chunk a relevance score from 0 to 10.\n2. Mark near-duplicate chunks and keep only the best one.\n3. The prompt budget allows about 40 tokens of context. Choose the chunks to keep, in order of score, until the budget is full.\n4. Answer the question using only the kept chunks."
+          "en": {
+            "title": "Prune chunks, then shorten a paragraph",
+            "why": "When your RAG app finds 20 pieces of text for one question, many are repeats or off topic. If you send all of them, you pay for tokens that do not help, and the answer can get worse.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. The AI will score and choose chunks (pieces of text).",
+                "prompt": "Question: How long does standard delivery take in Dhaka?\n\nRetrieved chunks:\nC1: Standard delivery in Dhaka takes 2 working days. Express delivery arrives the same day if you order before 12:00.\nC2: Standard delivery inside Dhaka city takes 2 working days.\nC3: Our office is closed on Fridays and public holidays.\nC4: Delivery outside Dhaka takes 4 to 6 working days.\nC5: The company was founded in 2014 and has 120 staff.\nC6: Returns are accepted within 7 days if the box is sealed.\n\nTask:\n1. Give each chunk a relevance score from 0 to 10.\n2. Find chunks that say the same thing. Keep only the best one of them.\n3. The prompt has room for only 2 chunks. Choose the 2 best chunks that remain.\n4. Answer the question using only the 2 chunks you chose.",
+                "expect": "A score for each chunk. <em>C1</em> and <em>C2</em> score high, and only one of them is kept. <em>C5</em> and <em>C6</em> score 0 or 1. The answer is <strong>2 working days</strong>.",
+                "example": "Scores: C1 = 10, C2 = 9, C3 = 1, C4 = 3, C5 = 0, C6 = 0.\nC2 repeats C1, so I drop C2.\nChosen chunks: C1 and C4.\nAnswer: Standard delivery in Dhaka takes 2 working days."
+              },
+              {
+                "chat": "same",
+                "do": "Check the AI work. Did it drop one of C1 and C2? Did it give C5 and C6 a low score?",
+                "expect": "Yes to both. Models may keep C1 or C2, and both choices are fine because they say the same thing."
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it in a new chat, and press Enter. The AI will make the paragraph shorter.",
+                "prompt": "Make the paragraph below less than half as long. Remove low-information words. Keep every number, every name, and every negation such as \"not\". Then answer the question using only your short text.\n\nParagraph: Thank you for your order. We would like to tell you that the Basic plan costs 500 tk per month, and the Pro plan costs 1,200 tk per month. You can cancel the Pro plan at any time, but we do not give a refund for a month that has already started. If you pay for a full year, you get 2 months free.\n\nQuestion: How much does a full year of the Pro plan cost, and can I get a refund in the middle of a month?",
+                "expect": "A short text with all the numbers. Then the answer: <strong>12,000 tk</strong> for a year of Pro, and no refund for a month that has started.",
+                "example": "Short text: Basic 500 tk/month. Pro 1,200 tk/month. Cancel Pro any time, no refund for a started month. Pay 1 year: 2 months free.\n\nAnswer: A full year of Pro costs 10 x 1,200 = 12,000 tk. No, you cannot get a refund in the middle of a month."
+              },
+              {
+                "chat": "same",
+                "do": "Check the short text: do 500, 1,200, \"2 months free\", and \"no refund\" stay? Also compute 10 months x 1,200 tk.",
+                "expect": "All of them stay. 10 x 1,200 = <strong>12,000</strong> tk."
+              }
+            ],
+            "learned": "<strong>Pruning</strong> removes whole chunks that do not help, such as a repeat (C2) or an off-topic one (C5). <strong>Compression</strong> keeps all parts but cuts extra words, so the text is shorter. Both save tokens. Both must keep the numbers and words like \"not\", or the answer becomes wrong.",
+            "done": "You have a list of kept and dropped chunks, and a short paragraph that still shows all the numbers and the \"no refund\" rule.",
+            "check": {
+              "question": "What is the difference between pruning and compression?",
+              "answer": "Pruning removes whole parts that are off topic or repeated. Compression keeps the parts but cuts extra words to make them shorter. You can use both together."
             },
-            {
-              "label": "Prompt B",
-              "text": "Compress the paragraph below to about half of its length. Remove low-information words. Keep every number, every name, and every negation such as 'not'. Then answer the question using only your compressed text.\n\nParagraph: Thank you for your order. We would like to tell you that the Basic plan costs 500 tk per month, and the Pro plan costs 1,200 tk per month. You can cancel the Pro plan at any time, but we do not give a refund for a month that has already started. If you pay for a full year, you get 2 months free.\n\nQuestion: How much does a full year of the Pro plan cost, and can I get a refund in the middle of a month?"
-            }
-          ],
-          "lookFor": [
-            "The AI should drop C5 and C6 (not relevant) and one of C1 or C2 (duplicate). Models differ on which duplicate to keep.",
-            "C3 and C4 are real text but they do not answer the question. Pruning removes them when the budget is tight.",
-            "The compressed paragraph reads like telegraph text, but the numbers (500, 1,200, 2 months) usually stay.",
-            "The year price needs a calculation: 10 months at 1,200 tk is 12,000 tk. Check if the AI keeps the facts needed for it."
-          ],
-          "check": {
-            "question": "What is the difference between pruning and compression?",
-            "answer": "Pruning removes whole parts that are not relevant or are duplicates, so information density stays high. Compression shrinks all the text by removing low-information tokens. They are complementary."
+            "challenge": "In the first prompt, change the question to: <em>When is the office open?</em> Does the AI now keep C3? What does this show about choosing chunks for each question?"
           },
-          "challenge": "In Prompt A, change the question to 'When is the office open?' Does the AI now keep C3? What does this show about task-aware pruning?"
+          "bn": {
+            "title": "Chunk বাদ দাও, তারপর paragraph ছোট করো",
+            "why": "তোমার RAG app যখন একটা প্রশ্নের জন্য 20টা text-এর টুকরো পায়, তখন অনেকগুলো পুনরাবৃত্তি বা অপ্রাসঙ্গিক হয়। সব পাঠালে কাজে না লাগা token-এর দাম দিতে হয়, আর উত্তরও খারাপ হতে পারে।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, chat-এ paste করে Enter চাপো। AI chunk (text-এর টুকরো) গুলোতে score দেবে আর বাছাই করবে।",
+                "prompt": "প্রশ্ন: ঢাকায় standard delivery-তে কত সময় লাগে?\n\nপাওয়া chunk গুলো:\nC1: ঢাকায় standard delivery-তে 2 কার্যদিবস লাগে। বেলা 12:00-এর আগে order করলে express delivery একই দিনে পৌঁছায়।\nC2: ঢাকা শহরের ভেতরে standard delivery-তে 2 কার্যদিবস লাগে।\nC3: আমাদের অফিস শুক্রবার আর সরকারি ছুটির দিনে বন্ধ থাকে।\nC4: ঢাকার বাইরে delivery-তে 4 থেকে 6 কার্যদিবস লাগে।\nC5: কোম্পানি 2014 সালে শুরু হয়েছে আর এতে 120 জন কর্মী আছে।\nC6: বাক্স সিল করা থাকলে 7 দিনের মধ্যে return নেওয়া হয়।\n\nকাজ:\n1. প্রতিটা chunk-কে 0 থেকে 10 পর্যন্ত একটা relevance score দাও।\n2. যেসব chunk একই কথা বলে, সেগুলো খোঁজো। তাদের মধ্যে শুধু সেরাটা রাখো।\n3. Prompt-এ মাত্র 2টা chunk-এর জায়গা আছে। যেগুলো বাকি আছে, তার মধ্যে সেরা 2টা বেছে নাও।\n4. শুধু তোমার বাছা 2টা chunk ব্যবহার করে প্রশ্নের উত্তর দাও।",
+                "expect": "প্রতিটা chunk-এর score। <em>C1</em> আর <em>C2</em> বেশি score পায়, আর শুধু একটা রাখা হয়। <em>C5</em> আর <em>C6</em> পায় 0 বা 1। উত্তর হলো <strong>2 কার্যদিবস</strong>।",
+                "example": "Score: C1 = 10, C2 = 9, C3 = 1, C4 = 3, C5 = 0, C6 = 0।\nC2 হলো C1-এর পুনরাবৃত্তি, তাই C2 বাদ দিলাম।\nবাছা chunk: C1 আর C4।\nউত্তর: ঢাকায় standard delivery-তে 2 কার্যদিবস লাগে।"
+              },
+              {
+                "chat": "same",
+                "do": "AI-এর কাজ মিলিয়ে দেখো। C1 আর C2-এর একটা কি বাদ গেছে? C5 আর C6 কি কম score পেয়েছে?",
+                "expect": "দুটোরই উত্তর হ্যাঁ। AI C1 বা C2 যেকোনো একটা রাখতে পারে, দুটোই ঠিক, কারণ দুটো একই কথা বলে।"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, নতুন chat-এ paste করে Enter চাপো। AI paragraph-টা ছোট করবে।",
+                "prompt": "নিচের paragraph-টা অর্ধেকের চেয়েও ছোট করো। কম তথ্যের শব্দ বাদ দাও। প্রতিটা সংখ্যা, প্রতিটা নাম আর \"না\"-এর মতো প্রতিটা নেতিবাচক কথা রাখো। তারপর শুধু তোমার ছোট text ব্যবহার করে প্রশ্নের উত্তর দাও।\n\nParagraph: আপনার order-এর জন্য ধন্যবাদ। আমরা আপনাকে জানাতে চাই যে Basic plan-এর দাম মাসে 500 tk, আর Pro plan-এর দাম মাসে 1,200 tk। আপনি যেকোনো সময় Pro plan বাতিল করতে পারেন, কিন্তু যে মাস শুরু হয়ে গেছে তার জন্য আমরা টাকা ফেরত দিই না। আপনি পুরো এক বছরের টাকা একসঙ্গে দিলে 2 মাস বিনা মূল্যে পাবেন।\n\nপ্রশ্ন: Pro plan-এর পুরো এক বছরের দাম কত, আর মাসের মাঝখানে কি টাকা ফেরত পাওয়া যায়?",
+                "expect": "সব সংখ্যাসহ একটা ছোট text। তারপর উত্তর: Pro-র এক বছরের জন্য <strong>12,000 tk</strong>, আর শুরু হয়ে যাওয়া মাসের টাকা ফেরত নেই।",
+                "example": "ছোট text: Basic 500 tk/মাস। Pro 1,200 tk/মাস। Pro যেকোনো সময় বাতিল, শুরু হওয়া মাসের টাকা ফেরত নেই। 1 বছর একসঙ্গে দিলে 2 মাস বিনা মূল্যে।\n\nউত্তর: Pro-র পুরো এক বছরের দাম 10 x 1,200 = 12,000 tk। না, মাসের মাঝখানে টাকা ফেরত পাওয়া যায় না।"
+              },
+              {
+                "chat": "same",
+                "do": "ছোট text মিলিয়ে দেখো: 500, 1,200, \"2 মাস বিনা মূল্যে\" আর \"ফেরত নেই\" আছে কি? আরও হিসাব করো: 10 মাস x 1,200 tk।",
+                "expect": "সবগুলো আছে। 10 x 1,200 = <strong>12,000</strong> tk।"
+              }
+            ],
+            "learned": "<strong>Pruning</strong> মানে যে chunk কাজে লাগে না, তাকে পুরোটা বাদ দেওয়া, যেমন পুনরাবৃত্তি (C2) বা অপ্রাসঙ্গিক chunk (C5)। <strong>Compression</strong> মানে সব অংশ রেখে বাড়তি শব্দ কেটে text ছোট করা। দুটোতেই token বাঁচে। দুটোতেই সংখ্যা আর \"না\"-এর মতো শব্দ রাখতে হয়, নইলে উত্তর ভুল হয়ে যায়।",
+            "done": "তোমার কাছে রাখা আর বাদ দেওয়া chunk-এর list আছে, আর একটা ছোট paragraph আছে, যেটায় সব সংখ্যা আর \"ফেরত নেই\" নিয়মটা এখনো আছে।",
+            "check": {
+              "question": "Pruning আর compression-এর পার্থক্য কী?",
+              "answer": "Pruning অপ্রাসঙ্গিক বা পুনরাবৃত্ত অংশ পুরোটা বাদ দেয়। Compression অংশগুলো রেখে বাড়তি শব্দ কেটে ছোট করে। দুটো একসঙ্গেও ব্যবহার করা যায়।"
+            },
+            "challenge": "প্রথম prompt-এ প্রশ্ন বদলে লেখো: <em>অফিস কখন খোলা থাকে?</em> AI কি এখন C3 রাখে? প্রতিটা প্রশ্নের জন্য chunk বাছা নিয়ে এটা কী দেখায়?"
+          }
         }
       ]
     },
@@ -1303,35 +1508,70 @@
       ],
       "practice": [
         {
-          "title": "Break a blind cut, then page a result",
-          "goal": "See that a hard cap can cut a key fact in half, and that a small slice with a cursor is safer.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. This tool result is cut by a hard cap. Read the answer.",
-            "Send Prompt B in another <strong>new</strong> chat. This tool result is a small page with a cursor.",
-            "Compare the two answers. Which one is certain? Which one guesses?",
-            "Look at where Prompt A is cut. Say what number could follow the cut."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "You are a support agent. You have a tool search_docs(query, cursor). You called search_docs('refund policy'). The tool result was cut by a hard cap, and this is all you received:\n\n{\"results\": [{\"id\": \"d1\", \"text\": \"Monthly plans can be refunded within 14 days of payment.\"}, {\"id\": \"d2\", \"text\": \"Annual plans can be refunded within 3\n[...truncated...]\n\nUser question: How many days do I have to ask for a refund on an annual plan? Answer from the tool result only. If you are not sure, say what you would do next."
+          "en": {
+            "title": "See what a cut tool result hides",
+            "why": "When your AI agent calls a tool, the result can be huge, so apps often cut it. If the cut falls in the wrong place, the agent can read a wrong number and give a customer a wrong answer.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. The tool result in it was cut in the middle of a number.",
+                "prompt": "You are a support agent. You have a tool search_docs(query, cursor). You called search_docs('refund policy'). The tool result was cut by a hard cap, and this is all you received:\n\n{\"results\": [{\"id\": \"d1\", \"text\": \"Monthly plans can be refunded within 14 days of payment.\"}, {\"id\": \"d2\", \"text\": \"Annual plans can be refunded within 3\n[...truncated...]\n\nUser question: How many days do I have to ask for a refund on an annual plan? Answer from the tool result only. If you are not sure, say what you would do next.",
+                "expect": "A good AI says it is <strong>not sure</strong>, because the number stops at \"3\". It says it would fetch more. A weaker AI may guess.",
+                "example": "I am not sure. The tool result stops at \"within 3\", so the number may be 3, 30, or something else. Before I answer, I would call search_docs again or ask for the full text of d2."
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it in a new chat, and press Enter. This tool result is a small, complete page.",
+                "prompt": "You are a support agent. You have a tool search_docs(query, cursor). You called search_docs('refund policy'). The tool returned one page:\n\n{\"results\": [{\"id\": \"d1\", \"text\": \"Monthly plans can be refunded within 14 days of payment.\"}, {\"id\": \"d2\", \"text\": \"Annual plans can be refunded within 30 days of payment.\"}, {\"id\": \"d3\", \"text\": \"Refunds go back to the original payment method.\"}, {\"id\": \"d4\", \"text\": \"Gift cards cannot be refunded.\"}, {\"id\": \"d5\", \"text\": \"Refund requests are handled by the billing team.\"}], \"next_cursor\": \"c_02\", \"total\": 5234}\n\nUser question: How many days do I have to ask for a refund on an annual plan? Answer from the tool result only. Say if you need the next page.",
+                "expect": "A sure answer: <strong>30 days</strong>. The AI says it does not need the next page.",
+                "example": "You have 30 days from the payment date to ask for a refund on an annual plan (document d2). This page already has the answer, so I do not need the next page."
+              },
+              {
+                "chat": "same",
+                "do": "Compare the two answers. In the first prompt, write down 3 numbers that could follow \"within 3\".",
+                "expect": "For example <em>3</em>, <em>30</em>, or <em>365</em>. The first answer could not be sure. The second answer is sure: 30."
+              }
+            ],
+            "learned": "A <strong>hard cap</strong> cuts the text at a fixed length, even in the middle of a number. Here it cut \"30\" to \"3\", so the AI could not be sure. A better tool returns a small page with a <strong>cursor</strong> (a bookmark for the next page) and a total count. The AI gets whole facts, and it asks for more only when it needs them.",
+            "done": "You have one answer where the AI is not sure, and one answer where it says 30 days.",
+            "check": {
+              "question": "Why is paging better than a hard cap?",
+              "answer": "A hard cap can cut a fact or a JSON object in the middle, which breaks the parser or changes the meaning. A small page with a cursor keeps results whole, and the agent fetches more only when it needs it."
             },
-            {
-              "label": "Prompt B",
-              "text": "You are a support agent. You have a tool search_docs(query, cursor). You called search_docs('refund policy'). The tool returned one page:\n\n{\"results\": [{\"id\": \"d1\", \"text\": \"Monthly plans can be refunded within 14 days of payment.\"}, {\"id\": \"d2\", \"text\": \"Annual plans can be refunded within 30 days of payment.\"}, {\"id\": \"d3\", \"text\": \"Refunds go back to the original payment method.\"}, {\"id\": \"d4\", \"text\": \"Gift cards cannot be refunded.\"}, {\"id\": \"d5\", \"text\": \"Refund requests are handled by the billing team.\"}], \"next_cursor\": \"c_02\", \"total\": 5234}\n\nUser question: How many days do I have to ask for a refund on an annual plan? Answer from the tool result only. Say if you need the next page."
-            }
-          ],
-          "lookFor": [
-            "With Prompt A, the number is cut after '3'. It could be 3, 30, or 365. A good model says it is not sure and asks for more. A weaker answer guesses.",
-            "The JSON in Prompt A is broken: it has no closing quote or brace. A real parser would fail here.",
-            "With Prompt B, the answer is complete. The page is small, and the total (5,234) shows that more results exist.",
-            "The cursor gives the agent a choice: stop now, or fetch more. The cost stays bounded."
-          ],
-          "check": {
-            "question": "Why is structure-aware truncation, or paging, better than a hard cap?",
-            "answer": "A hard cap can cut a fact or a JSON object in the middle, which breaks parsing and can silently change the meaning. A small slice with a cursor and a total keeps results whole and lets the agent fetch more only when it needs it."
+            "challenge": "Send the second prompt again in a new chat, but change the question to: <em>Which team handles a refund for a gift card?</em> Does the AI ask for the next page? Is that the right choice?"
           },
-          "challenge": "Send Prompt B again, but change the question to 'Which team handles a refund for a gift card?' Does the AI ask for the next page? Is that the right choice?"
+          "bn": {
+            "title": "কেটে ফেলা tool result কী লুকায়, দেখো",
+            "why": "তোমার AI agent যখন কোনো tool call করে, তার result অনেক বড় হতে পারে, তাই app প্রায়ই সেটা কেটে ছোট করে। কাটা যদি ভুল জায়গায় পড়ে, agent একটা ভুল সংখ্যা পড়তে পারে আর customer-কে ভুল উত্তর দিতে পারে।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, chat-এ paste করে Enter চাপো। এর tool result একটা সংখ্যার মাঝখানে কেটে গেছে। Tool result-এর text English-এই আছে।",
+                "prompt": "তুমি একজন support agent। তোমার কাছে search_docs(query, cursor) নামে একটা tool আছে। তুমি search_docs('refund policy') call করেছ। Tool result একটা hard cap দিয়ে কেটে গেছে, আর তুমি শুধু এটুকু পেয়েছ:\n\n{\"results\": [{\"id\": \"d1\", \"text\": \"Monthly plans can be refunded within 14 days of payment.\"}, {\"id\": \"d2\", \"text\": \"Annual plans can be refunded within 3\n[...truncated...]\n\nUser-এর প্রশ্ন: Annual plan-এ refund চাইতে আমার কত দিন সময় আছে? শুধু tool result থেকে উত্তর দাও। নিশ্চিত না হলে বলো পরে তুমি কী করবে।",
+                "expect": "ভালো AI বলে সে <strong>নিশ্চিত না</strong>, কারণ সংখ্যাটা \"3\"-তে থেমে গেছে। সে বলে আরও তথ্য আনবে। দুর্বল AI আন্দাজ করতে পারে।",
+                "example": "আমি নিশ্চিত না। Tool result \"within 3\"-তে থেমে গেছে, তাই সংখ্যাটা 3, 30, বা অন্য কিছু হতে পারে। উত্তর দেওয়ার আগে আমি আবার search_docs call করব, বা d2-এর পুরো text চাইব।"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, নতুন chat-এ paste করে Enter চাপো। এই tool result একটা ছোট, সম্পূর্ণ page। Tool result-এর text English-এই আছে।",
+                "prompt": "তুমি একজন support agent। তোমার কাছে search_docs(query, cursor) নামে একটা tool আছে। তুমি search_docs('refund policy') call করেছ। Tool একটা page ফেরত দিয়েছে:\n\n{\"results\": [{\"id\": \"d1\", \"text\": \"Monthly plans can be refunded within 14 days of payment.\"}, {\"id\": \"d2\", \"text\": \"Annual plans can be refunded within 30 days of payment.\"}, {\"id\": \"d3\", \"text\": \"Refunds go back to the original payment method.\"}, {\"id\": \"d4\", \"text\": \"Gift cards cannot be refunded.\"}, {\"id\": \"d5\", \"text\": \"Refund requests are handled by the billing team.\"}], \"next_cursor\": \"c_02\", \"total\": 5234}\n\nUser-এর প্রশ্ন: Annual plan-এ refund চাইতে আমার কত দিন সময় আছে? শুধু tool result থেকে উত্তর দাও। পরের page লাগলে বলো।",
+                "expect": "একটা নিশ্চিত উত্তর: <strong>30 দিন</strong>। AI বলে তার পরের page লাগবে না।",
+                "example": "Annual plan-এ refund চাইতে payment-এর তারিখ থেকে তোমার 30 দিন সময় আছে (document d2)। এই page-এই উত্তর আছে, তাই আমার পরের page লাগবে না।"
+              },
+              {
+                "chat": "same",
+                "do": "দুটো উত্তর মেলাও। প্রথম prompt-এ \"within 3\"-এর পরে বসতে পারে এমন 3টা সংখ্যা লিখে রাখো।",
+                "expect": "যেমন <em>3</em>, <em>30</em>, বা <em>365</em>। প্রথম উত্তর নিশ্চিত হতে পারেনি। দ্বিতীয় উত্তর নিশ্চিত: 30।"
+              }
+            ],
+            "learned": "<strong>Hard cap</strong> text-কে একটা নির্দিষ্ট দৈর্ঘ্যে কেটে দেয়, সংখ্যার মাঝখানে হলেও। এখানে এটা \"30\"-কে কেটে \"3\" করে দিয়েছে, তাই AI নিশ্চিত হতে পারেনি। ভালো tool ছোট একটা page ফেরত দেয়, সঙ্গে একটা <strong>cursor</strong> (পরের page-এর bookmark) আর মোট সংখ্যা। AI পুরো তথ্য পায়, আর দরকার হলেই শুধু আরও চায়।",
+            "done": "তোমার কাছে একটা উত্তর আছে যেখানে AI নিশ্চিত না, আর একটা উত্তর আছে যেখানে সে 30 দিন বলেছে।",
+            "check": {
+              "question": "Hard cap-এর চেয়ে paging ভালো কেন?",
+              "answer": "Hard cap একটা তথ্য বা JSON object-এর মাঝখানে কেটে দিতে পারে, যাতে parser ভেঙে যায় বা মানে বদলে যায়। Cursor-সহ ছোট page result পুরো রাখে, আর agent শুধু দরকার হলে আরও আনে।"
+            },
+            "challenge": "দ্বিতীয় prompt আবার নতুন chat-এ পাঠাও, কিন্তু প্রশ্ন বদলে লেখো: <em>Gift card-এর refund কোন team দেখে?</em> AI কি পরের page চায়? সেটা কি সঠিক সিদ্ধান্ত?"
+          }
         }
       ]
     },
@@ -1564,35 +1804,90 @@
       ],
       "practice": [
         {
-          "title": "Test rules buried in the middle",
-          "goal": "See whether rules in the middle of a list get less attention than the same rules placed at the start and the end.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. Check three rules: under 60 words, no exclamation marks, last line Ref: KX-482.",
-            "Send Prompt B in another <strong>new</strong> chat. Check the same three rules.",
-            "Count how many of the 3 rules each email follows. Count the words of each email.",
-            "Press the regenerate button 2 times for each prompt, if the chat has one. Count again."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "You write short customer emails. Follow ALL rules.\n\nRules:\n1. Write in English.\n2. Use a polite tone.\n3. Greet the customer by name.\n4. Say sorry one time only.\n5. Mention the order number.\n6. Do not promise a delivery date.\n7. Keep the email under 60 words.\n8. Never use exclamation marks.\n9. The last line of the email must be exactly: Ref: KX-482\n10. Do not use emojis.\n11. Do not mention other customers.\n12. Use plain words.\n13. Put the signature 'Support Team' before the Ref line.\n\nTask: Write an email to Mina Akter. Her order #5521 is 2 days late. Offer a 10% discount on her next order."
+          "en": {
+            "title": "Test rules hidden in the middle",
+            "why": "When you give an AI agent a long list of rules, it can miss the ones in the middle. A missed rule can mean a wrong tone, a banned promise, or a broken format in a real customer email.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. The AI will write an email with 13 rules in the middle.",
+                "prompt": "You write short customer emails. Follow ALL rules.\n\nRules:\n1. Write in English.\n2. Use a polite tone.\n3. Greet the customer by name.\n4. Say sorry one time only.\n5. Mention the order number.\n6. Do not promise a delivery date.\n7. Keep the email under 60 words.\n8. Never use exclamation marks.\n9. The last line of the email must be exactly: Ref: KX-482\n10. Do not use emojis.\n11. Do not mention other customers.\n12. Use plain words.\n13. Put the signature 'Support Team' before the Ref line.\n\nTask: Write an email to Mina Akter. Her order #5521 is 2 days late. Offer a 10% discount on her next order.",
+                "expect": "A short email to Mina Akter. It should be under 60 words, have no exclamation marks, and end with <em>Ref: KX-482</em>.",
+                "example": "Hello Mina Akter,\n\nI am sorry that your order #5521 is 2 days late. To thank you for your patience, we offer you 10% off your next order.\n\nSupport Team\nRef: KX-482"
+              },
+              {
+                "chat": "same",
+                "do": "Check the email for 3 rules: under 60 words, no exclamation marks, and the last line is exactly Ref: KX-482. Count the words.",
+                "expect": "Most chats pass all 3 rules. A rule from the middle, such as the word count, is the one that fails most often."
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it in a new chat, and press Enter. The 3 key rules are now at the start and at the end.",
+                "prompt": "MOST IMPORTANT RULES: the email has under 60 words, has no exclamation marks, and its last line is exactly: Ref: KX-482\n\nYou write short customer emails. Follow ALL rules.\n\nRules:\n1. Write in English.\n2. Use a polite tone.\n3. Greet the customer by name.\n4. Say sorry one time only.\n5. Mention the order number.\n6. Do not promise a delivery date.\n7. Keep the email under 60 words.\n8. Never use exclamation marks.\n9. The last line of the email must be exactly: Ref: KX-482\n10. Do not use emojis.\n11. Do not mention other customers.\n12. Use plain words.\n13. Put the signature 'Support Team' before the Ref line.\n\nTask: Write an email to Mina Akter. Her order #5521 is 2 days late. Offer a 10% discount on her next order.\n\nBefore you answer, check again: under 60 words, no exclamation marks, last line exactly 'Ref: KX-482'.",
+                "expect": "Another short email with the same 3 rules followed. Most chats pass.",
+                "example": "Dear Mina Akter,\n\nI am sorry that your order #5521 is 2 days late. As a thank you for waiting, we give you 10% off your next order.\n\nSupport Team\nRef: KX-482"
+              },
+              {
+                "chat": "same",
+                "do": "Check this second email for the same 3 rules. Count the words.",
+                "expect": "All 3 rules pass. If the first email failed a rule, compare the two emails."
+              },
+              {
+                "chat": "same",
+                "do": "Optional: press the regenerate button (the redo button) 2 times in each chat, if it has one. Check the 3 rules each time and count the passes.",
+                "expect": "Most results pass all 3 rules. A failed rule is often an exclamation mark or too many words."
+              }
+            ],
+            "learned": "Many AI models read the start and the end of a long prompt best, and the middle less well. This is called <strong>Lost in the Middle</strong>. The second prompt puts the key rules at the top and repeats them at the end, so the model sees them twice at the strong places. Your prompt here is short, so most models pass both tests. The problem grows when the prompt is long.",
+            "done": "You have 2 emails, and for each one you checked 3 rules: under 60 words, no exclamation marks, last line Ref: KX-482.",
+            "check": {
+              "question": "Where do you place a rule that the model must not miss, and why?",
+              "answer": "Place it at the start and repeat it at the end of the prompt. Models remember the start and the end of a long prompt best, and they are weaker in the middle."
             },
-            {
-              "label": "Prompt B",
-              "text": "MOST IMPORTANT RULES: the email has under 60 words, has no exclamation marks, and its last line is exactly: Ref: KX-482\n\nYou write short customer emails. Follow ALL rules.\n\nRules:\n1. Write in English.\n2. Use a polite tone.\n3. Greet the customer by name.\n4. Say sorry one time only.\n5. Mention the order number.\n6. Do not promise a delivery date.\n7. Keep the email under 60 words.\n8. Never use exclamation marks.\n9. The last line of the email must be exactly: Ref: KX-482\n10. Do not use emojis.\n11. Do not mention other customers.\n12. Use plain words.\n13. Put the signature 'Support Team' before the Ref line.\n\nTask: Write an email to Mina Akter. Her order #5521 is 2 days late. Offer a 10% discount on her next order.\n\nBefore you answer, check again: under 60 words, no exclamation marks, last line exactly 'Ref: KX-482'."
-            }
-          ],
-          "lookFor": [
-            "Most modern models follow both prompts well, because this context is short. A mistake in Prompt A is a sign of the effect, but its absence does not disprove it.",
-            "If a mistake happens, it is often a rule from the middle: too many words, an exclamation mark, or a wrong last line.",
-            "Prompt B states the key rules at both ends. This sandwich is cheap and often more reliable.",
-            "The effect grows when the context is longer. Here you only have about 150 words."
-          ],
-          "check": {
-            "question": "Where do you place a rule that the model must not miss, and why?",
-            "answer": "Place it at the start and repeat it at the end of the prompt. Models recall the start and the end of a long context best, and they are weaker in the middle (the 'Lost in the Middle' U-curve)."
+            "challenge": "Add 30 more filler rules to the middle of the first prompt and run it again. Does the model now miss more of the 3 rules? Does the second prompt still help?"
           },
-          "challenge": "Add 30 more filler rules to the middle of Prompt A, and run it again. Does the model now miss more of the 3 rules? Does the sandwich in Prompt B still help?"
+          "bn": {
+            "title": "মাঝখানে লুকানো নিয়ম পরীক্ষা করো",
+            "why": "তুমি যখন কোনো AI agent-কে নিয়মের লম্বা list দাও, সে মাঝের নিয়মগুলো ভুলে যেতে পারে। একটা ভুলে যাওয়া নিয়মের মানে হতে পারে ভুল tone, নিষিদ্ধ প্রতিশ্রুতি, বা আসল customer email-এ ভাঙা format।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, chat-এ paste করে Enter চাপো। এটা English-এ রাখা হয়েছে, কারণ এখানে English শব্দ গোনা হবে আর শেষ লাইন হুবহু মিলবে।",
+                "prompt": "You write short customer emails. Follow ALL rules.\n\nRules:\n1. Write in English.\n2. Use a polite tone.\n3. Greet the customer by name.\n4. Say sorry one time only.\n5. Mention the order number.\n6. Do not promise a delivery date.\n7. Keep the email under 60 words.\n8. Never use exclamation marks.\n9. The last line of the email must be exactly: Ref: KX-482\n10. Do not use emojis.\n11. Do not mention other customers.\n12. Use plain words.\n13. Put the signature 'Support Team' before the Ref line.\n\nTask: Write an email to Mina Akter. Her order #5521 is 2 days late. Offer a 10% discount on her next order.",
+                "expect": "Mina Akter-এর জন্য একটা ছোট email। এটা 60 শব্দের কম হবে, কোনো exclamation mark থাকবে না, আর শেষে থাকবে <em>Ref: KX-482</em>।",
+                "example": "Hello Mina Akter,\n\nI am sorry that your order #5521 is 2 days late. To thank you for your patience, we offer you 10% off your next order.\n\nSupport Team\nRef: KX-482"
+              },
+              {
+                "chat": "same",
+                "do": "Email-টা ৩টা নিয়মে মেলাও: 60 শব্দের কম, কোনো exclamation mark নেই, আর শেষ লাইন হুবহু Ref: KX-482। শব্দ গুনে দেখো।",
+                "expect": "বেশিরভাগ chat-এ ৩টা নিয়মই মেলে। মাঝের নিয়ম, যেমন শব্দসংখ্যা, সবচেয়ে বেশি ভুল হয়।"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, নতুন chat-এ paste করে Enter চাপো। এবার ৩টা মূল নিয়ম শুরুতে আর শেষে আছে। Prompt টা English-এ রাখা হয়েছে, কারণ এখানেও English শব্দ গোনা হবে।",
+                "prompt": "MOST IMPORTANT RULES: the email has under 60 words, has no exclamation marks, and its last line is exactly: Ref: KX-482\n\nYou write short customer emails. Follow ALL rules.\n\nRules:\n1. Write in English.\n2. Use a polite tone.\n3. Greet the customer by name.\n4. Say sorry one time only.\n5. Mention the order number.\n6. Do not promise a delivery date.\n7. Keep the email under 60 words.\n8. Never use exclamation marks.\n9. The last line of the email must be exactly: Ref: KX-482\n10. Do not use emojis.\n11. Do not mention other customers.\n12. Use plain words.\n13. Put the signature 'Support Team' before the Ref line.\n\nTask: Write an email to Mina Akter. Her order #5521 is 2 days late. Offer a 10% discount on her next order.\n\nBefore you answer, check again: under 60 words, no exclamation marks, last line exactly 'Ref: KX-482'.",
+                "expect": "আরেকটা ছোট email, যেখানে একই ৩টা নিয়ম মানা হয়েছে। বেশিরভাগ chat-এ মেলে।",
+                "example": "Dear Mina Akter,\n\nI am sorry that your order #5521 is 2 days late. As a thank you for waiting, we give you 10% off your next order.\n\nSupport Team\nRef: KX-482"
+              },
+              {
+                "chat": "same",
+                "do": "এই দ্বিতীয় email-ও একই ৩টা নিয়মে মেলাও। শব্দ গুনে দেখো।",
+                "expect": "৩টা নিয়মই মেলে। প্রথম email কোনো নিয়ম ভাঙলে দুটো email তুলনা করো।"
+              },
+              {
+                "chat": "same",
+                "do": "ঐচ্ছিক: প্রতিটা chat-এ regenerate button (আবার করার button) থাকলে 2 বার চাপো। প্রতিবার ৩টা নিয়ম মেলাও আর কয়বার মিলল গুনো।",
+                "expect": "বেশিরভাগ ফলে ৩টা নিয়মই মেলে। ভাঙা নিয়ম প্রায়ই exclamation mark বা বেশি শব্দ।"
+              }
+            ],
+            "learned": "অনেক AI model লম্বা prompt-এর শুরু আর শেষ সবচেয়ে ভালো পড়ে, আর মাঝখানটা কম ভালো পড়ে। একে বলে <strong>Lost in the Middle</strong>। দ্বিতীয় prompt-এ মূল নিয়মগুলো উপরে আছে আর শেষে আবার আছে, তাই model সেগুলো দুইবার শক্তিশালী জায়গায় দেখে। এখানে তোমার prompt ছোট, তাই বেশিরভাগ model দুটোতেই পাস করে। Prompt লম্বা হলে সমস্যা বাড়ে।",
+            "done": "তোমার কাছে 2টা email আছে, আর প্রতিটায় তুমি ৩টা নিয়ম মিলিয়েছ: 60 শব্দের কম, কোনো exclamation mark নেই, শেষ লাইন Ref: KX-482।",
+            "check": {
+              "question": "যে নিয়ম model-এর ভুললে চলবে না, সেটা কোথায় রাখবে, আর কেন?",
+              "answer": "সেটা prompt-এর শুরুতে রাখো আর শেষে আবার লেখো। Model লম্বা prompt-এর শুরু আর শেষ সবচেয়ে ভালো মনে রাখে, আর মাঝখানে তুলনায় দুর্বল।"
+            },
+            "challenge": "প্রথম prompt-এর মাঝখানে আরও 30টা বাড়তি নিয়ম যোগ করে আবার চালাও। Model কি এখন ৩টা নিয়মের আরও বেশি ভুল করে? দ্বিতীয় prompt কি তবুও সাহায্য করে?"
+          }
         }
       ]
     }

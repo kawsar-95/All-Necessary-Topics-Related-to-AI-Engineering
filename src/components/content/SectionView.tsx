@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import type { Block, Section } from "@/lib/content-schema";
+import { practiceLang } from "@/lib/practice";
 import { videosForVoice } from "@/lib/videos";
 import { Inline } from "./Inline";
 import { PracticeList } from "./PracticeList";
@@ -208,7 +209,7 @@ export function SectionView({ section }: { section: Section }) {
             blocks={section.bangla}
           />
         )}
-        <PracticeList sectionId={section.id} practice={section.practice} />
+        <PracticeList sectionId={section.id} practice={section.practice} lang={practiceLang(voice)} />
         <VideoList sectionId={section.id} videos={videosForVoice(section.videos, voice)} />
       </div>
     </section>

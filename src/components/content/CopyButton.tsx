@@ -10,10 +10,14 @@ import { useEffect, useRef, useState } from "react";
 export function CopyButton({
   text,
   label,
+  words,
   fallbackTarget,
 }: {
   text: string;
+  /** The accessible name of the button, for example "Copy the prompt of step 1". */
   label: string;
+  /** The visible words for each state, in the reader's language. */
+  words: { idle: string; copied: string; selected: string };
   fallbackTarget: () => HTMLElement | null;
 }) {
   const [status, setStatus] = useState<"idle" | "copied" | "selected">("idle");
@@ -49,11 +53,11 @@ export function CopyButton({
     <button
       type="button"
       onClick={copy}
-      aria-label={`Copy ${label}`}
+      aria-label={label}
       className="rounded-md border border-border-strong px-2.5 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-text-dim transition-colors hover:border-accent hover:text-accent"
     >
       <span aria-live="polite">
-        {status === "copied" ? "Copied" : status === "selected" ? "Selected" : "Copy"}
+        {words[status]}
       </span>
     </button>
   );

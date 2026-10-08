@@ -242,3 +242,10 @@ body {
 [data-theme="light"] .diagram-svg [stroke="#fb7185" i] { stroke: #be123c; }
 [data-theme="light"] .diagram-svg [fill="#f472b6" i] { fill: #be185d; }
 [data-theme="light"] .diagram-svg [stroke="#f472b6" i] { stroke: #be185d; }
+
+/* Practice panel labels (src/components/content/PracticeList.tsx): wide
+   letter spacing splits Bengali letters, so Bangla labels use none. */
+.practice-label:lang(bn) {
+  letter-spacing: normal;
+  font-size: 12px;
+}

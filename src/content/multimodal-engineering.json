@@ -264,133 +264,302 @@
       ],
       "practice": [
         {
-          "title": "Extract JSON from a messy photo",
-          "goal": "See that a multimodal model can read messy text in an image and return structured data, and that it can still guess wrong.",
-          "steps": [
-            "Pick any everyday photo or screenshot with text: a receipt, a sign, a menu, or a handwritten note. Cover private data first.",
-            "Attach the image in a <strong>new</strong> chat and send Prompt A. Take a photo with your phone if you have none.",
-            "No image upload in your chat? Send Prompt B instead. It has a typed sample of a blurry receipt.",
-            "Compare each JSON value with the real image or sample. Mark every value that is wrong or guessed.",
-            "Read the <code>unclear</code> list. Did the model say what it could not read?"
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "Look at the attached image.\nStep 1: Write all the text you can read, in order.\nStep 2: Return JSON with these keys:\n- item_type (for example receipt, sign, menu, note)\n- title (the main heading, or null)\n- dates (list)\n- numbers (list of every number you can read, as written)\n- unclear (list of parts you could not read well)\nDo not guess. If a part is hard to read, put it in unclear and do not put it in the other keys."
+          "en": {
+            "title": "Turn a messy photo into JSON",
+            "why": "When you build an app that reads receipts or forms, the photos are often blurry. You must know that the AI can read them, but can also guess a character wrong.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Take a photo of a receipt, a sign, a menu, or a handwritten note. Attach it, paste this prompt, and press Enter.",
+                "prompt": "Look at the attached image.\nStep 1: Write all the text you can read, in order.\nStep 2: Return JSON with these keys:\n- item_type (for example receipt, sign, menu, note)\n- title (the main heading, or null)\n- dates (list)\n- numbers (list of every number you can read, as written)\n- unclear (list of parts you could not read well)\nDo not guess. If a part is hard to read, put it in unclear and do not put it in the other keys.",
+                "expect": "The AI first writes the text it can read. Then it gives a JSON block with the keys <code>item_type</code>, <code>title</code>, <code>dates</code>, <code>numbers</code>, and <code>unclear</code>."
+              },
+              {
+                "chat": "new",
+                "do": "No image upload in your chat? Do this step instead of step 1. Copy this prompt, paste it, and press Enter.",
+                "prompt": "Below is the text that came from a blurry photo of a shop receipt. Some characters are wrong.\n\n---\nRAHIM GR0CERY STOR3\n12 Moy 2O25\nRice 5kg ....... 4SO\nOil 1L ......... 18O\nEggs (12) ...... ??5\nTotal .......... 8l5\n---\n\nReturn JSON with these keys:\n- item_type\n- title\n- dates (list)\n- numbers (list of every number, as written)\n- unclear (list of parts you could not read well)\nDo not guess. If a part is hard to read, put it in unclear and do not put it in the other keys.",
+                "expect": "A JSON block. <code>item_type</code> is <em>receipt</em>. The <code>unclear</code> list names the broken parts, for example <em>??5</em>.",
+                "example": "{\n  \"item_type\": \"receipt\",\n  \"title\": \"RAHIM GR0CERY STOR3\",\n  \"dates\": [\"12 Moy 2O25\"],\n  \"numbers\": [\"5kg\", \"4SO\", \"1L\", \"18O\", \"12\", \"8l5\"],\n  \"unclear\": [\n    \"Shop name: 0 and 3 may be O and E\",\n    \"Date: Moy may be May, 2O25 may be 2025\",\n    \"Rice price 4SO may be 450\",\n    \"Oil price 18O may be 180\",\n    \"Eggs price ??5 has missing digits\",\n    \"Total 8l5 may be 815\"\n  ]\n}"
+              },
+              {
+                "chat": "same",
+                "do": "Check each JSON value against your photo, or against the receipt text. Write down every value that is wrong.",
+                "expect": "Most values are right. One or two may be wrong, or the AI may fix a broken character and not tell you."
+              },
+              {
+                "chat": "same",
+                "do": "Read the <code>unclear</code> list. Write down if it names the parts that were hard to read.",
+                "expect": "A good answer puts the hard parts in <code>unclear</code>, and not in the other keys. For the typed receipt, that includes the egg price <em>??5</em>."
+              }
+            ],
+            "learned": "The AI can read text in a picture without a separate tool. People call this <strong>OCR</strong> (turning a picture of text into text). When you ask for JSON, a program can use the answer at once. But the AI can still guess a bad character. The <code>unclear</code> list makes it say where it is unsure, so you check only those parts.",
+            "done": "You have one JSON answer, and you checked every value and the <code>unclear</code> list.",
+            "check": {
+              "question": "Why add an <code>unclear</code> list and the rule <em>do not guess</em> to the prompt?",
+              "answer": "The AI can read a blurry character wrong and sound sure. The <code>unclear</code> list makes it report doubt, so you or your program can check those parts by hand."
             },
-            {
-              "label": "Prompt B",
-              "text": "Below is the text that came from a blurry photo of a shop receipt. Some characters are wrong.\n\n---\nRAHIM GR0CERY STOR3\n12 Moy 2O25\nRice 5kg ....... 4SO\nOil 1L ......... 18O\nEggs (12) ...... ??5\nTotal .......... 8l5\n---\n\nReturn JSON with these keys:\n- item_type\n- title\n- dates (list)\n- numbers (list of every number, as written)\n- unclear (list of parts you could not read well)\nDo not guess. If a part is hard to read, put it in unclear and do not put it in the other keys."
-            }
-          ],
-          "lookFor": [
-            "Most models read messy or handwritten text well, with no separate OCR tool.",
-            "Some values may be wrong, or the model may fix a broken character without telling you.",
-            "A model that follows the rule puts hard parts in <code>unclear</code>. The explicit <em>do not guess</em> rule changes this a lot.",
-            "The JSON is easy for a program to read. The free text of Step 1 is not."
-          ],
-          "check": {
-            "question": "Why is asking for JSON with an unclear field better than just asking the model to read the image?",
-            "answer": "OCR-via-LLM turns an image into structured data in one step, but the model can guess wrong. The JSON gives a program a fixed shape, and the unclear field makes the model report doubt so you can check those parts by hand."
+            "challenge": "In the receipt, the total is 815, rice is 450, and oil is 180. Ask the AI for the egg price. Check the maths: 815 − 450 − 180 = 185. Should you trust that guess?"
           },
-          "challenge": "Send Prompt A again with a worse image, for example a dark or tilted photo. Which keys break first?"
+          "bn": {
+            "title": "এলোমেলো ছবি থেকে JSON বানাও",
+            "why": "তুমি যখন receipt বা form পড়ার app বানাবে, ছবি প্রায়ই ঝাপসা হবে। তাই জানা দরকার, AI এগুলো পড়তে পারে, কিন্তু একটা অক্ষর ভুলও আন্দাজ করতে পারে।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "একটা receipt, sign, menu বা হাতে লেখা নোটের ছবি তোলো। chat-এ attach করো, এই prompt টা paste করো, আর Enter চাপো।",
+                "prompt": "সঙ্গে দেওয়া ছবিটা দেখো।\nধাপ ১: ছবিতে যত লেখা পড়তে পারো, ক্রমানুসারে লেখো।\nধাপ ২: নিচের key দিয়ে JSON দাও:\n- item_type (যেমন receipt, sign, menu, note)\n- title (মূল শিরোনাম, না থাকলে null)\n- dates (list)\n- numbers (যত সংখ্যা পড়তে পারো, ছবিতে যেভাবে লেখা সেভাবে, list)\n- unclear (যে অংশ ভালো করে পড়তে পারোনি, list)\nআন্দাজ করবে না। কোনো অংশ পড়তে কঠিন হলে সেটা unclear-এ রাখো, অন্য key-তে রেখো না।",
+                "expect": "AI আগে যা পড়তে পারে সেই লেখা দেয়। তারপর একটা JSON দেয়, যেখানে key গুলো <code>item_type</code>, <code>title</code>, <code>dates</code>, <code>numbers</code> আর <code>unclear</code>।"
+              },
+              {
+                "chat": "new",
+                "do": "তোমার chat-এ ছবি upload করা যায় না? ধাপ ১-এর বদলে এটা করো। এই prompt টা copy করে paste করো, Enter চাপো। এই prompt টা English-এ রাখা হয়েছে, কারণ এখানে exact English অক্ষর পড়া হবে।",
+                "prompt": "Below is the text that came from a blurry photo of a shop receipt. Some characters are wrong.\n\n---\nRAHIM GR0CERY STOR3\n12 Moy 2O25\nRice 5kg ....... 4SO\nOil 1L ......... 18O\nEggs (12) ...... ??5\nTotal .......... 8l5\n---\n\nReturn JSON with these keys:\n- item_type\n- title\n- dates (list)\n- numbers (list of every number, as written)\n- unclear (list of parts you could not read well)\nDo not guess. If a part is hard to read, put it in unclear and do not put it in the other keys.",
+                "expect": "একটা JSON। <code>item_type</code> হবে <em>receipt</em>। <code>unclear</code> list-এ ভাঙা অংশগুলোর নাম থাকবে, যেমন <em>??5</em>।",
+                "example": "{\n  \"item_type\": \"receipt\",\n  \"title\": \"RAHIM GR0CERY STOR3\",\n  \"dates\": [\"12 Moy 2O25\"],\n  \"numbers\": [\"5kg\", \"4SO\", \"1L\", \"18O\", \"12\", \"8l5\"],\n  \"unclear\": [\n    \"Shop name: 0 and 3 may be O and E\",\n    \"Date: Moy may be May, 2O25 may be 2025\",\n    \"Rice price 4SO may be 450\",\n    \"Oil price 18O may be 180\",\n    \"Eggs price ??5 has missing digits\",\n    \"Total 8l5 may be 815\"\n  ]\n}"
+              },
+              {
+                "chat": "same",
+                "do": "প্রতিটা JSON value তোমার ছবির সঙ্গে, বা receipt-এর লেখার সঙ্গে মিলিয়ে দেখো। যেগুলো ভুল, লিখে রাখো।",
+                "expect": "বেশিরভাগ value ঠিক থাকবে। একটা-দুটো ভুল হতে পারে, বা AI কোনো ভাঙা অক্ষর না বলেই ঠিক করে দিতে পারে।"
+              },
+              {
+                "chat": "same",
+                "do": "<code>unclear</code> list টা পড়ো। যে অংশ পড়তে কঠিন ছিল, সেটা কি list-এ আছে? লিখে রাখো।",
+                "expect": "ভালো উত্তরে কঠিন অংশগুলো <code>unclear</code>-এ থাকে, অন্য key-তে থাকে না। typed receipt-এর ক্ষেত্রে ডিমের দাম <em>??5</em> তার মধ্যে থাকবে।"
+              }
+            ],
+            "learned": "AI আলাদা কোনো tool ছাড়াই ছবির লেখা পড়তে পারে। এটাকে বলে <strong>OCR</strong> (ছবির লেখা থেকে text বানানো)। তুমি JSON চাইলে একটা program সরাসরি উত্তরটা ব্যবহার করতে পারে। কিন্তু AI একটা খারাপ অক্ষর আন্দাজ করে ভুলও করতে পারে। <code>unclear</code> list তাকে বলতে বাধ্য করে কোথায় সে নিশ্চিত না, তাই তুমি শুধু সেই অংশগুলো দেখে নিলেই হয়।",
+            "done": "তোমার কাছে একটা JSON উত্তর আছে, আর তুমি প্রতিটা value এবং <code>unclear</code> list মিলিয়ে দেখেছ।",
+            "check": {
+              "question": "prompt-এ <code>unclear</code> list আর <em>আন্দাজ করবে না</em> নিয়মটা কেন দিতে হয়?",
+              "answer": "AI ঝাপসা অক্ষর ভুল পড়েও নিশ্চিতভাবে বলতে পারে। <code>unclear</code> list তাকে সন্দেহের কথা জানাতে বাধ্য করে, তাই তুমি বা তোমার program সেই অংশগুলো হাতে মিলিয়ে নিতে পারো।"
+            },
+            "challenge": "receipt-এ total 815, চাল 450, আর তেল 180। AI-কে ডিমের দাম জিজ্ঞেস করো। অঙ্কটা মিলিয়ে দেখো: 815 − 450 − 180 = 185। এই আন্দাজ কি বিশ্বাস করা ঠিক?"
+          }
         },
         {
-          "title": "Ask better questions about a screenshot",
-          "goal": "See that a precise visual question gives a far more useful answer than a vague one.",
-          "steps": [
-            "Take a screenshot of any app or web page you use, such as a form or a settings screen. Hide private data.",
-            "Attach it in a <strong>new</strong> chat and send Prompt A. Save the answer.",
-            "Attach the same image in another <strong>new</strong> chat and send Prompt B. Compare the two answers.",
-            "No image upload? Send Prompt C in one new chat. Then send only its first paragraph plus <em>What do you think?</em> in another new chat."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "What do you think of this image?"
+          "en": {
+            "title": "Compare a vague and a precise question",
+            "why": "When you build a feature that checks screenshots, for example for a QA team, a vague question gives a polite answer that helps nobody. You need to know how to ask for real problems.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Take a screenshot of any app or web page. Attach it, paste this question, and press Enter. Save the answer.",
+                "prompt": "What do you think of this image?",
+                "expect": "A general, polite answer about the look of the screen. It does not point to a clear problem.",
+                "example": "It looks like a simple checkout page. The layout is clean and the green button is easy to see. Some text could be easier to read, and the form could give clearer feedback. Overall it is a good start, but it needs a few small improvements."
+              },
+              {
+                "chat": "new",
+                "do": "Attach the same screenshot. Paste this prompt and press Enter.",
+                "prompt": "This is a screenshot of an app screen.\n1. Say in one sentence what the screen is for.\n2. List up to 3 things that look wrong or confusing, such as cut-off text, low contrast, or unclear buttons. For each one, say where it is on the screen.\n3. List what you cannot judge from this image.\nBe specific. Do not praise the design.",
+                "expect": "A one-sentence purpose, up to 3 problems that say where they are on the screen, and a list of what the AI cannot judge."
+              },
+              {
+                "chat": "new",
+                "do": "No image upload in your chat? Do this step instead of steps 1 and 2. Paste this text and press Enter. Save the answer.",
+                "prompt": "Here is a description of a screenshot, because I cannot upload it.\nThe screen is a checkout page for a phone shop. At the top, a title says \"Pay\" in light grey on a white background. In the middle, a field named \"Phone numbr\" has a red border but no message. At the bottom, two buttons sit next to each other: a big green button with the text \"OK\" and a small grey button with the text \"Cancel\". The price \"BDT 12,4\" is cut off at the right edge.\n\nWhat do you think of this screen?",
+                "expect": "A general, polite answer, much like the example. It does not point to the cut-off price or the missing message.",
+                "example": "It looks like a simple checkout page. The layout is clean and the green button is easy to see. Some text could be easier to read, and the form could give clearer feedback. Overall it is a good start, but it needs a few small improvements."
+              },
+              {
+                "chat": "new",
+                "do": "Still no image upload? Open a new chat, paste this prompt, and press Enter.",
+                "prompt": "Here is a description of a screenshot, because I cannot upload it.\nThe screen is a checkout page for a phone shop. At the top, a title says \"Pay\" in light grey on a white background. In the middle, a field named \"Phone numbr\" has a red border but no message. At the bottom, two buttons sit next to each other: a big green button with the text \"OK\" and a small grey button with the text \"Cancel\". The price \"BDT 12,4\" is cut off at the right edge.\n\n1. Say in one sentence what the screen is for.\n2. List up to 3 things that look wrong or confusing. For each one, say where it is on the screen.\n3. List what you cannot judge from this description.\nBe specific. Do not praise the design.",
+                "expect": "A one-sentence purpose, up to 3 problems with their place on the screen, and what the AI cannot judge. For example, the cut-off price at the right edge.",
+                "example": "1. A checkout page where the user pays for a phone.\n2. Problems:\n- Top: the title \"Pay\" is light grey on white, so it is hard to read.\n- Middle: the \"Phone numbr\" field has a red border but no message, and its label has a typo.\n- Right edge: the price \"BDT 12,4\" is cut off, so the user cannot see the full price.\n3. I cannot judge: what happens when a button is tapped, how the page looks on other screens, or the real colours."
+              },
+              {
+                "chat": "same",
+                "do": "Put the two answers side by side. Write which one you could use to fix the screen, and why.",
+                "expect": "The second answer. It gives problems you can find on the screen and fix one by one."
+              }
+            ],
+            "learned": "A question about a picture is still a prompt. A vague question lets the AI describe the picture in a general way. A precise question gives it a job: find problems, say where they are, and say what it cannot judge. The place of each problem lets you check the answer on the screenshot.",
+            "done": "You have two answers for the same screen, one vague and one precise, and you know which one is more useful.",
+            "check": {
+              "question": "The image is the same. Why does the precise prompt give a more useful answer?",
+              "answer": "The AI needs a task, a format, and a limit on what to report. A vague question leaves it free to describe the image. A precise question makes it find problems and say where they are."
             },
-            {
-              "label": "Prompt B",
-              "text": "This is a screenshot of an app screen.\n1. Say in one sentence what the screen is for.\n2. List up to 3 things that look wrong or confusing, such as cut-off text, low contrast, or unclear buttons. For each one, say where it is on the screen.\n3. List what you cannot judge from this image.\nBe specific. Do not praise the design."
-            },
-            {
-              "label": "Prompt C",
-              "text": "Here is a description of a screenshot, because I cannot upload it.\nThe screen is a checkout page for a phone shop. At the top, a title says \"Pay\" in light grey on a white background. In the middle, a field named \"Phone numbr\" has a red border but no message. At the bottom, two buttons sit next to each other: a big green button with the text \"OK\" and a small grey button with the text \"Cancel\". The price \"BDT 12,4\" is cut off at the right edge.\n\n1. Say in one sentence what the screen is for.\n2. List up to 3 things that look wrong or confusing. For each one, say where it is on the screen.\n3. List what you cannot judge from this description.\nBe specific. Do not praise the design."
-            }
-          ],
-          "lookFor": [
-            "Prompt A usually gives a general, polite answer about colours and mood.",
-            "Prompt B gives located, testable problems, such as a cut-off number or a weak button label.",
-            "Most models list some limits in item 3, for example that they cannot see how the screen behaves when you tap it.",
-            "Visual Q&A works best when you say what to look for."
-          ],
-          "check": {
-            "question": "Why does Prompt B give a more useful answer than Prompt A, when the image is the same?",
-            "answer": "Visual Q&A is still a prompt. The model needs a task, a format, and a limit on what to report. A vague question leaves it free to describe the image, but a precise question makes it find problems."
+            "challenge": "Add this to the precise prompt: <em>Return the problems as JSON with the keys problem, location, and severity.</em> Does your program now get an answer it can read?"
           },
-          "challenge": "Ask the model to return the three problems as JSON with the keys <code>problem</code>, <code>location</code>, and <code>severity</code>."
+          "bn": {
+            "title": "অস্পষ্ট আর নির্দিষ্ট প্রশ্নের তফাত দেখো",
+            "why": "তুমি যদি screenshot পরীক্ষা করার feature বানাও, যেমন QA team-এর জন্য, তাহলে অস্পষ্ট প্রশ্নে ভদ্র কিন্তু কাজে না লাগা উত্তর আসবে। আসল সমস্যা পেতে কীভাবে প্রশ্ন করতে হয়, সেটা জানা দরকার।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "যেকোনো app বা web পেজের একটা screenshot নাও। attach করো, এই প্রশ্নটা paste করো, আর Enter চাপো। উত্তরটা রেখে দাও।",
+                "prompt": "এই ছবিটা সম্পর্কে তোমার কী মনে হয়?",
+                "expect": "স্ক্রিনের চেহারা নিয়ে একটা সাধারণ, ভদ্র উত্তর। কোনো পরিষ্কার সমস্যা দেখানো হয় না।",
+                "example": "দেখে মনে হচ্ছে এটা একটা সাধারণ checkout পেজ। layout পরিষ্কার, আর সবুজ button সহজে চোখে পড়ে। কিছু লেখা আরেকটু স্পষ্ট হলে ভালো হতো, আর form আরও পরিষ্কার feedback দিতে পারত। মোটের ওপর শুরুটা ভালো, তবে কয়েকটা ছোট উন্নতি দরকার।"
+              },
+              {
+                "chat": "new",
+                "do": "একই screenshot attach করো। এই prompt টা paste করে Enter চাপো।",
+                "prompt": "এটা একটা app স্ক্রিনের screenshot।\n১. এক বাক্যে বলো স্ক্রিনটা কীসের জন্য।\n২. সর্বোচ্চ ৩টা জিনিস লেখো যেগুলো ভুল বা বিভ্রান্তিকর মনে হয়, যেমন কেটে যাওয়া লেখা, কম contrast, বা অস্পষ্ট button। প্রতিটার জন্য বলো স্ক্রিনের কোথায় আছে।\n৩. এই ছবি দেখে যা বিচার করা যায় না, তার list দাও।\nনির্দিষ্ট করে বলো। design-এর প্রশংসা করবে না।",
+                "expect": "এক বাক্যে স্ক্রিনের কাজ, স্ক্রিনের কোথায় আছে সেটাসহ সর্বোচ্চ ৩টা সমস্যা, আর AI যা বিচার করতে পারে না তার list।"
+              },
+              {
+                "chat": "new",
+                "do": "chat-এ ছবি upload করা যায় না? ধাপ ১ আর ২-এর বদলে এটা করো। এই লেখাটা paste করে Enter চাপো। উত্তরটা রেখে দাও।",
+                "prompt": "নিচে একটা screenshot-এর বর্ণনা দিলাম, কারণ আমি ছবিটা upload করতে পারছি না।\nস্ক্রিনটা একটা ফোনের দোকানের checkout পেজ। উপরে \"Pay\" লেখা title সাদা background-এ হালকা ধূসর রঙে। মাঝখানে \"Phone numbr\" নামের একটা field-এর border লাল, কিন্তু কোনো message নেই। নিচে পাশাপাশি দুটো button: একটা বড় সবুজ button, লেখা \"OK\", আর একটা ছোট ধূসর button, লেখা \"Cancel\"। দাম \"BDT 12,4\" ডান দিকের কিনারায় কেটে গেছে।\n\nএই স্ক্রিন সম্পর্কে তোমার কী মনে হয়?",
+                "expect": "উদাহরণের মতো একটা সাধারণ, ভদ্র উত্তর। কেটে যাওয়া দাম বা না-থাকা message-এর কথা বলা হয় না।",
+                "example": "দেখে মনে হচ্ছে এটা একটা সাধারণ checkout পেজ। layout পরিষ্কার, আর সবুজ button সহজে চোখে পড়ে। কিছু লেখা আরেকটু স্পষ্ট হলে ভালো হতো, আর form আরও পরিষ্কার feedback দিতে পারত। মোটের ওপর শুরুটা ভালো, তবে কয়েকটা ছোট উন্নতি দরকার।"
+              },
+              {
+                "chat": "new",
+                "do": "তবুও ছবি upload করা যায় না? নতুন chat খুলে এই prompt টা paste করো, আর Enter চাপো।",
+                "prompt": "নিচে একটা screenshot-এর বর্ণনা দিলাম, কারণ আমি ছবিটা upload করতে পারছি না।\nস্ক্রিনটা একটা ফোনের দোকানের checkout পেজ। উপরে \"Pay\" লেখা title সাদা background-এ হালকা ধূসর রঙে। মাঝখানে \"Phone numbr\" নামের একটা field-এর border লাল, কিন্তু কোনো message নেই। নিচে পাশাপাশি দুটো button: একটা বড় সবুজ button, লেখা \"OK\", আর একটা ছোট ধূসর button, লেখা \"Cancel\"। দাম \"BDT 12,4\" ডান দিকের কিনারায় কেটে গেছে।\n\n১. এক বাক্যে বলো স্ক্রিনটা কীসের জন্য।\n২. সর্বোচ্চ ৩টা জিনিস লেখো যেগুলো ভুল বা বিভ্রান্তিকর মনে হয়। প্রতিটার জন্য বলো স্ক্রিনের কোথায় আছে।\n৩. এই বর্ণনা থেকে যা বিচার করা যায় না, তার list দাও।\nনির্দিষ্ট করে বলো। design-এর প্রশংসা করবে না।",
+                "expect": "এক বাক্যে স্ক্রিনের কাজ, স্ক্রিনের কোথায় আছে সেটাসহ সর্বোচ্চ ৩টা সমস্যা, আর AI যা বিচার করতে পারে না। যেমন ডান কিনারায় কেটে যাওয়া দাম।",
+                "example": "১. এটা একটা checkout পেজ, যেখানে ব্যবহারকারী একটা ফোনের দাম দেয়।\n২. সমস্যা:\n- উপরে: \"Pay\" title সাদা background-এ হালকা ধূসর, তাই পড়া কঠিন।\n- মাঝখানে: \"Phone numbr\" field-এর border লাল, কিন্তু কোনো message নেই, আর label-এ বানান ভুল আছে।\n- ডান কিনারায়: দাম \"BDT 12,4\" কেটে গেছে, তাই পুরো দাম দেখা যায় না।\n৩. যা বিচার করতে পারছি না: button চাপলে কী হয়, অন্য স্ক্রিনে পেজটা কেমন দেখায়, আর আসল রং।"
+              },
+              {
+                "chat": "same",
+                "do": "দুটো উত্তর পাশাপাশি রাখো। কোনটা দিয়ে তুমি স্ক্রিন ঠিক করতে পারবে, আর কেন, লিখে রাখো।",
+                "expect": "দ্বিতীয় উত্তরটা। তাতে এমন সমস্যা আছে যেগুলো স্ক্রিনে খুঁজে একটা একটা করে ঠিক করা যায়।"
+              }
+            ],
+            "learned": "ছবি নিয়ে প্রশ্নও একটা prompt। অস্পষ্ট প্রশ্নে AI ছবিটার সাধারণ বর্ণনা দেয়। নির্দিষ্ট প্রশ্নে তার একটা কাজ থাকে: সমস্যা খোঁজো, কোথায় আছে বলো, আর কী বিচার করতে পারো না তাও বলো। প্রতিটা সমস্যার জায়গা দেওয়া থাকলে তুমি screenshot-এ উত্তরটা মিলিয়ে দেখতে পারো।",
+            "done": "একই স্ক্রিনের জন্য তোমার কাছে দুটো উত্তর আছে, একটা অস্পষ্ট আর একটা নির্দিষ্ট, আর তুমি জানো কোনটা বেশি কাজের।",
+            "check": {
+              "question": "ছবি একই। তাহলে নির্দিষ্ট prompt কেন বেশি কাজের উত্তর দেয়?",
+              "answer": "AI-এর একটা কাজ, একটা format, আর কী report করবে তার একটা সীমা দরকার। অস্পষ্ট প্রশ্নে সে ছবির বর্ণনা দিতে পারে। নির্দিষ্ট প্রশ্নে সে সমস্যা খোঁজে আর বলে কোথায় আছে।"
+            },
+            "challenge": "নির্দিষ্ট prompt-এর শেষে যোগ করো: <em>সমস্যাগুলো JSON-এ দাও, key হবে problem, location আর severity।</em> এখন কি তোমার program এমন উত্তর পায় যা সে পড়তে পারে?"
+          }
         },
         {
-          "title": "Find the slow stage in a voice agent",
-          "goal": "See how each stage of an STT, LLM, and TTS pipeline adds delay, and why realtime audio helps.",
-          "steps": [
-            "Read the numbers in Prompt A. Write your own guess of the total delay and of the slowest stage <strong>before</strong> you send it.",
-            "Send Prompt A in a <strong>new</strong> chat. Compare the answer with your guess.",
-            "In the <strong>same</strong> chat, send Prompt B to compare with a realtime design.",
-            "Pick one change from the answer that costs the least work. Say why you chose it."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "I build a voice agent for a bank help line. The design is speech-to-text (STT), then an LLM, then text-to-speech (TTS). After the caller stops talking, the delays are:\n- Wait to be sure the caller finished speaking: 600 ms\n- STT finishes the final text: 400 ms\n- LLM sends its first token: 700 ms\n- The system waits for the LLM to finish a full sentence before it sends text to TTS: 300 ms\n- TTS makes the first audio: 350 ms\n- Network to the caller: 150 ms\n\n1. Add up the total delay before the caller hears the first sound.\n2. Name the stage that is the biggest and the stage that is the easiest to cut.\n3. Suggest two changes. For each, say how many ms it might save and what could go wrong.\nUse a small table."
+          "en": {
+            "title": "Add up the delays of a voice agent",
+            "why": "When you build a phone voice agent, a caller who waits in silence thinks the call is broken. You must find which stage adds the most delay.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Read the six delays in this prompt. Write your guess of the total. Then paste the prompt and press Enter.",
+                "prompt": "I build a voice agent for a bank help line. The design is speech-to-text (STT), then an LLM, then text-to-speech (TTS). After the caller stops talking, the delays are:\n- Wait to be sure the caller finished speaking: 600 ms\n- STT finishes the final text: 400 ms\n- LLM sends its first token: 700 ms\n- The system waits for the LLM to finish a full sentence before it sends text to TTS: 300 ms\n- TTS makes the first audio: 350 ms\n- Network to the caller: 150 ms\n\n1. Add up the total delay before the caller hears the first sound.\n2. Name the stage that is the biggest and the stage that is the easiest to cut.\n3. Suggest two changes. For each, say how many ms it might save and what could go wrong.\nUse a small table.",
+                "expect": "A small table and the total <strong>2,500 ms</strong>. The biggest stage is the LLM first token (700 ms). Check that your guess was close.",
+                "example": "1. Total: 600 + 400 + 700 + 300 + 350 + 150 = 2,500 ms (2.5 s).\n2. Biggest: the LLM first token (700 ms). Easiest to cut: the wait for a full sentence (300 ms).\n3.\n| Change | Saves | What could go wrong |\n| Stream LLM text to TTS in small pieces | about 300 ms | The voice may sound choppy |\n| Shorten the end-of-speech wait to 400 ms | about 200 ms | The agent may cut in when the caller pauses |"
+              },
+              {
+                "chat": "same",
+                "do": "Copy this prompt, paste it, and press Enter. Write down how many stages disappear.",
+                "prompt": "Now my team thinks about a realtime audio API. Audio streams in both directions, and the model starts to speak after about 450 ms in total.\n1. Which stages of my old design disappear?\n2. Give me two things I might lose, for example control, logging, or the choice of voice.\n3. Give me one rule to decide between the two designs for a bank help line.\nAnswer in 8 lines or fewer.",
+                "expect": "About 3 stages disappear: the separate STT, the wait for a full sentence, and the separate TTS. The AI also names 2 things you may lose, for example control or logging.",
+                "example": "1. The separate STT stage, the wait for a full sentence, and the separate TTS stage disappear. One model hears and speaks.\n2. You lose control (you cannot check the text between stages). Logging is harder, and the voice choice is smaller.\n3. If every call needs a checked and saved transcript, use the pipeline. If a natural, fast talk matters most, use realtime."
+              },
+              {
+                "chat": "same",
+                "do": "From the step 1 answer, pick the change that costs the least work. Write it down, with one reason.",
+                "expect": "For example: <em>stream the LLM text to TTS</em>, because you only change how the stages connect."
+              }
+            ],
+            "learned": "A voice agent has three stages. <strong>STT</strong> turns speech into text, the LLM writes the reply, and <strong>TTS</strong> turns the reply into speech. Each stage waits for the one before it, so the delays add up: 2,500 ms here. A <strong>realtime API</strong> streams audio both ways, so most of the waits go away (about 450 ms, which is 2,050 ms less). The price is less control over each stage.",
+            "done": "You have the total delay (2,500 ms), the biggest stage, and one change you would make first.",
+            "check": {
+              "question": "Why is an STT, LLM, and TTS pipeline slower than a realtime audio API?",
+              "answer": "In a pipeline, each stage waits for the one before it to finish, so the delays add up. A realtime API streams audio in both directions, so the waits mostly go away."
             },
-            {
-              "label": "Prompt B",
-              "text": "Now my team thinks about a realtime audio API. Audio streams in both directions, and the model starts to speak after about 450 ms in total.\n1. Which stages of my old design disappear?\n2. Give me two things I might lose, for example control, logging, or the choice of voice.\n3. Give me one rule to decide between the two designs for a bank help line.\nAnswer in 8 lines or fewer."
-            }
-          ],
-          "lookFor": [
-            "The total is 2,500 ms. Check the model added it correctly.",
-            "Every stage waits for the one before it, so small delays add up.",
-            "Good suggestions often stream LLM tokens into TTS, and shorten the end-of-speech wait.",
-            "Most models say that a realtime API gives up some control over each stage."
-          ],
-          "check": {
-            "question": "Why is a pipeline of STT, LLM, and TTS slower than a realtime audio API?",
-            "answer": "In a pipeline, each stage waits for the previous stage to finish, so the delays add up. A realtime API streams audio in both directions, which removes the waits and makes fast turn-taking, under about 500 ms, possible."
+            "challenge": "Change one number in the first prompt, for example make the LLM first token 1,500 ms. Send it in a new chat and ask which change now saves the most time."
           },
-          "challenge": "Change one number in Prompt A, for example make the LLM 1,500 ms. Ask which change now saves the most time."
+          "bn": {
+            "title": "voice agent-এর delay যোগ করে দেখো",
+            "why": "তুমি যখন ফোনে কথা বলা voice agent বানাবে, caller চুপচাপ অপেক্ষা করলে ভাববে call নষ্ট। কোন stage সবচেয়ে বেশি delay যোগ করছে, সেটা খুঁজে বের করা দরকার।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt-এর ছয়টা delay পড়ো। মোট কত হবে, তোমার আন্দাজ লিখে রাখো। তারপর prompt টা paste করে Enter চাপো।",
+                "prompt": "আমি একটা bank help line-এর জন্য voice agent বানাচ্ছি। design হলো speech-to-text (STT), তারপর একটা LLM, তারপর text-to-speech (TTS)। caller কথা বলা থামানোর পর delay গুলো এরকম:\n- caller যে সত্যিই কথা শেষ করেছে, এটা নিশ্চিত হতে অপেক্ষা: 600 ms\n- STT চূড়ান্ত text বানায়: 400 ms\n- LLM তার প্রথম token পাঠায়: 700 ms\n- LLM পুরো একটা বাক্য শেষ না করা পর্যন্ত system অপেক্ষা করে, তারপর TTS-এ text পাঠায়: 300 ms\n- TTS প্রথম audio বানায়: 350 ms\n- caller পর্যন্ত network: 150 ms\n\n১. caller প্রথম শব্দ শোনার আগে মোট delay যোগ করে বলো।\n২. কোন stage সবচেয়ে বড়, আর কোনটা কমানো সবচেয়ে সহজ, নাম বলো।\n৩. দুটো পরিবর্তনের পরামর্শ দাও। প্রতিটার জন্য বলো কত ms বাঁচতে পারে আর কী ভুল হতে পারে।\nএকটা ছোট table ব্যবহার করো।",
+                "expect": "একটা ছোট table আর মোট <strong>2,500 ms</strong>। সবচেয়ে বড় stage হলো LLM-এর প্রথম token (700 ms)। তোমার আন্দাজ কাছাকাছি ছিল কি না দেখো।",
+                "example": "১. মোট: 600 + 400 + 700 + 300 + 350 + 150 = 2,500 ms (২.৫ সেকেন্ড)।\n২. সবচেয়ে বড়: LLM-এর প্রথম token (700 ms)। কমানো সবচেয়ে সহজ: পুরো বাক্যের জন্য অপেক্ষা (300 ms)।\n৩.\n| পরিবর্তন | বাঁচে | কী ভুল হতে পারে |\n| LLM-এর text ছোট ছোট টুকরোয় TTS-এ পাঠাও | প্রায় 300 ms | voice কেটে কেটে শোনাতে পারে |\n| কথা-শেষের অপেক্ষা 400 ms করো | প্রায় 200 ms | caller থামলে agent মাঝখানে কথা বলে ফেলতে পারে |"
+              },
+              {
+                "chat": "same",
+                "do": "এই prompt টা copy করে paste করো, Enter চাপো। কয়টা stage চলে যায়, লিখে রাখো।",
+                "prompt": "এখন আমার team একটা realtime audio API নিয়ে ভাবছে। audio দুই দিকেই stream হয়, আর model মোট প্রায় 450 ms পরে কথা বলা শুরু করে।\n১. আমার পুরনো design-এর কোন কোন stage চলে যায়?\n২. আমি কী কী হারাতে পারি, এমন দুটো জিনিস বলো, যেমন control, logging, বা voice বেছে নেওয়া।\n৩. bank help line-এর জন্য দুই design-এর মধ্যে বেছে নেওয়ার একটা নিয়ম দাও।\nসর্বোচ্চ ৮ লাইনে উত্তর দাও।",
+                "expect": "প্রায় ৩টা stage চলে যায়: আলাদা STT, পুরো বাক্যের জন্য অপেক্ষা, আর আলাদা TTS। AI আরও ২টা জিনিস বলবে যা তুমি হারাতে পারো, যেমন control বা logging।",
+                "example": "১. আলাদা STT stage, পুরো বাক্যের জন্য অপেক্ষা, আর আলাদা TTS stage চলে যায়। একটাই model শোনে আর বলে।\n২. তুমি control হারাও (stage-এর মাঝে text পরীক্ষা করা যায় না)। logging কঠিন হয়, আর voice বেছে নেওয়ার সুযোগ কমে।\n৩. প্রতিটা call-এর transcript যদি পরীক্ষা করে সংরক্ষণ করতে হয়, pipeline ব্যবহার করো। স্বাভাবিক, দ্রুত কথাবার্তা সবচেয়ে জরুরি হলে realtime ব্যবহার করো।"
+              },
+              {
+                "chat": "same",
+                "do": "ধাপ ১-এর উত্তর থেকে সবচেয়ে কম কাজের পরিবর্তনটা বেছে নাও। সেটা আর একটা কারণসহ লিখে রাখো।",
+                "expect": "যেমন: <em>LLM-এর text TTS-এ stream করা</em>, কারণ শুধু stage গুলোর জোড়া লাগানোর উপায় বদলাতে হয়।"
+              }
+            ],
+            "learned": "voice agent-এ তিনটা stage থাকে। <strong>STT</strong> কথা থেকে text বানায়, LLM উত্তর লেখে, আর <strong>TTS</strong> উত্তরটাকে কথায় বদলায়। প্রতিটা stage আগের stage-এর জন্য অপেক্ষা করে, তাই delay গুলো যোগ হয়: এখানে 2,500 ms। <strong>realtime API</strong> audio দুই দিকেই stream করে, তাই বেশিরভাগ অপেক্ষা চলে যায় (প্রায় 450 ms, মানে 2,050 ms কম)। বিনিময়ে প্রতিটা stage-এর ওপর control কমে।",
+            "done": "তোমার কাছে মোট delay (2,500 ms), সবচেয়ে বড় stage, আর প্রথমে যে পরিবর্তনটা করবে সেটা আছে।",
+            "check": {
+              "question": "STT, LLM আর TTS-এর pipeline কেন realtime audio API-র চেয়ে ধীর?",
+              "answer": "pipeline-এ প্রতিটা stage আগেরটা শেষ হওয়ার জন্য অপেক্ষা করে, তাই delay গুলো যোগ হয়। realtime API দুই দিকেই audio stream করে, তাই বেশিরভাগ অপেক্ষা চলে যায়।"
+            },
+            "challenge": "প্রথম prompt-এর একটা সংখ্যা বদলাও, যেমন LLM-এর প্রথম token 1,500 ms করো। নতুন chat-এ পাঠিয়ে জিজ্ঞেস করো এখন কোন পরিবর্তনে সবচেয়ে বেশি সময় বাঁচে।"
+          }
         },
         {
-          "title": "Choose tools for image generation jobs",
-          "goal": "Learn which image generation tool fits which job: ControlNet, LoRA, inpainting, or IP-Adapter.",
-          "steps": [
-            "Read the four jobs in Prompt A. Write your own choice for each job on paper first.",
-            "Send Prompt A in a <strong>new</strong> chat. Mark each job where the model and you disagree.",
-            "In the <strong>same</strong> chat, send Prompt B. Check whether the pipeline matches the job.",
-            "If your chat can make images, ask it to draw job 3 and see if it can edit only one part."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "I use a diffusion image pipeline. These tools exist: ControlNet (structure such as pose, depth, or edges), LoRA (a small trained add-on for a style or a character), inpainting (edit one masked area), and IP-Adapter (use a reference image as a guide).\n\nFor each job, pick the best tool, give one reason, and say what input I must have.\nJob 1: Make 20 posters with the same cartoon girl in the same drawing style.\nJob 2: Keep the exact pose of a person in my photo, but turn the photo into a painting.\nJob 3: Change only the sky in a product photo and leave the product as it is.\nJob 4: Make a new picture that has the colours and mood of one reference image, with no training.\nIf two tools could work, say so."
+          "en": {
+            "title": "Pick the right image tool for four jobs",
+            "why": "When you build an image feature, for example posters for a shop, the wrong tool wastes days. One tool keeps a pose. Another keeps a style. You must know which one fits the job.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Read the four jobs in this prompt. On paper, write your own tool for each one. Then paste the prompt and press Enter.",
+                "prompt": "I use a diffusion image pipeline. These tools exist: ControlNet (structure such as pose, depth, or edges), LoRA (a small trained add-on for a style or a character), inpainting (edit one masked area), and IP-Adapter (use a reference image as a guide).\n\nFor each job, pick the best tool, give one reason, and say what input I must have.\nJob 1: Make 20 posters with the same cartoon girl in the same drawing style.\nJob 2: Keep the exact pose of a person in my photo, but turn the photo into a painting.\nJob 3: Change only the sky in a product photo and leave the product as it is.\nJob 4: Make a new picture that has the colours and mood of one reference image, with no training.\nIf two tools could work, say so.",
+                "expect": "One tool for each job. Most chats pick ControlNet for job 2, inpainting for job 3, and IP-Adapter for job 4. Job 1 gets LoRA, and maybe IP-Adapter too.",
+                "example": "Job 1: LoRA. It teaches the model the girl and the style, so all posters match. Input: example images of the girl to train on. IP-Adapter could also work.\nJob 2: ControlNet. It keeps the pose. Input: your photo (a pose map from it) and a text like \"oil painting\".\nJob 3: Inpainting. It edits only the masked area. Input: the photo, a mask over the sky, and a text for the new sky.\nJob 4: IP-Adapter. It uses the reference as a guide. Input: the reference image and a text."
+              },
+              {
+                "chat": "same",
+                "do": "Compare the answer with your paper. Write down each job where you and the AI picked a different tool.",
+                "expect": "Most of your picks match the AI. For a different pick, read the reason of the AI and decide who is right."
+              },
+              {
+                "chat": "same",
+                "do": "Copy this prompt, paste it, and press Enter. Check that each node uses the output of the node before it.",
+                "prompt": "Take Job 2 and write the pipeline as a numbered list of nodes, as in ComfyUI. For each node, write its name, its input, and its output. Then give two reasons why a team should keep the pipeline as a saved graph file in version control.",
+                "expect": "A numbered list of 5 to 7 nodes, from loading the photo to saving the new image. Each node has a name, an input, and an output.",
+                "example": "1. Load Image: in = photo file, out = image.\n2. Pose Detector: in = image, out = pose map.\n3. Text Prompt: in = \"an oil painting of a person\", out = text guide.\n4. ControlNet Apply: in = text guide + pose map, out = guided input.\n5. Sampler: in = guided input, out = new image.\n6. Save Image: in = new image, out = file.\nWhy keep the graph file: the team can review changes like code, and can go back to an older version."
+              }
+            ],
+            "learned": "Each tool solves a different problem. <strong>ControlNet</strong> keeps the structure of one image, such as a pose. A <strong>LoRA</strong> is a small add-on, trained to teach the model a style or a character. Inpainting edits only a masked area, and IP-Adapter uses a reference image as a guide with no training. In ComfyUI you connect these as nodes, and the graph is a file that a team can keep like code.",
+            "done": "You have a tool for each of the 4 jobs, and a node list for job 2.",
+            "check": {
+              "question": "What is the difference between ControlNet and LoRA?",
+              "answer": "ControlNet controls the structure of one image, such as a pose or edges, from an input you give each time. A LoRA is a small trained add-on that teaches the model a style or a character, so it can repeat them in many images."
             },
-            {
-              "label": "Prompt B",
-              "text": "Take Job 2 and write the pipeline as a numbered list of nodes, as in ComfyUI. For each node, write its name, its input, and its output. Then give two reasons why a team should keep the pipeline as a saved graph file in version control."
-            }
-          ],
-          "lookFor": [
-            "Most models pick ControlNet for Job 2, inpainting for Job 3, and IP-Adapter for Job 4.",
-            "Job 1 may get LoRA, or IP-Adapter, or both. The model should explain the difference.",
-            "In Prompt B each node takes the output of a node before it, like a chain.",
-            "A saved graph can be reviewed, repeated, and rolled back, like code."
-          ],
-          "check": {
-            "question": "What is the difference between ControlNet and LoRA?",
-            "answer": "ControlNet controls the structure of one image, such as a pose or edges, from an input you give each time. A LoRA is a small trained add-on that teaches the model a style or a character, so it can repeat them in many images."
+            "challenge": "Add job 5: put a person from a photo on a new background and keep the face the same. Ask which tools you need, and in what order."
           },
-          "challenge": "Add Job 5: put a person from a photo into a new background without changing the face. Ask which tools you need and in what order."
+          "bn": {
+            "title": "চারটা কাজের জন্য ঠিক image tool বাছো",
+            "why": "তুমি যখন image feature বানাবে, যেমন একটা দোকানের poster, ভুল tool বেছে নিলে কয়েক দিন নষ্ট হয়। একটা tool pose ধরে রাখে, আরেকটা style ধরে রাখে। কোন কাজে কোনটা, সেটা জানা দরকার।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt-এর চারটা কাজ পড়ো। কাগজে প্রতিটার জন্য তোমার নিজের tool লেখো। তারপর prompt টা paste করে Enter চাপো।",
+                "prompt": "আমি একটা diffusion image pipeline ব্যবহার করি। এই tool গুলো আছে: ControlNet (গঠন, যেমন pose, depth বা edge), LoRA (কোনো style বা character শেখানো একটা ছোট trained add-on), inpainting (mask করা একটা জায়গা edit করা), আর IP-Adapter (একটা reference ছবিকে guide হিসেবে ব্যবহার করা)।\n\nপ্রতিটা কাজের জন্য সেরা tool বেছে নাও, একটা কারণ দাও, আর বলো আমার কী input লাগবে।\nকাজ ১: একই কার্টুন মেয়েকে একই আঁকার style-এ রেখে ২০টা poster বানাও।\nকাজ ২: আমার ছবির মানুষটার ঠিক একই pose রেখে ছবিটাকে একটা painting বানাও।\nকাজ ৩: একটা product ছবির শুধু আকাশ বদলাও, product যেমন আছে তেমন রাখো।\nকাজ ৪: একটা reference ছবির রং আর mood নিয়ে একটা নতুন ছবি বানাও, কোনো training ছাড়া।\nদুটো tool কাজ করতে পারলে সেটাও বলো।",
+                "expect": "প্রতিটা কাজের জন্য একটা করে tool। বেশিরভাগ chat কাজ ২-এ ControlNet, কাজ ৩-এ inpainting, আর কাজ ৪-এ IP-Adapter বাছে। কাজ ১-এ LoRA, হয়তো IP-Adapter-ও।",
+                "example": "কাজ ১: LoRA। এটা model-কে মেয়েটা আর style শেখায়, তাই সব poster মিলে যায়। Input: training-এর জন্য মেয়েটার কিছু ছবি। IP-Adapter-ও কাজ করতে পারে।\nকাজ ২: ControlNet। এটা pose ধরে রাখে। Input: তোমার ছবি (তা থেকে বানানো pose map) আর \"oil painting\"-এর মতো একটা লেখা।\nকাজ ৩: Inpainting। এটা শুধু mask করা জায়গা edit করে। Input: ছবি, আকাশের ওপর একটা mask, আর নতুন আকাশের লেখা।\nকাজ ৪: IP-Adapter। এটা reference-কে guide হিসেবে নেয়। Input: reference ছবি আর একটা লেখা।"
+              },
+              {
+                "chat": "same",
+                "do": "উত্তরটা তোমার কাগজের সঙ্গে মেলাও। যে কাজে তুমি আর AI আলাদা tool বেছেছ, সেগুলো লিখে রাখো।",
+                "expect": "তোমার বেশিরভাগ বাছাই AI-এর সঙ্গে মিলবে। যেটা মেলেনি, সেখানে AI-এর কারণ পড়ো আর ঠিক করো কে ঠিক।"
+              },
+              {
+                "chat": "same",
+                "do": "এই prompt টা copy করে paste করো, Enter চাপো। দেখো প্রতিটা node আগের node-এর output ব্যবহার করছে কি না।",
+                "prompt": "কাজ ২ নাও, আর pipeline টা ComfyUI-এর মতো node-এর একটা ক্রমিক list হিসেবে লেখো। প্রতিটা node-এর নাম, input আর output লেখো। তারপর দুটো কারণ দাও, কেন একটা team-এর pipeline টা saved graph file হিসেবে version control-এ রাখা উচিত।",
+                "expect": "৫ থেকে ৭টা node-এর একটা ক্রমিক list, ছবি load করা থেকে নতুন ছবি save করা পর্যন্ত। প্রতিটা node-এর নাম, input আর output আছে।",
+                "example": "১. Load Image: in = ছবির file, out = image।\n২. Pose Detector: in = image, out = pose map।\n৩. Text Prompt: in = \"an oil painting of a person\", out = লেখার guide।\n৪. ControlNet Apply: in = লেখার guide + pose map, out = guided input।\n৫. Sampler: in = guided input, out = নতুন ছবি।\n৬. Save Image: in = নতুন ছবি, out = file।\nগ্রাফ file রাখার কারণ: team কোডের মতো পরিবর্তন review করতে পারে, আর পুরনো version-এ ফিরে যেতে পারে।"
+              }
+            ],
+            "learned": "প্রতিটা tool আলাদা সমস্যা মেটায়। <strong>ControlNet</strong> একটা ছবির গঠন ধরে রাখে, যেমন pose। <strong>LoRA</strong> একটা ছোট add-on, যাকে train করা হয় model-কে কোনো style বা character শেখানোর জন্য। Inpainting শুধু mask করা জায়গা edit করে, আর IP-Adapter কোনো training ছাড়াই একটা reference ছবিকে guide হিসেবে নেয়। ComfyUI-তে তুমি এগুলোকে node হিসেবে জোড়া দাও, আর পুরো graph একটা file, যেটা team কোডের মতো রাখতে পারে।",
+            "done": "তোমার কাছে ৪টা কাজের প্রতিটার জন্য একটা tool আছে, আর কাজ ২-এর একটা node list আছে।",
+            "check": {
+              "question": "ControlNet আর LoRA-র মধ্যে তফাত কী?",
+              "answer": "ControlNet তুমি প্রতিবার যে input দাও, তা থেকে একটা ছবির গঠন ঠিক রাখে, যেমন pose বা edge। LoRA একটা ছোট trained add-on, যা model-কে একটা style বা character শেখায়, তাই সে অনেক ছবিতে সেটা বারবার আঁকতে পারে।"
+            },
+            "challenge": "কাজ ৫ যোগ করো: একটা ছবির মানুষকে নতুন background-এ বসাও, কিন্তু মুখ যেন একই থাকে। জিজ্ঞেস করো কোন কোন tool লাগবে, আর কোন ক্রমে।"
+          }
         }
       ]
     }

@@ -24,19 +24,33 @@ export type Video = {
   lang: "en" | "bn";
 };
 
-/** A prompt for the reader to copy into any AI chat. Plain text. */
-export type PracticePrompt = { label: string; text: string };
+/** One step of a practice task, done in an AI chat. */
+export type PracticeStep = {
+  /** Open a new chat for this step, or keep the same one. */
+  chat: "new" | "same";
+  /** What to do. */
+  do: Inline;
+  /** Text to copy into the chat. Plain text. */
+  prompt?: string;
+  /** What the reader should see after this step. */
+  expect: Inline;
+  /** A sample AI answer. Plain text. Real answers differ a little. */
+  example?: string;
+};
 
-/** A hands-on task that a reader does in any free AI chat. */
-export type Practice = {
+/** A practice task in one language. */
+export type PracticeText = {
   title: string;
-  goal: Inline;
-  steps: Inline[];
-  prompts: PracticePrompt[];
-  lookFor: Inline[];
+  why: Inline;
+  steps: PracticeStep[];
+  learned: Inline;
+  done: Inline;
   check: { question: Inline; answer: Inline };
   challenge: Inline;
 };
+
+/** A hands-on task that a reader does in any free AI chat, in English and Bangla. */
+export type Practice = { en: PracticeText; bn: PracticeText };
 
 export type Section = {
   id: string;
@@ -145,17 +159,32 @@ const FilledInlineSchema = InlineSchema.refine((s) => s.trim().length > 0, {
   message: "Expected non-empty text",
 });
 
-const PracticeSchema = z.strictObject({
-  title: z.string().trim().min(1),
-  goal: FilledInlineSchema,
-  steps: z.array(FilledInlineSchema).min(1),
-  prompts: z
-    .array(z.strictObject({ label: z.string().trim().min(1), text: z.string().trim().min(1) }))
-    .min(1),
-  lookFor: z.array(FilledInlineSchema).min(1),
+const PlainTextSchema = z.string().trim().min(1);
+
+const PracticeStepSchema = z.strictObject({
+  chat: z.enum(["new", "same"]),
+  do: FilledInlineSchema,
+  prompt: PlainTextSchema.optional(),
+  expect: FilledInlineSchema,
+  example: PlainTextSchema.optional(),
+});
+
+const PracticeTextSchema = z.strictObject({
+  title: PlainTextSchema,
+  why: FilledInlineSchema,
+  steps: z
+    .array(PracticeStepSchema)
+    .min(1)
+    .refine((steps) => steps[0]?.chat === "new", {
+      message: "The first step must open a new chat",
+    }),
+  learned: FilledInlineSchema,
+  done: FilledInlineSchema,
   check: z.strictObject({ question: FilledInlineSchema, answer: FilledInlineSchema }),
   challenge: FilledInlineSchema,
 });
+
+const PracticeSchema = z.strictObject({ en: PracticeTextSchema, bn: PracticeTextSchema });
 
 export const SectionSchema: z.ZodType<Section> = z.strictObject({
   id: z.string(),

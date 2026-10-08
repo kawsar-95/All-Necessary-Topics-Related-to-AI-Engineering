@@ -206,37 +206,74 @@
       ],
       "practice": [
         {
-          "title": "Cut prompt tokens, keep the answer",
-          "goal": "See that a shorter prompt gives the same answer, then count how much money fewer tokens save.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. Note the answer.",
-            "Send Prompt B in another <strong>new</strong> chat. Compare the answer and the length of the two prompts.",
-            "Send Prompt C in the same chat as Prompt B. Check the maths yourself with a calculator."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "Hello! I hope you are having a wonderful day. I am working on a customer support system and I would really appreciate your kind help with a small task. Below you will find a customer ticket. Could you please read the ticket very carefully and then tell me which one of the following categories it belongs to? The categories are: billing, shipping, defect, account. Please choose only one category. When you answer, please do not write any explanation, any greeting, or any extra sentence. Just write the single category word. Thank you so much for your help!\n\nTicket: My order #48213 arrived yesterday and the screen is cracked. I want my money back."
+          "en": {
+            "title": "Cut the prompt, keep the answer",
+            "why": "When a support bot reads millions of tickets a month, every extra word in the prompt is paid for again on every call. A shorter prompt can save real money.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this long prompt, paste it, and press Enter. Write down the answer.",
+                "prompt": "Hello! I hope you are having a wonderful day. I am working on a customer support system and I would really appreciate your kind help with a small task. Below you will find a customer ticket. Could you please read the ticket very carefully and then tell me which one of the following categories it belongs to? The categories are: billing, shipping, defect, account. Please choose only one category. When you answer, please do not write any explanation, any greeting, or any extra sentence. Just write the single category word. Thank you so much for your help!\n\nTicket: My order #48213 arrived yesterday and the screen is cracked. I want my money back.",
+                "expect": "One word, most likely <em>defect</em>.",
+                "example": "defect"
+              },
+              {
+                "chat": "new",
+                "do": "Copy this short prompt, paste it, and press Enter. Write down the answer.",
+                "prompt": "Classify the ticket as one of: billing, shipping, defect, account. Reply with the category only.\n\nTicket: My order #48213 arrived yesterday and the screen is cracked. I want my money back.",
+                "expect": "The same word, <em>defect</em>, from a prompt that is more than 3 times shorter.",
+                "example": "defect"
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Check the numbers with a calculator.",
+                "prompt": "A support bot sends 800 input tokens per call. A shorter prompt sends 200 input tokens per call. The price is $0.50 per 1 million input tokens. The bot makes 2 million calls per month. Calculate the monthly input cost for each prompt, and the percentage saved. Show each step.",
+                "expect": "<strong>$800</strong> per month for the long prompt, <strong>$200</strong> for the short one, and <strong>75%</strong> saved.",
+                "example": "Long prompt: 800 tokens x 2,000,000 calls = 1,600,000,000 tokens (1,600 million). 1,600 x $0.50 = $800 per month.\nShort prompt: 200 tokens x 2,000,000 calls = 400,000,000 tokens (400 million). 400 x $0.50 = $200 per month.\nSaved: $800 - $200 = $600 per month.\nPercentage saved: $600 / $800 = 75%."
+              }
+            ],
+            "learned": "The AI reads your text as <strong>tokens</strong> (small pieces of words). You pay for every token you send, on every call. The polite extra words in the long prompt did not change the answer, but they were extra tokens. With 2 million calls a month, 600 fewer tokens per call saves $600.",
+            "done": "You have the same one-word answer from both prompts, and the numbers $800, $200, and 75%.",
+            "check": {
+              "question": "Why does a shorter prompt save money when the answer stays the same?",
+              "answer": "APIs charge per token, and the model reads every input token on every call. A prompt with 75% fewer tokens costs 75% less for input, and it also has less to read, so it can answer faster."
             },
-            {
-              "label": "Prompt B",
-              "text": "Classify the ticket as one of: billing, shipping, defect, account. Reply with the category only.\n\nTicket: My order #48213 arrived yesterday and the screen is cracked. I want my money back."
-            },
-            {
-              "label": "Prompt C",
-              "text": "A support bot sends 800 input tokens per call. A shorter prompt sends 200 input tokens per call. The price is $0.50 per 1 million input tokens. The bot makes 2 million calls per month. Calculate the monthly input cost for each prompt, and the percentage saved. Show each step."
-            }
-          ],
-          "lookFor": [
-            "Both chats usually give the same one-word answer, even though Prompt A is about four times longer.",
-            "Every extra word in Prompt A is extra tokens, and you pay for every one of them on every call.",
-            "Prompt C gives about $800 for the long prompt and $200 for the short one: a 75% saving."
-          ],
-          "check": {
-            "question": "Why does the length of a prompt matter for cost, if the answer stays the same?",
-            "answer": "APIs charge per token, and the model reads every input token on every call. A prompt with 75% fewer tokens costs 75% less in input cost and has less prefill work, so it also responds faster."
+            "challenge": "Make the short prompt even shorter without changing the answer. Then ask the AI: <em>Does the same sentence use more tokens in Bangla than in English?</em>"
           },
-          "challenge": "Shorten Prompt B even more, without changing the answer. Then try a prompt in another language, such as Bengali, and ask if it is likely to use more tokens for the same meaning."
+          "bn": {
+            "title": "Prompt ছোট করো, উত্তর একই রাখো",
+            "why": "একটা support bot যখন মাসে লাখ লাখ ticket পড়ে, prompt-এর প্রতিটা বাড়তি শব্দের দাম প্রতি call-এ আবার দিতে হয়। ছোট prompt দিয়ে সত্যিকারের টাকা বাঁচানো যায়।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই লম্বা prompt টা copy করো, paste করে Enter চাপো। উত্তরটা লিখে রাখো। (prompt টা English-এ রাখা হয়েছে, কারণ এখানে English শব্দের দৈর্ঘ্য তুলনা হচ্ছে।)",
+                "prompt": "Hello! I hope you are having a wonderful day. I am working on a customer support system and I would really appreciate your kind help with a small task. Below you will find a customer ticket. Could you please read the ticket very carefully and then tell me which one of the following categories it belongs to? The categories are: billing, shipping, defect, account. Please choose only one category. When you answer, please do not write any explanation, any greeting, or any extra sentence. Just write the single category word. Thank you so much for your help!\n\nTicket: My order #48213 arrived yesterday and the screen is cracked. I want my money back.",
+                "expect": "একটা শব্দ, সম্ভবত <em>defect</em>।",
+                "example": "defect"
+              },
+              {
+                "chat": "new",
+                "do": "এই ছোট prompt টা copy করো, paste করে Enter চাপো। উত্তরটা লিখে রাখো।",
+                "prompt": "Classify the ticket as one of: billing, shipping, defect, account. Reply with the category only.\n\nTicket: My order #48213 arrived yesterday and the screen is cracked. I want my money back.",
+                "expect": "একই শব্দ, <em>defect</em>, অথচ prompt টা ৩ গুণের বেশি ছোট।",
+                "example": "defect"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। calculator দিয়ে সংখ্যাগুলো মিলিয়ে নাও।",
+                "prompt": "একটা support bot প্রতি call-এ 800 input token পাঠায়। একটা ছোট prompt প্রতি call-এ পাঠায় 200 input token। দাম প্রতি 1 million input token-এ $0.50। bot মাসে 2 million বার call করে। দুই prompt-এর মাসিক input cost আলাদা করে বের করো, আর কত শতাংশ সাশ্রয় হলো তাও বলো। প্রতিটা ধাপ দেখাও।",
+                "expect": "লম্বা prompt-এর জন্য মাসে <strong>$800</strong>, ছোটটার জন্য <strong>$200</strong>, আর <strong>75%</strong> সাশ্রয়।",
+                "example": "লম্বা prompt: 800 token x 2,000,000 call = 1,600,000,000 token (1,600 million)। 1,600 x $0.50 = মাসে $800।\nছোট prompt: 200 token x 2,000,000 call = 400,000,000 token (400 million)। 400 x $0.50 = মাসে $200।\nসাশ্রয়: $800 - $200 = মাসে $600।\nশতাংশ: $600 / $800 = 75%।"
+              }
+            ],
+            "learned": "AI তোমার লেখা পড়ে <strong>token</strong> হিসেবে (শব্দের ছোট ছোট টুকরো)। তুমি যত token পাঠাও, প্রতি call-এ তত token-এর দাম দিতে হয়। লম্বা prompt-এর ভদ্রতার বাড়তি শব্দগুলো উত্তর বদলায়নি, কিন্তু সেগুলো বাড়তি token ছিল। মাসে 2 million call হলে প্রতি call-এ 600 token কম মানে মাসে $600 সাশ্রয়।",
+            "done": "দুটো prompt থেকেই একই এক শব্দের উত্তর পেয়েছ, আর তোমার কাছে $800, $200 আর 75% সংখ্যাগুলো আছে।",
+            "check": {
+              "question": "উত্তর একই থাকলে prompt ছোট করলে টাকা বাঁচে কেন?",
+              "answer": "API প্রতি token-এর হিসেবে টাকা নেয়, আর model প্রতি call-এ সব input token পড়ে। 75% কম token-এর prompt-এ input-এর খরচও 75% কম, আর পড়ার কাজ কম বলে উত্তরও দ্রুত আসতে পারে।"
+            },
+            "challenge": "ছোট prompt টা আরও ছোট করো, কিন্তু উত্তর যেন না বদলায়। তারপর AI-কে জিজ্ঞেস করো: <em>একই বাক্য কি Bangla-তে English-এর চেয়ে বেশি token নেয়?</em>"
+          }
         }
       ]
     },
@@ -431,33 +468,70 @@
       ],
       "practice": [
         {
-          "title": "Match a model to the workload",
-          "goal": "Practise choosing a model by trade-off, not by the word best, and see why a MoE model needs more memory.",
-          "steps": [
-            "Read the three workloads in Prompt A. <strong>Before</strong> you send it, write your own choice of model for each.",
-            "Send Prompt A in a <strong>new</strong> chat. Compare the AI choices with yours. Note any difference.",
-            "Send Prompt B in the same chat. Compare its answer with your first guess."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "I must pick one model for each workload. The three models are made-up.\n\nModel X: large, very strong at reasoning, slow, expensive per token, closed API.\nModel Y: small, fast, cheap per token, good at simple tasks, closed API.\nModel Z: medium, open weights, you run it on your own servers, you must pay for GPUs and operations.\n\nWorkloads:\n1. A chat helper that sorts 5 million short support tickets per month into 4 categories.\n2. A coding agent that fixes hard bugs across many files. Only 200 tasks per day.\n3. A hospital in a country where patient data must never leave the building. Medium difficulty questions.\n\nFor each workload, choose X, Y or Z. Give one sentence on the trade-off. Then say why 'which model is the best' is the wrong question."
+          "en": {
+            "title": "Pick the right model for each job",
+            "why": "When your team starts a new AI feature, you must choose a model. A wrong choice can cost thousands of dollars a month, or break a privacy rule.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Read the three jobs in the prompt and write down your own choice (X, Y, or Z) for each. Then copy the prompt, paste it, and press Enter.",
+                "prompt": "I must pick one model for each job. The three models are made up.\n\nModel X: large, very strong at reasoning, slow, expensive per token, closed API.\nModel Y: small, fast, cheap per token, good at simple tasks, closed API.\nModel Z: medium, open weights, you run it on your own servers, you must pay for GPUs and operations.\n\nJobs:\n1. A chat helper that sorts 5 million short support tickets per month into 4 categories.\n2. A coding agent that fixes hard bugs across many files. Only 200 tasks per day.\n3. A hospital in a country where patient data must never leave the building. Medium difficulty questions.\n\nFor each job, choose X, Y or Z. Give one sentence on the trade-off. Then say why \"which model is the best\" is the wrong question.",
+                "expect": "A choice for each job with one sentence of reason. Most chats pick <strong>Y</strong> for job 1, <strong>X</strong> for job 2, and <strong>Z</strong> for job 3.",
+                "example": "1. Model Y. This is a simple job at a huge volume, so cheap and fast matters most.\n2. Model X. Hard bugs across many files need the strongest reasoning, and 200 tasks a day is low volume, so the cost is fine.\n3. Model Z. Patient data must stay in the building, so only a model on your own servers works.\n\n\"Which model is the best\" is the wrong question because each model wins on a different trade-off: cost, quality, or data control."
+              },
+              {
+                "chat": "same",
+                "do": "Compare the AI's choices with your own. Find one job where you chose differently, and decide who is right.",
+                "expect": "Most jobs match. If one differs, the AI's reason shows a different trade-off, not always a wrong answer."
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter.",
+                "prompt": "A Mixture-of-Experts model has 671B total parameters, but only 37B are active per token. A dense model has 70B parameters, and all of them are active on every token. Which model needs more GPU memory to load? Which model does less computing per token? Answer in 3 short sentences.",
+                "expect": "<strong>MoE</strong> needs more memory (671B is stored), and <strong>MoE</strong> does less computing per token (37B is used).",
+                "example": "The Mixture-of-Experts model needs more GPU memory, because all 671B parameters must be loaded. The dense model needs less memory, only 70B. The Mixture-of-Experts model does less computing per token, because it uses only 37B parameters, while the dense model uses all 70B."
+              }
+            ],
+            "learned": "A model choice is a trade-off between quality, speed, cost, and data control. No model wins on all four, so \"the best model\" depends on the job. A <strong>MoE</strong> (mixture of experts) model is made of many expert parts, and each token uses only a few of them. All parts must sit in GPU memory, but only the active parts do work, so MoE needs more memory and less computing per token.",
+            "done": "You have a model choice for each of the 3 jobs, and you know which of the two big models needs more memory.",
+            "check": {
+              "question": "Why does a MoE model use more memory than a 70B dense model, but less computing per token?",
+              "answer": "All experts must be loaded in memory, so the total parameters (671B) decide the memory. Each token goes to only a few experts, so only the active parameters (37B) do the computing."
             },
-            {
-              "label": "Prompt B",
-              "text": "A Mixture-of-Experts model has 671B total parameters but only 37B active per token. A dense model has 70B parameters, and all of them are active on every token. Which model needs more GPU memory to load? Which model does less computing per token? Answer in 3 short sentences."
-            }
-          ],
-          "lookFor": [
-            "Most models pick Y for the high-volume tickets, X for the hard coding tasks, and Z for the data-residency case.",
-            "The AI usually names a different trade-off for each workload: cost, capability, or data control.",
-            "For Prompt B, the MoE model needs more memory, but does less computing per token."
-          ],
-          "check": {
-            "question": "Why does a MoE model use more memory than a 70B dense model but less compute per token?",
-            "answer": "All experts must be loaded in memory, so the total parameters decide the memory. Each token is routed to only a few experts, so only the active parameters do the compute."
+            "challenge": "Change job 1 to only 500 tickets per month. Ask the AI whether its choice changes, and why."
           },
-          "challenge": "Change workload 1 to only 500 tickets per month. Ask the AI if the choice changes, and why."
+          "bn": {
+            "title": "প্রতিটা কাজের জন্য ঠিক model বাছো",
+            "why": "তোমার team যখন নতুন AI feature শুরু করে, তখন একটা model বাছতে হয়। ভুল model বাছলে মাসে হাজার হাজার dollar বেশি লাগতে পারে, বা privacy-র নিয়ম ভাঙতে পারে।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "prompt-এর তিনটা কাজ পড়ো, আর প্রতিটার জন্য নিজের choice (X, Y বা Z) লিখে রাখো। তারপর prompt টা copy করে paste করো, Enter চাপো।",
+                "prompt": "আমাকে প্রতিটা কাজের জন্য একটা করে model বেছে নিতে হবে। তিনটা model-ই বানানো (কাল্পনিক)।\n\nModel X: বড়, reasoning-এ খুব শক্তিশালী, ধীর, প্রতি token-এ দামি, closed API।\nModel Y: ছোট, দ্রুত, প্রতি token-এ সস্তা, সহজ কাজে ভালো, closed API।\nModel Z: মাঝারি, open weights, তুমি নিজের server-এ চালাও, GPU আর পরিচালনার খরচ তোমার।\n\nকাজগুলো:\n1. একটা chat helper মাসে 5 million ছোট support ticket 4টা category-তে ভাগ করে।\n2. একটা coding agent অনেক file জুড়ে কঠিন bug ঠিক করে। দিনে মাত্র 200টা কাজ।\n3. এমন একটা দেশের হাসপাতাল, যেখানে রোগীর data কখনো ভবনের বাইরে যেতে পারে না। প্রশ্নগুলো মাঝারি কঠিন।\n\nপ্রতিটা কাজের জন্য X, Y বা Z বেছে নাও। trade-off নিয়ে একটা বাক্য লেখো। তারপর বলো, \"কোন model সবচেয়ে ভালো\" প্রশ্নটা কেন ভুল।",
+                "expect": "প্রতিটা কাজের জন্য একটা choice আর এক বাক্যের কারণ। বেশিরভাগ chat কাজ 1-এ <strong>Y</strong>, কাজ 2-এ <strong>X</strong>, আর কাজ 3-এ <strong>Z</strong> বাছে।",
+                "example": "1. Model Y। এটা সহজ কাজ, কিন্তু volume অনেক বেশি। তাই সস্তা আর দ্রুত হওয়াটাই সবচেয়ে জরুরি।\n2. Model X। অনেক file জুড়ে কঠিন bug ঠিক করতে সবচেয়ে শক্তিশালী reasoning লাগে, আর দিনে 200টা কাজ মানে volume কম, তাই খরচ সমস্যা না।\n3. Model Z। রোগীর data ভবনের ভেতরেই থাকতে হবে, তাই শুধু নিজের server-এর model-ই চলে।\n\n\"কোন model সবচেয়ে ভালো\" প্রশ্নটা ভুল, কারণ প্রতিটা model আলাদা trade-off-এ জেতে: খরচ, মান, বা data-র নিয়ন্ত্রণ।"
+              },
+              {
+                "chat": "same",
+                "do": "AI-র choice তোমার choice-এর সাথে মেলাও। যে কাজে আলাদা বেছেছ, সেটা খুঁজে বের করো, আর ঠিক করো কে ঠিক।",
+                "expect": "বেশিরভাগ কাজ মিলবে। কোনোটা না মিললে AI-র কারণে অন্য একটা trade-off দেখা যাবে, সেটা সবসময় ভুল উত্তর না।"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো।",
+                "prompt": "একটা Mixture-of-Experts model-এ মোট 671B parameter, কিন্তু প্রতিটা token-এ active থাকে মাত্র 37B। একটা dense model-এ 70B parameter, আর প্রতিটা token-এ সবগুলোই active। কোন model load করতে বেশি GPU memory লাগে? কোন model প্রতি token-এ কম computing করে? 3টা ছোট বাক্যে উত্তর দাও।",
+                "expect": "<strong>MoE</strong>-তে বেশি memory লাগে (671B জমা রাখতে হয়), আর <strong>MoE</strong> প্রতি token-এ কম computing করে (37B ব্যবহার হয়)।",
+                "example": "Mixture-of-Experts model-এ বেশি GPU memory লাগে, কারণ মোট 671B parameter-ই load করতে হয়। dense model-এ কম memory লাগে, মাত্র 70B। প্রতি token-এ Mixture-of-Experts model কম computing করে, কারণ সে শুধু 37B parameter ব্যবহার করে, আর dense model ব্যবহার করে পুরো 70B।"
+              }
+            ],
+            "learned": "Model বাছা মানে মান, গতি, খরচ আর data-র নিয়ন্ত্রণের মধ্যে একটা trade-off। চারটাতেই সেরা, এমন model নেই, তাই \"সেরা model\" নির্ভর করে কাজের ওপর। <strong>MoE</strong> (mixture of experts) model অনেকগুলো expert অংশ দিয়ে তৈরি, আর প্রতিটা token মাত্র কয়েকটা অংশ ব্যবহার করে। সব অংশ GPU memory-তে রাখতে হয়, কিন্তু কাজ করে শুধু active অংশ, তাই MoE-তে memory বেশি লাগে আর প্রতি token-এ computing কম লাগে।",
+            "done": "৩টা কাজের প্রতিটার জন্য তোমার একটা model choice আছে, আর তুমি জানো দুটো বড় model-এর কোনটায় বেশি memory লাগে।",
+            "check": {
+              "question": "MoE model 70B dense model-এর চেয়ে বেশি memory নেয়, কিন্তু প্রতি token-এ কম computing করে। কেন?",
+              "answer": "সব expert memory-তে load করতে হয়, তাই মোট parameter (671B) memory ঠিক করে। প্রতিটা token যায় মাত্র কয়েকটা expert-এর কাছে, তাই শুধু active parameter (37B) computing করে।"
+            },
+            "challenge": "কাজ 1 বদলে মাসে মাত্র 500টা ticket করো। AI-কে জিজ্ঞেস করো, তার choice বদলায় কি না, আর কেন।"
+          }
         }
       ]
     },
@@ -608,33 +682,80 @@
       ],
       "practice": [
         {
-          "title": "Find the break-even for self-hosting",
-          "goal": "Work out when an open-weight model on your own GPU is cheaper than a closed API, and when it is not.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. Check the break-even number with a calculator.",
-            "Send Prompt B in the same chat. Write your own choice for each company first.",
-            "Compare your choices with the AI choices. Find one case where you disagree and decide who is right."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "Compare two options for the same text task.\n\nOption 1, closed API: $3 per 1 million tokens (input and output mixed). No other cost.\nOption 2, open-weight model on our own server: $2,200 per month for the GPU server plus $1,500 per month for engineer time. It can serve up to 2 billion tokens per month. No per-token fee.\n\nAt how many tokens per month do both options cost the same? Show the formula and the steps. Which option is cheaper at 200 million tokens per month? Which at 1.8 billion?"
+          "en": {
+            "title": "Find when your own server pays off",
+            "why": "When your team asks \"should we run our own model?\", the answer depends on how many tokens you use each month. A wrong guess can waste thousands of dollars.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Write down the break-even number (where both options cost the same).",
+                "prompt": "Compare two options for the same text task.\n\nOption 1, closed API: $3 per 1 million tokens (input and output mixed). No other cost.\nOption 2, open-weight model on our own server: $2,200 per month for the GPU server plus $1,500 per month for engineer time. It can serve up to 2 billion tokens per month. No per-token fee.\n\nAt how many tokens per month do both options cost the same? Show the formula and the steps. Which option is cheaper at 200 million tokens per month? Which at 1.8 billion?",
+                "expect": "A break-even of about <strong>1.23 billion</strong> tokens per month. The API is cheaper at 200 million, and the own server is cheaper at 1.8 billion.",
+                "example": "Own server cost = $2,200 + $1,500 = $3,700 per month, whatever the volume.\nAPI cost = $3 per 1 million tokens.\nBoth cost the same when (tokens in millions) x $3 = $3,700, so tokens = 3,700 / 3 = 1,233.3 million, about 1.23 billion tokens per month.\nAt 200 million tokens: API = 200 x $3 = $600. Own server = $3,700. The API is cheaper.\nAt 1.8 billion tokens: API = 1,800 x $3 = $5,400. Own server = $3,700. The own server is cheaper."
+              },
+              {
+                "chat": "same",
+                "do": "Check the maths yourself with a calculator: add $2,200 and $1,500, then divide by $3. Write down the result in millions of tokens.",
+                "expect": "<strong>3,700 / 3 = 1,233.3</strong> million tokens. This matches the AI's number."
+              },
+              {
+                "chat": "new",
+                "do": "Read the four companies and write down your own choice for each. Then copy the prompt, paste it, and press Enter.",
+                "prompt": "For each company below, choose one: closed API, open-weight self-host, or hybrid (easy queries go to a small local model, hard queries go to a top API). Give one sentence of reason for each.\n\nCompany 1: A small start-up with 50,000 queries per month and no ML engineers.\nCompany 2: A bank that must keep all customer text inside its own data centre. It has a team that can run GPUs.\nCompany 3: A shopping app with 100 million queries per month. 80% are simple, and 20% need top quality.\nCompany 4: A team that must use the strongest coding agent available today.",
+                "expect": "One choice and one reason per company. Most chats pick closed API for companies 1 and 4, open-weight for company 2, and hybrid for company 3.",
+                "example": "Company 1: Closed API. 50,000 queries is a small volume, and they have no engineers to run servers.\nCompany 2: Open-weight self-host. Customer text must stay in the data centre, and they can run GPUs.\nCompany 3: Hybrid. Send the 80% simple queries to a small local model and the 20% hard queries to a top API.\nCompany 4: Closed API. The strongest coding agents today are closed models."
+              },
+              {
+                "chat": "same",
+                "do": "Compare the AI's choices with yours. Pick one company where you disagree and type: <em>Why not the other option?</em>",
+                "expect": "The AI gives a reason, often about volume, data rules, or staff. Decide if the reason is strong."
+              }
+            ],
+            "learned": "A closed API charges per token, and there is no fixed cost. An <strong>open-weight</strong> model (a model whose files you can download and run yourself) has a fixed monthly cost for servers and people, whatever the volume. The <strong>break-even</strong> is the volume where both cost the same. Below it, the API is cheaper. Above it, your own server is cheaper.",
+            "done": "You have a break-even number (about 1.23 billion tokens) and a choice for each of the 4 companies.",
+            "check": {
+              "question": "Why can a closed API be cheaper for a small team, if open-weight models have no per-token fee?",
+              "answer": "With open weights you pay a fixed cost for servers and engineers, even at low volume. With few tokens, that fixed cost is higher than the API bill. Open-weight wins when the volume, the data rules, or the fine-tuning needs are high."
             },
-            {
-              "label": "Prompt B",
-              "text": "For each company below, choose: closed API, open-weight self-host, or hybrid (route easy queries to a small local model, hard queries to a frontier API). Give one sentence of reason each.\n\nCompany 1: A small start-up with 50,000 queries per month, no ML engineers.\nCompany 2: A bank that must keep all customer text inside its own data centre. It also has a team that can run GPUs.\nCompany 3: A shopping app with 100 million queries per month. 80% are simple, and 20% need top quality.\nCompany 4: A team that must use the strongest coding agent available today."
-            }
-          ],
-          "lookFor": [
-            "The break-even is about 1.23 billion tokens per month: ($2,200 + $1,500) divided by $3 per million.",
-            "At 200 million tokens the API is far cheaper. At 1.8 billion tokens self-hosting is cheaper.",
-            "Most models pick closed for company 1 and 4, open-weight for company 2, and hybrid for company 3."
-          ],
-          "check": {
-            "question": "Why can a closed API be cheaper for a small team even if open-weight models have no per-token fee?",
-            "answer": "With open weights you pay a fixed cost for GPUs and operations, whatever the volume. At low volume that fixed cost is spread over few tokens, so the per-token API price is lower. Open-weight wins when volume, data residency, or fine-tuning needs are high."
+            "challenge": "Run the first prompt again, but with a server that costs $6,000 per month and serves up to 5 billion tokens. Keep the $1,500 for engineer time. Where is the new break-even, and is it inside the server limit?"
           },
-          "challenge": "Ask Prompt A again with a server that costs $6,000 per month and handles 5 billion tokens. Where is the new break-even, and is it still inside the server capacity?"
+          "bn": {
+            "title": "নিজের server কখন লাভজনক, বের করো",
+            "why": "তোমার team যখন জিজ্ঞেস করে \"আমরা কি নিজের model চালাব?\", উত্তর নির্ভর করে মাসে কত token ব্যবহার হয় তার ওপর। ভুল অনুমানে হাজার হাজার dollar নষ্ট হতে পারে।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। break-even সংখ্যাটা (যেখানে দুই option-এর খরচ সমান) লিখে রাখো।",
+                "prompt": "একই text কাজের জন্য দুটো option তুলনা করো।\n\nOption 1, closed API: প্রতি 1 million token-এ $3 (input আর output মিলিয়ে)। আর কোনো খরচ নেই।\nOption 2, নিজের server-এ open-weight model: GPU server-এর জন্য মাসে $2,200, আর engineer-এর সময়ের জন্য মাসে $1,500। এটা মাসে সর্বোচ্চ 2 billion token চালাতে পারে। প্রতি token-এ কোনো fee নেই।\n\nমাসে কত token হলে দুটো option-এর খরচ সমান হয়? formula আর ধাপগুলো দেখাও। মাসে 200 million token হলে কোন option সস্তা? 1.8 billion token হলে কোনটা?",
+                "expect": "মাসে প্রায় <strong>1.23 billion</strong> token-এ break-even। 200 million-এ API সস্তা, আর 1.8 billion-এ নিজের server সস্তা।",
+                "example": "নিজের server-এর খরচ = $2,200 + $1,500 = মাসে $3,700, volume যা-ই হোক।\nAPI-র খরচ = প্রতি 1 million token-এ $3।\nদুটোর খরচ সমান হয় যখন (million-এ token) x $3 = $3,700, অর্থাৎ token = 3,700 / 3 = 1,233.3 million, মানে প্রায় 1.23 billion token প্রতি মাসে।\n200 million token-এ: API = 200 x $3 = $600। নিজের server = $3,700। API সস্তা।\n1.8 billion token-এ: API = 1,800 x $3 = $5,400। নিজের server = $3,700। নিজের server সস্তা।"
+              },
+              {
+                "chat": "same",
+                "do": "নিজে calculator দিয়ে হিসাবটা মিলিয়ে নাও: $2,200 আর $1,500 যোগ করো, তারপর $3 দিয়ে ভাগ করো। ফল লেখো million token-এ।",
+                "expect": "<strong>3,700 / 3 = 1,233.3</strong> million token। এটা AI-র সংখ্যার সাথে মেলে।"
+              },
+              {
+                "chat": "new",
+                "do": "চারটা company পড়ো আর প্রতিটার জন্য নিজের choice লিখে রাখো। তারপর prompt টা copy করে paste করো, Enter চাপো।",
+                "prompt": "নিচের প্রতিটা company-র জন্য একটা বেছে নাও: closed API, open-weight self-host, বা hybrid (সহজ query যাবে ছোট local model-এ, কঠিন query যাবে সেরা API-তে)। প্রতিটার জন্য এক বাক্যে কারণ লেখো।\n\nCompany 1: একটা ছোট start-up, মাসে 50,000 query, কোনো ML engineer নেই।\nCompany 2: একটা bank, যাকে সব customer text নিজের data centre-এর ভেতরে রাখতে হয়। তাদের GPU চালানোর মতো team আছে।\nCompany 3: একটা shopping app, মাসে 100 million query। 80% সহজ, আর 20%-এ সেরা মান লাগে।\nCompany 4: একটা team, যাদের আজকের সবচেয়ে শক্তিশালী coding agent ব্যবহার করতেই হবে।",
+                "expect": "প্রতিটা company-র জন্য একটা choice আর একটা কারণ। বেশিরভাগ chat company 1 আর 4-এর জন্য closed API, company 2-এর জন্য open-weight, আর company 3-এর জন্য hybrid বাছে।",
+                "example": "Company 1: Closed API। 50,000 query খুব কম volume, আর server চালানোর মতো engineer তাদের নেই।\nCompany 2: Open-weight self-host। customer text data centre-এর ভেতরে থাকতে হবে, আর তারা GPU চালাতে পারে।\nCompany 3: Hybrid। 80% সহজ query ছোট local model-এ, আর 20% কঠিন query সেরা API-তে পাঠাও।\nCompany 4: Closed API। আজকের সবচেয়ে শক্তিশালী coding agent-গুলো closed model।"
+              },
+              {
+                "chat": "same",
+                "do": "AI-র choice তোমার choice-এর সাথে মেলাও। যে company-তে তোমার মত আলাদা, সেটা বেছে লেখো: <em>অন্য option কেন না?</em>",
+                "expect": "AI একটা কারণ দেবে, প্রায়ই volume, data-র নিয়ম বা লোকবল নিয়ে। কারণটা জোরালো কি না, নিজে ঠিক করো।"
+              }
+            ],
+            "learned": "Closed API প্রতি token-এ টাকা নেয়, আর কোনো fixed খরচ নেই। <strong>open-weight</strong> model (যে model-এর file তুমি download করে নিজে চালাতে পারো) চালাতে server আর লোকের জন্য মাসে একটা fixed খরচ লাগে, volume যা-ই হোক। <strong>break-even</strong> হলো সেই volume, যেখানে দুই option-এর খরচ সমান। তার নিচে API সস্তা। তার ওপরে নিজের server সস্তা।",
+            "done": "তোমার কাছে একটা break-even সংখ্যা (প্রায় 1.23 billion token) আর ৪টা company-র প্রতিটার জন্য একটা choice আছে।",
+            "check": {
+              "question": "open-weight model-এ প্রতি token-এ fee নেই, তবু ছোট team-এর জন্য closed API সস্তা হতে পারে কেন?",
+              "answer": "open weights-এ server আর engineer-এর fixed খরচ দিতে হয়, volume কম হলেও। token কম হলে সেই fixed খরচ API-র bill-এর চেয়ে বেশি হয়। volume, data-র নিয়ম বা fine-tuning-এর দরকার বেশি হলে open-weight জেতে।"
+            },
+            "challenge": "প্রথম prompt আবার চালাও, কিন্তু এবার server-এর খরচ মাসে $6,000 আর সে মাসে 5 billion token পর্যন্ত চালাতে পারে। engineer-এর $1,500 একই রাখো। নতুন break-even কোথায়, আর সেটা কি server-এর limit-এর ভেতরে?"
+          }
         }
       ]
     },
@@ -803,37 +924,84 @@
       ],
       "practice": [
         {
-          "title": "See a sharp and a flat distribution",
-          "goal": "See that a model has a probability for many next words: sharp for facts, flat for creative text, and that sampling picks from them.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. Then send Prompt B in the same chat. Compare the two probability lists.",
-            "Send Prompt C in three <strong>new</strong> chats. Write down the three words.",
-            "Compare: which prompt has one dominant word, and which has many close words?"
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "Estimate the next-word probabilities for this sentence start. List the 5 most likely next words, each with a percentage. The percentages must add up to about 100%. Reply with the list only.\n\nThe capital of France is"
+          "en": {
+            "title": "See sharp and flat word chances",
+            "why": "When you build a chatbot, you must know when the AI is almost sure of its next word (a fact) and when many words fit (a story). This tells you when the answers will change from run to run.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Look at the top percentage.",
+                "prompt": "Estimate the next-word probabilities for this sentence start. List the 5 most likely next words, each with a percentage. The percentages must add up to about 100%. Reply with the list only.\n\nThe capital of France is",
+                "expect": "One word, <em>Paris</em>, with almost all of the chance, for example 90% or more.",
+                "example": "Paris - 97%\nLyon - 1%\nthe - 1%\nMarseille - 0.5%\na - 0.5%"
+              },
+              {
+                "chat": "same",
+                "do": "Copy this prompt, paste it, and press Enter. Compare this list with the first one.",
+                "prompt": "Estimate the next-word probabilities for this sentence start. List the 5 most likely next words, each with a percentage. The percentages must add up to about 100%. Reply with the list only.\n\nOnce upon a time, there was a little",
+                "expect": "The chances are spread over several words, for example <em>girl</em>, <em>boy</em>, <em>fox</em>. No word has almost everything.",
+                "example": "girl - 35%\nboy - 25%\nfox - 15%\nrabbit - 13%\nprincess - 12%"
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Write down the word.",
+                "prompt": "Complete this sentence with one word only. Reply with the word and nothing else.\n\nOnce upon a time, there was a little",
+                "expect": "One word, for example <em>girl</em>.",
+                "example": "girl"
+              },
+              {
+                "chat": "new",
+                "do": "Do step 3 two more times, each time in a new chat. Write down all 3 words.",
+                "expect": "Often 2 or 3 different words, for example <em>girl</em>, <em>fox</em>, <em>boy</em>."
+              }
+            ],
+            "learned": "For each next word, the AI has a chance for many words. For \"capital of France\", one word takes almost all of the chance. For the story, many words have a similar chance. <strong>Sampling</strong> means picking the next word by these chances, so the story word changes from chat to chat. The percentages you saw are the AI's own guess, not its real inside numbers.",
+            "done": "You have two percentage lists (one sharp, one flat) and 3 story words.",
+            "check": {
+              "question": "If the AI always picked the single most likely word, what would change for the story sentence?",
+              "answer": "It would give the same word every time. This is called greedy decoding, and it is like setting temperature near 0. Sampling picks from all the words by chance, so a flat list gives different words, and a higher temperature makes the list flatter."
             },
-            {
-              "label": "Prompt B",
-              "text": "Estimate the next-word probabilities for this sentence start. List the 5 most likely next words, each with a percentage. The percentages must add up to about 100%. Reply with the list only.\n\nOnce upon a time, there was a little"
-            },
-            {
-              "label": "Prompt C",
-              "text": "Complete this sentence with one word only. Reply with the word and nothing else.\n\nOnce upon a time, there was a little"
-            }
-          ],
-          "lookFor": [
-            "For Prompt A, one word (Paris) usually has almost all of the probability.",
-            "For Prompt B, the percentages are spread over several words, such as girl, boy, fox, or rabbit.",
-            "In the three chats of Prompt C, the word often changes. The AI's percentages are its own estimate, not the real logits."
-          ],
-          "check": {
-            "question": "If the model always picked the single most likely word, what would change for Prompt C?",
-            "answer": "It would give the same word every time. This is greedy decoding, like temperature near 0 or top_k=1. Sampling picks from the whole distribution, so a flat distribution gives different words, and a higher temperature flattens it more."
+            "challenge": "Ask for the same list for the sentence start <em>2 + 2 equals</em>. Is it sharper than the Paris list, or flatter than the story list? Why?"
           },
-          "challenge": "Ask for the same list for the sentence start <em>2 + 2 equals</em>. Is it sharper than Prompt A or flatter than Prompt B? Why?"
+          "bn": {
+            "title": "sharp আর flat word chance দেখো",
+            "why": "তুমি যখন chatbot বানাবে, তখন জানতে হবে AI কখন তার পরের শব্দ নিয়ে প্রায় নিশ্চিত (তথ্য), আর কখন অনেক শব্দই মানায় (গল্প)। এতে বোঝা যায় কোথায় উত্তর প্রতিবার বদলাবে।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। সবচেয়ে বড় percentage টা দেখো। (prompt টা English-এ রাখা হয়েছে, কারণ এখানে English বাক্যের পরের শব্দ দেখা হচ্ছে।)",
+                "prompt": "Estimate the next-word probabilities for this sentence start. List the 5 most likely next words, each with a percentage. The percentages must add up to about 100%. Reply with the list only.\n\nThe capital of France is",
+                "expect": "একটা শব্দ, <em>Paris</em>, প্রায় পুরো chance নিয়ে, যেমন 90% বা তার বেশি।",
+                "example": "Paris - 97%\nLyon - 1%\nthe - 1%\nMarseille - 0.5%\na - 0.5%"
+              },
+              {
+                "chat": "same",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। এই list টা প্রথমটার সাথে তুলনা করো।",
+                "prompt": "Estimate the next-word probabilities for this sentence start. List the 5 most likely next words, each with a percentage. The percentages must add up to about 100%. Reply with the list only.\n\nOnce upon a time, there was a little",
+                "expect": "chance কয়েকটা শব্দের মধ্যে ছড়িয়ে আছে, যেমন <em>girl</em>, <em>boy</em>, <em>fox</em>। কোনো একটা শব্দ প্রায় সবটা নেয়নি।",
+                "example": "girl - 35%\nboy - 25%\nfox - 15%\nrabbit - 13%\nprincess - 12%"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। শব্দটা লিখে রাখো।",
+                "prompt": "Complete this sentence with one word only. Reply with the word and nothing else.\n\nOnce upon a time, there was a little",
+                "expect": "একটা শব্দ, যেমন <em>girl</em>।",
+                "example": "girl"
+              },
+              {
+                "chat": "new",
+                "do": "ধাপ 3 আরও দুইবার করো, প্রতিবার নতুন chat-এ। তিনটা শব্দই লিখে রাখো।",
+                "expect": "প্রায়ই 2টা বা 3টা আলাদা শব্দ, যেমন <em>girl</em>, <em>fox</em>, <em>boy</em>।"
+              }
+            ],
+            "learned": "পরের শব্দের জন্য AI-র কাছে অনেক শব্দের chance থাকে। \"capital of France\"-এ একটা শব্দই প্রায় পুরো chance নেয়। গল্পে অনেক শব্দের chance কাছাকাছি। <strong>Sampling</strong> মানে এই chance ধরে পরের শব্দ বাছা, তাই গল্পের শব্দ chat-এ chat-এ বদলায়। তুমি যে percentage দেখলে, সেগুলো AI-র নিজের অনুমান, ভেতরের আসল সংখ্যা না।",
+            "done": "তোমার কাছে দুটো percentage list (একটা sharp, একটা flat) আর ৩টা গল্পের শব্দ আছে।",
+            "check": {
+              "question": "AI যদি সবসময় সবচেয়ে সম্ভাব্য একটা শব্দই বাছত, তাহলে গল্পের বাক্যে কী বদলে যেত?",
+              "answer": "প্রতিবার একই শব্দ আসত। একে বলে greedy decoding, আর এটা temperature প্রায় 0 করার মতো। Sampling সব শব্দ থেকে chance ধরে বাছে, তাই flat list-এ আলাদা আলাদা শব্দ আসে, আর temperature বাড়ালে list আরও flat হয়।"
+            },
+            "challenge": "<em>2 + 2 equals</em> বাক্যের শুরুর জন্যও একই list চাও। এটা কি Paris list-এর চেয়ে বেশি sharp, নাকি গল্পের list-এর চেয়ে বেশি flat? কেন?"
+          }
         }
       ]
     },
@@ -975,37 +1143,72 @@
       ],
       "practice": [
         {
-          "title": "Time the first word and the last",
-          "goal": "Measure that streaming shows the first word fast while the full answer takes the same total time, and see why partial output is a problem for pipelines.",
-          "steps": [
-            "Start a stopwatch as you send Prompt A in a <strong>new</strong> chat. Note the time of the first word and of the last word.",
-            "Send Prompt B in a <strong>new</strong> chat. Note the time to the full answer.",
-            "Send Prompt C in a <strong>new</strong> chat. Press Stop after about two seconds, if a Stop button shows. Read the partial text."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "Write a story of about 400 words about a rickshaw driver in Dhaka who finds a lost umbrella during the monsoon."
+          "en": {
+            "title": "Time the first word and the last",
+            "why": "When you build a chat window, users leave if they stare at a blank screen. You need to know what streaming fixes, and when it breaks a step that needs the full answer.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Get a stopwatch (your phone is fine). Start it as you press Enter on this prompt. Write down the seconds until the first word, and until the last word.",
+                "prompt": "Write a story of about 400 words about a rickshaw driver in Dhaka who finds a lost umbrella during the monsoon.",
+                "expect": "Most chats show the first word after 1 to 3 seconds. The whole story then needs many more seconds."
+              },
+              {
+                "chat": "new",
+                "do": "Start the stopwatch again. Copy this prompt, paste it, and press Enter. Write down the seconds until the answer is complete.",
+                "prompt": "Reply with only the word OK.",
+                "expect": "The first word and the full answer appear almost together, in about 1 or 2 seconds.",
+                "example": "OK"
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. After about 2 seconds, press the Stop button. Read the partial text. If there is no Stop button, read what is on screen at 2 seconds.",
+                "prompt": "Return only a JSON object, with no other text and no code fence. The object has these fields: id, name, email, city, plan, signup_date, last_login, tags (an array of 5 strings), and notes (a 2 sentence string). Use made-up values.",
+                "expect": "Text that stops in the middle, with no closing <code>}</code> at the end. A program cannot read it as JSON yet.",
+                "example": "{\n  \"id\": 1042,\n  \"name\": \"Amina Rahman\",\n  \"email\": \"amina.rahman@example.com\",\n  \"city\": \"Chattogram\",\n  \"plan\": \"pro\",\n  \"signup_date\": \"2024-0"
+              }
+            ],
+            "learned": "<strong>Streaming</strong> means the AI sends the answer a few words at a time, so you see the first word early. It does not make the whole answer faster: the total time is the same. For a chat window this is great, because the user sees progress at once. For a program that needs the full JSON, a half answer is broken, so that step should wait for the complete answer.",
+            "done": "You have a first-word time and a last-word time for the story, and you saw a half-written JSON that a program cannot use.",
+            "check": {
+              "question": "Why is streaming good for a chat window, but often bad for a step in a data pipeline?",
+              "answer": "Streaming does not make the AI faster. It only shows the words as they arrive, so a person sees progress sooner. A pipeline step that must read or check JSON needs the complete answer, so it should wait for it."
             },
-            {
-              "label": "Prompt B",
-              "text": "Reply with only the word OK."
-            },
-            {
-              "label": "Prompt C",
-              "text": "Return only a JSON object, with no other text and no code fence. The object has these fields: id, name, email, city, plan, signup_date, last_login, tags (an array of 5 strings), and notes (a 2 sentence string). Use made-up values."
-            }
-          ],
-          "lookFor": [
-            "For Prompt A, the first words appear after a short wait, and the rest comes word by word. The total time is long.",
-            "Prompt B is so short that the first word and the full answer arrive at almost the same time.",
-            "The partial text from Prompt C is not valid JSON: the closing brace is missing, so a program could not parse it yet."
-          ],
-          "check": {
-            "question": "Why is streaming good for a chat window but often bad for a step in a data pipeline?",
-            "answer": "Streaming does not make generation faster. It shows tokens as they arrive, so the user sees progress sooner. A pipeline step that must parse or validate JSON needs the complete response, so it should wait for the non-streaming result."
+            "challenge": "Ask for a 1,000 word story. Does the time to the first word change much, compared with the 400 word story? What does this tell you about how fast an app <em>feels</em>?"
           },
-          "challenge": "Ask for a 1,000 word story. Does the time to the first word change much, compared with the 400 word story? What does this tell you about perceived latency?"
+          "bn": {
+            "title": "প্রথম শব্দ আর শেষ শব্দের সময় মাপো",
+            "why": "chat window বানালে ফাঁকা screen দেখে user চলে যায়। streaming কোন সমস্যা মেটায়, আর কোন step-এ পুরো উত্তর লাগে বলে streaming সমস্যা করে, সেটা তোমার জানা দরকার।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "একটা stopwatch নাও (ফোনেরটাই চলবে)। এই prompt-এ Enter চাপার সাথে সাথে চালু করো। প্রথম শব্দ আসতে আর শেষ শব্দ আসতে কত সেকেন্ড লাগল, লিখে রাখো।",
+                "prompt": "ঢাকার একজন রিকশাচালক বর্ষাকালে একটা হারানো ছাতা খুঁজে পায়। এই নিয়ে প্রায় 400 শব্দের একটা গল্প লেখো।",
+                "expect": "বেশিরভাগ chat-এ প্রথম শব্দ আসে 1 থেকে 3 সেকেন্ডে। পুরো গল্প শেষ হতে তারপর আরও অনেক সেকেন্ড লাগে।"
+              },
+              {
+                "chat": "new",
+                "do": "stopwatch আবার চালু করো। এই prompt টা copy করো, paste করে Enter চাপো। উত্তর সম্পূর্ণ হতে কত সেকেন্ড লাগল, লিখে রাখো।",
+                "prompt": "শুধু OK শব্দটা লেখো, আর কিছু না।",
+                "expect": "প্রথম শব্দ আর পুরো উত্তর প্রায় একসাথে আসে, প্রায় 1 বা 2 সেকেন্ডে।",
+                "example": "OK"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। প্রায় 2 সেকেন্ড পর Stop button চাপো। অসম্পূর্ণ text টা পড়ো। Stop button না থাকলে 2 সেকেন্ডে screen-এ যা আছে তা পড়ো। (prompt টা English-এ রাখা হয়েছে, কারণ JSON-এর field-এর নাম English।)",
+                "prompt": "Return only a JSON object, with no other text and no code fence. The object has these fields: id, name, email, city, plan, signup_date, last_login, tags (an array of 5 strings), and notes (a 2 sentence string). Use made-up values.",
+                "expect": "মাঝপথে থেমে যাওয়া text, শেষে বন্ধ করার <code>}</code> নেই। কোনো program এটাকে এখনো JSON হিসেবে পড়তে পারবে না।",
+                "example": "{\n  \"id\": 1042,\n  \"name\": \"Amina Rahman\",\n  \"email\": \"amina.rahman@example.com\",\n  \"city\": \"Chattogram\",\n  \"plan\": \"pro\",\n  \"signup_date\": \"2024-0"
+              }
+            ],
+            "learned": "<strong>Streaming</strong> মানে AI উত্তরটা কয়েকটা কয়েকটা শব্দ করে পাঠায়, তাই তুমি প্রথম শব্দ আগেই দেখতে পাও। এতে পুরো উত্তর দ্রুত হয় না: মোট সময় একই থাকে। chat window-এর জন্য এটা দারুণ, কারণ user সাথে সাথে অগ্রগতি দেখে। কিন্তু যে program-এর পুরো JSON লাগে, তার জন্য অর্ধেক উত্তর কোনো কাজের না, তাই সেই step-এ সম্পূর্ণ উত্তরের জন্য অপেক্ষা করতে হয়।",
+            "done": "গল্পের জন্য তোমার কাছে প্রথম শব্দের আর শেষ শব্দের সময় আছে, আর তুমি এমন একটা অর্ধেক JSON দেখেছ যেটা কোনো program ব্যবহার করতে পারে না।",
+            "check": {
+              "question": "chat window-এর জন্য streaming ভালো, কিন্তু data pipeline-এর একটা step-এর জন্য প্রায়ই খারাপ। কেন?",
+              "answer": "Streaming AI-কে দ্রুত করে না। শব্দগুলো আসার সাথে সাথে দেখায় মাত্র, তাই মানুষ আগে অগ্রগতি দেখে। pipeline-এর যে step JSON পড়ে বা যাচাই করে, তার পুরো উত্তর লাগে, তাই তাকে সম্পূর্ণ উত্তরের জন্য অপেক্ষা করতে হয়।"
+            },
+            "challenge": "1,000 শব্দের একটা গল্প চাও। 400 শব্দের গল্পের তুলনায় প্রথম শব্দ আসার সময় কি বেশি বদলায়? এ থেকে app কত দ্রুত <em>মনে হয়</em>, সে সম্পর্কে কী বোঝা যায়?"
+          }
         }
       ]
     },
@@ -1140,33 +1343,70 @@
       ],
       "practice": [
         {
-          "title": "Compare loose and strict JSON output",
-          "goal": "See that a clear schema in the prompt gives cleaner, typed output than a loose request, and why prompts alone give no guarantee.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. Look at the output: is it clean JSON that a program could parse?",
-            "Send Prompt B in another <strong>new</strong> chat. Compare the format, the types, and the missing age.",
-            "Paste each output into a free online JSON validator, or check by eye: only double quotes, no text outside the JSON."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "Put the people from this note into JSON.\n\nNote: Hi team, please welcome Rahim Uddin, who joined us last week as our new data engineer. He is thirty-four. Also, Sadia Akter (QA lead) starts on Monday. I do not have her age yet."
+          "en": {
+            "title": "Compare loose and strict JSON requests",
+            "why": "When your code reads the AI's answer, one extra sentence or one wrong field name can crash the program. You must know how to ask for output that code can use.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this loose prompt, paste it, and press Enter. Look at the answer: could a program read it as it is?",
+                "prompt": "Put the people from this note into JSON.\n\nNote: Hi team, please welcome Rahim Uddin, who joined us last week as our new data engineer. He is thirty-four. Also, Sadia Akter (QA lead) starts on Monday. I do not have her age yet.",
+                "expect": "Often an extra sentence before the JSON, a code fence, made-up field names, or the age as a word like <em>thirty-four</em>.",
+                "example": "Sure! Here is the JSON:\n\n```json\n{\n  \"people\": [\n    {\"name\": \"Rahim Uddin\", \"job\": \"data engineer\", \"age\": \"thirty-four\"},\n    {\"name\": \"Sadia Akter\", \"job\": \"QA lead\", \"age\": \"unknown\"}\n  ]\n}\n```"
+              },
+              {
+                "chat": "new",
+                "do": "Copy this strict prompt, paste it, and press Enter. Look at the answer.",
+                "prompt": "Extract the people from the note. Reply with JSON only. No text before or after it. No markdown code fence.\n\nThe JSON must be an array. Each item must follow this schema:\n{\"name\": string, \"age\": integer or null, \"role\": string}\nUse a number for age, not words. Use null if the age is not in the note. Do not add any other fields.\n\nNote: Hi team, please welcome Rahim Uddin, who joined us last week as our new data engineer. He is thirty-four. Also, Sadia Akter (QA lead) starts on Monday. I do not have her age yet.",
+                "expect": "Only the JSON array. Rahim has age <strong>34</strong> as a number, and Sadia has age <code>null</code>.",
+                "example": "[\n  {\"name\": \"Rahim Uddin\", \"age\": 34, \"role\": \"data engineer\"},\n  {\"name\": \"Sadia Akter\", \"age\": null, \"role\": \"QA lead\"}\n]"
+              },
+              {
+                "chat": "same",
+                "do": "Compare the two answers. For each one, check: only JSON, no extra sentence? Age is a number? Sadia's age is null?",
+                "expect": "The strict answer passes most checks. The loose answer often fails one or more."
+              }
+            ],
+            "learned": "A program needs an exact format. When you only say \"JSON\", the AI chooses the field names, the types, and the extra text. A <strong>schema</strong> (a description of the exact fields and their types) tells the AI what to return, and the answer becomes much cleaner. But asking does not guarantee it. Some AI providers can force the format, so a wrong answer is not even possible. This is called structured outputs.",
+            "done": "You have two answers, and you checked that the strict one has age 34 as a number and age null for Sadia.",
+            "check": {
+              "question": "How is forcing the format different from asking for JSON in a prompt?",
+              "answer": "A prompt only asks the AI to follow the format, so it can still fail. When the provider forces the format, it blocks every word that would break the schema, so the output always has the right shape."
             },
-            {
-              "label": "Prompt B",
-              "text": "Extract the people from the note. Reply with JSON only. No text before or after it. No markdown code fence.\n\nThe JSON must be an array. Each item must follow this schema:\n{\"name\": string, \"age\": integer or null, \"role\": string}\nUse a number for age, not words. Use null if the age is not in the note. Do not add any other fields.\n\nNote: Hi team, please welcome Rahim Uddin, who joined us last week as our new data engineer. He is thirty-four. Also, Sadia Akter (QA lead) starts on Monday. I do not have her age yet."
-            }
-          ],
-          "lookFor": [
-            "Prompt A often adds a sentence before the JSON, uses a code fence, or invents its own field names.",
-            "Prompt B usually gives age 34 as a number and age null for Sadia. Prompt A might write 'thirty-four' or guess an age.",
-            "Even a good Prompt B result is only likely to be valid. Nothing in the chat forces it."
-          ],
-          "check": {
-            "question": "How is schema-constrained generation different from asking for JSON in a prompt?",
-            "answer": "A prompt only asks the model to follow the format, so it can still fail. With schema-constrained generation the provider compiles the schema into a grammar and masks every token that would break it, so the output is parseable by construction."
+            "challenge": "Add a third person to the note, and give them two roles, for example <em>designer and team lead</em>. The schema allows one role. Ask the AI to follow the schema, and see how it handles this."
           },
-          "challenge": "Add a third person with a role the schema does not expect, such as two roles. Ask the model to follow the schema and see how it handles the conflict."
+          "bn": {
+            "title": "ঢিলেঢালা আর কড়া JSON অনুরোধ তুলনা করো",
+            "why": "তোমার code যখন AI-র উত্তর পড়ে, তখন একটা বাড়তি বাক্য বা একটা ভুল field-এর নামেই program crash করতে পারে। code ব্যবহার করতে পারে এমন output কীভাবে চাইতে হয়, সেটা তোমার জানা দরকার।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই ঢিলেঢালা prompt টা copy করো, paste করে Enter চাপো। উত্তরটা দেখো: একটা program কি এটা যেমন আছে তেমন পড়তে পারবে? (JSON-এর key English-এ রাখা হয়েছে।)",
+                "prompt": "এই note-এর মানুষদের তথ্য JSON-এ লেখো।\n\nNote: সবাইকে জানাচ্ছি, রহিম উদ্দিন গত সপ্তাহে আমাদের নতুন data engineer হিসেবে যোগ দিয়েছেন। তাঁর বয়স চৌত্রিশ। আর সাদিয়া আক্তার (QA lead) সোমবার থেকে শুরু করছেন। তাঁর বয়স আমি এখনো জানি না।",
+                "expect": "প্রায়ই JSON-এর আগে একটা বাড়তি বাক্য, একটা code fence, বানানো field-এর নাম, বা age শব্দ হিসেবে, যেমন <em>চৌত্রিশ</em>।",
+                "example": "অবশ্যই! এই নাও JSON:\n\n```json\n{\n  \"people\": [\n    {\"name\": \"রহিম উদ্দিন\", \"job\": \"data engineer\", \"age\": \"চৌত্রিশ\"},\n    {\"name\": \"সাদিয়া আক্তার\", \"job\": \"QA lead\", \"age\": \"অজানা\"}\n  ]\n}\n```"
+              },
+              {
+                "chat": "new",
+                "do": "এই কড়া prompt টা copy করো, paste করে Enter চাপো। উত্তরটা দেখো।",
+                "prompt": "note থেকে মানুষদের তথ্য বের করো। শুধু JSON লেখো। JSON-এর আগে বা পরে কোনো text না। markdown code fence না।\n\nJSON একটা array হতে হবে। প্রতিটা item এই schema মানবে:\n{\"name\": string, \"age\": integer or null, \"role\": string}\nage সংখ্যা দিয়ে লেখো, শব্দ দিয়ে না। note-এ age না থাকলে null লেখো। আর কোনো field যোগ করো না।\n\nNote: সবাইকে জানাচ্ছি, রহিম উদ্দিন গত সপ্তাহে আমাদের নতুন data engineer হিসেবে যোগ দিয়েছেন। তাঁর বয়স চৌত্রিশ। আর সাদিয়া আক্তার (QA lead) সোমবার থেকে শুরু করছেন। তাঁর বয়স আমি এখনো জানি না।",
+                "expect": "শুধু JSON array। রহিমের age সংখ্যা হিসেবে <strong>34</strong>, আর সাদিয়ার age <code>null</code>।",
+                "example": "[\n  {\"name\": \"রহিম উদ্দিন\", \"age\": 34, \"role\": \"data engineer\"},\n  {\"name\": \"সাদিয়া আক্তার\", \"age\": null, \"role\": \"QA lead\"}\n]"
+              },
+              {
+                "chat": "same",
+                "do": "দুটো উত্তর মেলাও। প্রতিটার জন্য দেখো: শুধু JSON, বাড়তি বাক্য নেই? age সংখ্যা? সাদিয়ার age null?",
+                "expect": "কড়া উত্তরটা বেশিরভাগ check পাস করে। ঢিলেঢালা উত্তরটা প্রায়ই এক বা একাধিক check-এ ফেল করে।"
+              }
+            ],
+            "learned": "Program-এর একটা নির্দিষ্ট format লাগে। তুমি শুধু \"JSON\" বললে field-এর নাম, type আর বাড়তি text AI নিজে ঠিক করে। <strong>Schema</strong> (কোন field থাকবে আর তার type কী, তার বিবরণ) AI-কে বলে দেয় কী ফেরত দিতে হবে, আর উত্তর অনেক পরিষ্কার হয়। কিন্তু চাইলেই গ্যারান্টি পাওয়া যায় না। কিছু AI provider format জোর করে বসিয়ে দিতে পারে, তখন ভুল উত্তর আসাই সম্ভব না। একে বলে structured outputs।",
+            "done": "তোমার কাছে দুটো উত্তর আছে, আর তুমি দেখেছ কড়া উত্তরে age 34 সংখ্যা হিসেবে আছে এবং সাদিয়ার age null।",
+            "check": {
+              "question": "format জোর করে বসানো আর prompt-এ JSON চাওয়ার মধ্যে পার্থক্য কী?",
+              "answer": "prompt শুধু AI-কে format মানতে বলে, তাই ভুল হতে পারে। provider যখন format জোর করে, তখন schema ভাঙবে এমন প্রতিটা শব্দ আটকে দেয়, তাই output-এর আকার সবসময় ঠিক থাকে।"
+            },
+            "challenge": "note-এ তৃতীয় একজন মানুষ যোগ করো, যার দুটো role, যেমন <em>designer আর team lead</em>। schema-তে একটাই role-এর জায়গা। AI-কে schema মানতে বলো, আর দেখো সে এটা কীভাবে সামলায়।"
+          }
         }
       ]
     },
@@ -1321,33 +1561,70 @@
       ],
       "practice": [
         {
-          "title": "Play the tool in a function-calling loop",
-          "goal": "Do the tool loop by hand: the model asks for a tool call, you run the tool, and the model uses your result.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. The model should reply with a JSON tool call only. Check the function name and the arguments.",
-            "You are the tool. Send Prompt B in the <strong>same</strong> chat. It holds a fake result.",
-            "Read the final answer. Check that it uses your fake numbers and not real weather."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "You can use these tools. You cannot run them yourself. To use a tool, reply with ONLY a JSON object: {\"tool\": name, \"arguments\": {...}}. No other text.\n\nTools:\n[\n  {\"name\": \"get_weather\", \"description\": \"Get the current weather for a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}}, \"required\": [\"location\"]}},\n  {\"name\": \"search_flights\", \"description\": \"Search flights between two airports.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"origin\": {\"type\": \"string\"}, \"destination\": {\"type\": \"string\"}, \"depart_date\": {\"type\": \"string\"}}, \"required\": [\"origin\", \"destination\", \"depart_date\"]}}\n]\n\nUser question: Is it hot in Dhaka right now? Should I wear a jacket?"
+          "en": {
+            "title": "Be the tool in a tool-calling loop",
+            "why": "When you build an AI assistant that checks weather, orders, or bookings, the AI cannot do it alone. Your code must run the tool. Here you play that part by hand.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Look at the reply. It should be a tool call only, not an answer.",
+                "prompt": "You can use these tools. You cannot run them yourself. To use a tool, reply with ONLY a JSON object: {\"tool\": name, \"arguments\": {...}}. No other text.\n\nTools:\n[\n  {\"name\": \"get_weather\", \"description\": \"Get the current weather for a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}}, \"required\": [\"location\"]}},\n  {\"name\": \"search_flights\", \"description\": \"Search flights between two airports.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"origin\": {\"type\": \"string\"}, \"destination\": {\"type\": \"string\"}, \"depart_date\": {\"type\": \"string\"}}, \"required\": [\"origin\", \"destination\", \"depart_date\"]}}\n]\n\nUser question: Is it hot in Dhaka right now? Should I wear a jacket?",
+                "expect": "Only a short JSON text like the example. It names the tool <code>get_weather</code> and the city <em>Dhaka</em>. It has no weather answer.",
+                "example": "{\"tool\": \"get_weather\", \"arguments\": {\"location\": \"Dhaka\", \"unit\": \"celsius\"}}"
+              },
+              {
+                "chat": "same",
+                "do": "You are the tool now. Copy this fake result, paste it in the same chat, and press Enter.",
+                "prompt": "Tool result for your call:\n{\"location\": \"Dhaka\", \"temp_c\": 38, \"condition\": \"humid and sunny\"}\n\nNow answer the user question in two sentences, using only this result.",
+                "expect": "A two-sentence answer that uses your fake <strong>38</strong> degrees, and says to leave the jacket at home.",
+                "example": "Yes, it is very hot in Dhaka right now: 38 degrees Celsius, humid and sunny. You do not need a jacket."
+              },
+              {
+                "chat": "same",
+                "do": "Look at the first reply again. Write down the tool name the AI picked, and the city.",
+                "expect": "The tool is <code>get_weather</code>, not <code>search_flights</code>, and the city is Dhaka."
+              }
+            ],
+            "learned": "The AI did not look up the weather. It only wrote a <strong>tool call</strong> (a short JSON note that says which tool to run and with what inputs). In a real app, your code runs the tool and adds the result to the chat. You did that by hand, and the AI used your fake 38 degrees. The AI chose <code>get_weather</code> because the tool names and descriptions are part of its prompt.",
+            "done": "You saw a tool call with no answer, and then a final answer that uses your fake 38 degrees.",
+            "check": {
+              "question": "In function calling, who runs the tool: the AI or your code?",
+              "answer": "Your code runs the tool. The AI only decides which tool to call and with what inputs. Then it reads the result you add to the chat. This loop of call, run, add result, and repeat is the base of every AI agent."
             },
-            {
-              "label": "Prompt B",
-              "text": "Tool result for your call:\n{\"location\": \"Dhaka\", \"temp_c\": 38, \"condition\": \"humid and sunny\"}\n\nNow answer the user question in two sentences, using only this result."
-            }
-          ],
-          "lookFor": [
-            "The first reply is only a JSON call to get_weather with location Dhaka. It is not an answer, and the model did not look up any weather.",
-            "The final answer uses your fake 38 degrees. The model trusts the tool result you gave it.",
-            "The model chose get_weather and not search_flights. The tool names and descriptions guided the choice."
-          ],
-          "check": {
-            "question": "In function calling, who runs the tool: the model or your code?",
-            "answer": "Your code runs the tool. The model only decides which tool to call and with what arguments, then reads the result you append to the conversation. This loop of call, run, append, repeat is the base of every LLM agent."
+            "challenge": "Change the <code>get_weather</code> description to just <em>Get data</em>, and run the first prompt in a new chat. Does the AI still pick the right tool? What does this tell you about tool descriptions?"
           },
-          "challenge": "Replace the get_weather description with just <em>Get data</em> and run Prompt A in a new chat. Does the call get worse? What does this say about tool descriptions?"
+          "bn": {
+            "title": "tool-calling loop-এ নিজে tool হও",
+            "why": "তুমি যখন আবহাওয়া, order বা booking দেখে এমন AI assistant বানাবে, AI একা সেটা পারবে না। তোমার code-কে tool চালাতে হবে। এখানে সেই কাজটা তুমি হাতে করে দেখবে।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। উত্তরটা দেখো। এটা শুধু একটা tool call হওয়া উচিত, কোনো উত্তর না। (prompt টা English-এ রাখা হয়েছে, কারণ JSON-এর key আর tool-এর নাম English।)",
+                "prompt": "You can use these tools. You cannot run them yourself. To use a tool, reply with ONLY a JSON object: {\"tool\": name, \"arguments\": {...}}. No other text.\n\nTools:\n[\n  {\"name\": \"get_weather\", \"description\": \"Get the current weather for a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}}, \"required\": [\"location\"]}},\n  {\"name\": \"search_flights\", \"description\": \"Search flights between two airports.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"origin\": {\"type\": \"string\"}, \"destination\": {\"type\": \"string\"}, \"depart_date\": {\"type\": \"string\"}}, \"required\": [\"origin\", \"destination\", \"depart_date\"]}}\n]\n\nUser question: Is it hot in Dhaka right now? Should I wear a jacket?",
+                "expect": "উদাহরণের মতো ছোট একটা JSON text। এতে tool <code>get_weather</code> আর শহর <em>Dhaka</em> আছে। আবহাওয়ার কোনো উত্তর নেই।",
+                "example": "{\"tool\": \"get_weather\", \"arguments\": {\"location\": \"Dhaka\", \"unit\": \"celsius\"}}"
+              },
+              {
+                "chat": "same",
+                "do": "এবার তুমি tool। এই বানানো result টা copy করে একই chat-এ paste করো, Enter চাপো।",
+                "prompt": "তোমার call-এর tool result:\n{\"location\": \"Dhaka\", \"temp_c\": 38, \"condition\": \"humid and sunny\"}\n\nএবার শুধু এই result ব্যবহার করে user-এর প্রশ্নের উত্তর দুই বাক্যে দাও। বাংলায় উত্তর দাও।",
+                "expect": "দুই বাক্যের একটা উত্তর, যাতে তোমার বানানো <strong>38</strong> ডিগ্রি ব্যবহার হয়েছে, আর বলা আছে জ্যাকেট লাগবে না।",
+                "example": "হ্যাঁ, ঢাকায় এখন খুব গরম: 38 ডিগ্রি সেলসিয়াস, আর আবহাওয়া আর্দ্র ও রৌদ্রোজ্জ্বল। তোমার জ্যাকেট পরার দরকার নেই।"
+              },
+              {
+                "chat": "same",
+                "do": "প্রথম উত্তরটা আবার দেখো। AI কোন tool বেছেছে আর কোন শহর দিয়েছে, লিখে রাখো।",
+                "expect": "tool হলো <code>get_weather</code>, <code>search_flights</code> না, আর শহর Dhaka।"
+              }
+            ],
+            "learned": "AI আবহাওয়া খুঁজে দেখেনি। সে শুধু একটা <strong>tool call</strong> লিখেছে (একটা ছোট JSON note, যাতে লেখা কোন tool কোন input দিয়ে চালাতে হবে)। আসল app-এ তোমার code tool চালায় আর result chat-এ যোগ করে। তুমি সেটা হাতে করলে, আর AI তোমার বানানো 38 ডিগ্রি ব্যবহার করল। AI <code>get_weather</code> বেছেছে, কারণ tool-এর নাম আর বিবরণ তার prompt-এরই অংশ।",
+            "done": "তুমি উত্তর ছাড়া একটা tool call দেখেছ, তারপর এমন একটা চূড়ান্ত উত্তর দেখেছ যেটা তোমার বানানো 38 ডিগ্রি ব্যবহার করেছে।",
+            "check": {
+              "question": "function calling-এ tool কে চালায়: AI, নাকি তোমার code?",
+              "answer": "তোমার code tool চালায়। AI শুধু ঠিক করে কোন tool কোন input দিয়ে call হবে। তারপর সে chat-এ যোগ করা result পড়ে। call, চালানো, result যোগ করা আর আবার করা, এই loop-ই প্রতিটা AI agent-এর ভিত্তি।"
+            },
+            "challenge": "<code>get_weather</code>-এর description বদলে শুধু <em>Get data</em> লেখো, আর নতুন chat-এ প্রথম prompt চালাও। AI কি এখনো ঠিক tool বাছে? tool-এর description নিয়ে এ থেকে কী বোঝা যায়?"
+          }
         }
       ]
     },
@@ -1542,30 +1819,80 @@
       ],
       "practice": [
         {
-          "title": "Test vision on sharp and tiny text",
-          "goal": "See that a vision model can read a clear table, but makes mistakes on tiny text, so it is not a perfect OCR engine.",
-          "steps": [
-            "Open the capability comparison table in this section. Take a screenshot of it at normal size. Use only the table, with no private data.",
-            "Send the screenshot with Prompt A in a <strong>new</strong> chat. Your chat must allow image upload.",
-            "Zoom your browser out to about 30%. Take a new screenshot of the same table. Send it with Prompt A in another <strong>new</strong> chat.",
-            "Compare the two copies against the real table. Count the mistakes."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "Look at the attached image. Copy the table into text, one row per line, with the exact words and symbols. After the copy, list every cell where you are not sure of the text."
-            }
-          ],
-          "lookFor": [
-            "The clear screenshot is usually copied well, with few or no mistakes.",
-            "The tiny screenshot often has missing rows, wrong words, or guessed cells.",
-            "Models often write the guessed text with the same confidence as the correct text, unless you ask which cells are unsure."
-          ],
-          "check": {
-            "question": "Why does the model get worse when the text in the image is tiny?",
-            "answer": "An image is encoded into a sequence of embedding vectors that the transformer reads like tokens. Tiny text has too little detail in those vectors, so the model guesses. For exact text such as invoices or IDs, a dedicated OCR engine is more reliable."
+          "en": {
+            "title": "Test an AI on sharp and tiny text",
+            "why": "When you build an app that reads invoices, ID cards, or screenshots, you must know when the AI can read the image well, and when it only guesses.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Find the \"Capability comparison\" table in this section. Take a screenshot of only that table, at normal size. Use no private data. Your chat must allow image upload.",
+                "expect": "A clear picture of the table on your computer. Nothing is sent yet."
+              },
+              {
+                "chat": "same",
+                "do": "Attach the screenshot to the chat. Then copy this prompt, paste it, and press Enter.",
+                "prompt": "Look at the attached image. Copy the table into text, one row per line, with the exact words and symbols. After the copy, list every cell where you are not sure of the text.",
+                "expect": "A text copy of the table: a header and 5 rows. Usually few or no mistakes, and a short list of unsure cells.",
+                "example": "Model | Image | Audio in/out | Video | PDF | Notes\nGPT-4o / GPT-5 | native | input via Whisper, output TTS | frames | via vision | High-quality image reasoning\nClaude 4 | native | input only (transcribe) | frames | via vision | Best on chart/diagram reading\nGemini 1.5 / 2.5 | native | native in+out | native frames | native | Most natively multimodal\n...\nUnsure cells: none."
+              },
+              {
+                "chat": "new",
+                "do": "Zoom your browser out to about 30%. Take a new screenshot of the same table. Attach it, then paste the same prompt below and press Enter.",
+                "prompt": "Look at the attached image. Copy the table into text, one row per line, with the exact words and symbols. After the copy, list every cell where you are not sure of the text.",
+                "expect": "More mistakes: missing rows, wrong words, or guessed cells. Many chats also list more unsure cells.",
+                "example": "Model | Image | Audio | Video | PDF | Notes\nGPT-4o | native | Whisper | frames | vision | image reasoning\nClaude 4 | native | input only | ? | via vision | chart reading\nGemini 2.5 | native | native | native | native | multimodal\n...\nUnsure cells: Claude 4 video, most of the Notes column, the last two rows."
+              },
+              {
+                "chat": "same",
+                "do": "Compare both copies with the real table. Count the wrong or missing cells in each copy. Write down both counts.",
+                "expect": "A small count for the clear screenshot, and a bigger count for the tiny one. Counts differ between chats."
+              }
+            ],
+            "learned": "The AI turns an image into many number lists (called <strong>embeddings</strong>) and reads them like text. In a tiny screenshot, the letters have too few pixels, so the number lists hold little detail, and the AI guesses. A guess often looks as sure as a correct reading. For exact text, such as invoices or IDs, use an <strong>OCR</strong> tool (software made only to read text from images).",
+            "done": "You have two copies of the table, a count of mistakes for each, and the clear one has fewer mistakes.",
+            "check": {
+              "question": "Why does the AI get worse when the text in the image is tiny?",
+              "answer": "The image becomes number lists that the AI reads like words. Tiny text has too little detail in those lists, so the AI guesses. For exact text such as invoices or IDs, a dedicated OCR tool is more reliable."
+            },
+            "challenge": "Take a photo of a short handwritten note (or write one on paper). Send it with the same prompt and check which words the AI reads wrong."
           },
-          "challenge": "Take a photo of a short handwritten note, or write one on paper. Send it with Prompt A and check which words the model reads wrong."
+          "bn": {
+            "title": "স্পষ্ট আর ছোট text-এ AI-র vision পরীক্ষা করো",
+            "why": "তুমি যখন invoice, ID card বা screenshot পড়ে এমন app বানাবে, তখন জানতে হবে AI কখন image ভালো পড়তে পারে, আর কখন শুধু আন্দাজ করে।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই section-এর \"Capability comparison\" table টা খুঁজে বের করো। শুধু ওই table-এর screenshot নাও, স্বাভাবিক size-এ। কোনো private data রেখো না। তোমার chat-এ image upload করা যেতে হবে।",
+                "expect": "তোমার computer-এ table-এর একটা পরিষ্কার ছবি। এখনো কিছু পাঠানো হয়নি।"
+              },
+              {
+                "chat": "same",
+                "do": "screenshot টা chat-এ attach করো। তারপর এই prompt টা copy করে paste করো, Enter চাপো।",
+                "prompt": "সংযুক্ত image-টা দেখো। table-টা text-এ copy করো, প্রতি লাইনে একটা row, শব্দ আর চিহ্ন ঠিক যেমন আছে তেমন। copy করার পর যে cell-গুলোর text নিয়ে তুমি নিশ্চিত না, সেগুলোর তালিকা দাও।",
+                "expect": "table-এর text copy: একটা header আর 5টা row। সাধারণত ভুল কম বা নেই, আর অনিশ্চিত cell-এর ছোট একটা list।",
+                "example": "Model | Image | Audio in/out | Video | PDF | Notes\nGPT-4o / GPT-5 | native | input via Whisper, output TTS | frames | via vision | High-quality image reasoning\nClaude 4 | native | input only (transcribe) | frames | via vision | Best on chart/diagram reading\nGemini 1.5 / 2.5 | native | native in+out | native frames | native | Most natively multimodal\n...\nযে cell নিয়ে নিশ্চিত না: নেই।"
+              },
+              {
+                "chat": "new",
+                "do": "browser zoom কমিয়ে প্রায় 30% করো। একই table-এর নতুন screenshot নাও। সেটা attach করো, তারপর নিচের একই prompt paste করে Enter চাপো।",
+                "prompt": "সংযুক্ত image-টা দেখো। table-টা text-এ copy করো, প্রতি লাইনে একটা row, শব্দ আর চিহ্ন ঠিক যেমন আছে তেমন। copy করার পর যে cell-গুলোর text নিয়ে তুমি নিশ্চিত না, সেগুলোর তালিকা দাও।",
+                "expect": "ভুল বেশি: row বাদ পড়া, ভুল শব্দ, বা আন্দাজ করা cell। অনেক chat অনিশ্চিত cell-ও বেশি দেখায়।",
+                "example": "Model | Image | Audio | Video | PDF | Notes\nGPT-4o | native | Whisper | frames | vision | image reasoning\nClaude 4 | native | input only | ? | via vision | chart reading\nGemini 2.5 | native | native | native | native | multimodal\n...\nযে cell নিয়ে নিশ্চিত না: Claude 4-এর video, Notes column-এর বেশিরভাগ, শেষ দুটো row।"
+              },
+              {
+                "chat": "same",
+                "do": "দুটো copy-ই আসল table-এর সাথে মেলাও। প্রতিটা copy-তে কয়টা cell ভুল বা বাদ গেছে, গুনে দুটো সংখ্যা লিখে রাখো।",
+                "expect": "স্পষ্ট screenshot-এ সংখ্যা কম, ছোটটায় বেশি। chat ভেদে সংখ্যা আলাদা হবে।"
+              }
+            ],
+            "learned": "AI একটা image-কে অনেকগুলো সংখ্যার তালিকায় (যাদের বলে <strong>embedding</strong>) বদলে নেয়, আর সেগুলো text-এর মতো পড়ে। ছোট screenshot-এ অক্ষরের জন্য pixel খুব কম, তাই সংখ্যার তালিকায় details থাকে কম, আর AI আন্দাজ করে। আন্দাজও প্রায়ই সঠিক পড়ার মতোই নিশ্চিত শোনায়। invoice বা ID-র মতো নিখুঁত text-এর জন্য <strong>OCR</strong> tool (image থেকে শুধু text পড়ার জন্য বানানো software) ব্যবহার করো।",
+            "done": "তোমার কাছে table-এর দুটো copy আছে, প্রতিটার ভুলের সংখ্যা আছে, আর স্পষ্ট copy-তে ভুল কম।",
+            "check": {
+              "question": "image-এর text ছোট হলে AI খারাপ করে কেন?",
+              "answer": "image সংখ্যার তালিকায় বদলায়, যেটা AI শব্দের মতো পড়ে। ছোট text-এর details ওই তালিকায় খুব কম থাকে, তাই AI আন্দাজ করে। invoice বা ID-র মতো নিখুঁত text-এর জন্য আলাদা OCR tool বেশি নির্ভরযোগ্য।"
+            },
+            "challenge": "হাতে লেখা একটা ছোট note-এর ছবি তোলো (বা কাগজে লিখে নাও)। একই prompt দিয়ে পাঠাও, আর দেখো AI কোন শব্দগুলো ভুল পড়ে।"
+          }
         }
       ]
     },
@@ -1752,33 +2079,70 @@
       ],
       "practice": [
         {
-          "title": "Judge meaning, not matching words",
-          "goal": "See that similarity depends on meaning, not shared words, and that a second step that reads query and document together picks better answers.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. Look at the scores for each pair.",
-            "Send Prompt B in the <strong>same</strong> chat. Look at which documents get the top scores.",
-            "Find a document that shares many words with the query but scores low. Say why."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "Rate how similar the meaning of each pair is, from 0 (unrelated) to 1 (same meaning). Reply with one line per pair: the pair number and the score only.\n\n1. 'How do I reset my password?' / 'Steps to recover access to my account when I forgot my login secret'\n2. 'The bank was flooded after heavy rain.' / 'I deposited money at the bank this morning.'\n3. 'How do I reset my password?' / 'How do I reset my router?'\n4. 'How do I reset my password?' / 'Best street food in Old Dhaka'"
+          "en": {
+            "title": "Judge meaning, not matching words",
+            "why": "When you build a search box or a support bot that finds answers in your documents, matching words is not enough. The AI must find the document that means the same thing as the question.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Look at the score for each pair.",
+                "prompt": "Rate how similar the meaning of each pair is, from 0 (unrelated) to 1 (same meaning). Reply with one line per pair: the pair number and the score only.\n\n1. 'How do I reset my password?' / 'Steps to recover access to my account when I forgot my login secret'\n2. 'The bank was flooded after heavy rain.' / 'I deposited money at the bank this morning.'\n3. 'How do I reset my password?' / 'How do I reset my router?'\n4. 'How do I reset my password?' / 'Best street food in Old Dhaka'",
+                "expect": "Pair 1 gets a high score, even with few shared words. Pairs 2 and 3 get low scores, even with shared words. Pair 4 gets about 0.",
+                "example": "1. 0.92\n2. 0.10\n3. 0.30\n4. 0.00"
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Look at which documents get the top scores.",
+                "prompt": "Query: Can I return a laptop after 40 days?\n\nDocuments:\nD1: Laptops can be returned within 14 days of delivery if the box is unopened.\nD2: Laptop deals: save 20% on laptops this week, with free delivery on every laptop.\nD3: Standard items can be returned within 30 days. Electronics have a shorter window.\nD4: How to pack a laptop for a return shipment: use the original box and two layers of tape.\nD5: Every laptop has a 12 month warranty. Defective laptops can be repaired or replaced at any time in that period.\n\nScore each document from 0 to 10 for how well it helps answer the query. Then list the documents from best to worst. Give one short reason for each.",
+                "expect": "<strong>D1</strong> and <strong>D3</strong> get the top scores, because they answer the return question. <strong>D2</strong> and <strong>D4</strong> get low scores.",
+                "example": "D1: 9. Gives the return limit (14 days), so 40 days is too late.\nD3: 8. Says electronics have a shorter window than 30 days.\nD5: 4. Only helps if the laptop is defective.\nD4: 3. About packing, not about the time limit.\nD2: 0. An advert, not related to returns.\nBest to worst: D1, D3, D5, D4, D2."
+              },
+              {
+                "chat": "same",
+                "do": "Find the document that uses the word <em>laptop</em> the most (D2). Write down its score and say why it is low.",
+                "expect": "D2 repeats <em>laptop</em> three times, but it scores 0 or close to 0. It is an advert that does not answer the question."
+              }
+            ],
+            "learned": "Two texts can share many words and still mean different things, like <em>bank</em> of a river and <em>bank</em> for money. A search system first finds many possible documents with a fast method, using an <strong>embedding</strong> (a list of numbers that places similar meanings close together). Then a <strong>reranker</strong> (a second model that reads the question and one document together) picks the best ones. Your chat AI acted as both here, so its scores are rough guesses.",
+            "done": "You have scores for 4 pairs and 5 documents, and you can say why D2 scored low.",
+            "check": {
+              "question": "Why do search systems use an embedding step first, and a reranker second?",
+              "answer": "Embeddings are made once for each text, so the system can search millions of them very fast, but the match is less exact. A reranker reads the question and one document together, so it is more exact but slow. So it only re-scores the best few documents."
             },
-            {
-              "label": "Prompt B",
-              "text": "Query: Can I return a laptop after 40 days?\n\nDocuments:\nD1: Laptops can be returned within 14 days of delivery if the box is unopened.\nD2: Laptop deals: save 20% on laptops this week, with free delivery on every laptop.\nD3: Standard items can be returned within 30 days. Electronics have a shorter window.\nD4: How to pack a laptop for a return shipment: use the original box and two layers of tape.\nD5: Every laptop has a 12 month warranty. Defective laptops can be repaired or replaced at any time in that period.\n\nScore each document from 0 to 10 for how well it helps answer the query. Then list the documents from best to worst. Give one short reason for each."
-            }
-          ],
-          "lookFor": [
-            "Pair 1 gets a high score even with few shared words. Pairs 2 and 3 get low scores even with shared words.",
-            "Pair 4 gets a score near 0.",
-            "D2 and D4 repeat the word laptop many times, but they usually score low. D1 and D3 usually rank highest, because they answer the return question."
-          ],
-          "check": {
-            "question": "Why do an embedding model and a reranker form a two-stage pipeline?",
-            "answer": "A bi-encoder embeds each text alone, so it can search millions of vectors fast, but its precision is lower. A cross-encoder reranker reads the query and document together, which is more accurate but slow, so it re-scores only the top candidates."
+            "challenge": "Add a document D6 that answers the question perfectly but uses different words: <em>Items bought online may be sent back for a refund up to two weeks after arrival.</em> Where does it rank?"
           },
-          "challenge": "Add a document D6 that answers the question perfectly but uses very different words, such as <em>Items bought online may be sent back for a refund up to two weeks after arrival</em>. Where does it rank?"
+          "bn": {
+            "title": "শব্দ না, অর্থ দিয়ে বিচার করো",
+            "why": "তুমি যখন এমন search box বা support bot বানাবে, যেটা তোমার document থেকে উত্তর খোঁজে, তখন শুধু শব্দ মেলানো যথেষ্ট না। AI-কে এমন document খুঁজতে হবে, যার অর্থ প্রশ্নের অর্থের সাথে মেলে।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। প্রতিটা pair-এর score দেখো। (prompt টা English-এ রাখা হয়েছে, কারণ bank শব্দের দুটো অর্থ English-এ ধরা পড়ে।)",
+                "prompt": "Rate how similar the meaning of each pair is, from 0 (unrelated) to 1 (same meaning). Reply with one line per pair: the pair number and the score only.\n\n1. 'How do I reset my password?' / 'Steps to recover access to my account when I forgot my login secret'\n2. 'The bank was flooded after heavy rain.' / 'I deposited money at the bank this morning.'\n3. 'How do I reset my password?' / 'How do I reset my router?'\n4. 'How do I reset my password?' / 'Best street food in Old Dhaka'",
+                "expect": "Pair 1-এ শব্দ কম মিললেও score বেশি। Pair 2 আর 3-এ শব্দ মিললেও score কম। Pair 4-এ প্রায় 0।",
+                "example": "1. 0.92\n2. 0.10\n3. 0.30\n4. 0.00"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। কোন document সবচেয়ে বেশি score পায়, দেখো।",
+                "prompt": "প্রশ্ন: 40 দিন পরে কি laptop ফেরত দেওয়া যায়?\n\nDocuments:\nD1: box খোলা না হলে delivery-র 14 দিনের মধ্যে laptop ফেরত দেওয়া যায়।\nD2: Laptop deals: এই সপ্তাহে laptop-এ 20% ছাড়, আর প্রতিটা laptop-এ free delivery।\nD3: সাধারণ জিনিস 30 দিনের মধ্যে ফেরত দেওয়া যায়। Electronics-এর সময় এর চেয়ে কম।\nD4: ফেরত পাঠানোর জন্য laptop কীভাবে pack করবে: আসল box ব্যবহার করো আর দুই স্তর tape দাও।\nD5: প্রতিটা laptop-এ 12 মাসের warranty আছে। ত্রুটিপূর্ণ laptop ওই সময়ের মধ্যে যেকোনো সময় মেরামত বা বদল করা যায়।\n\nপ্রশ্নের উত্তর দিতে প্রতিটা document কতটা কাজে লাগে, 0 থেকে 10 নম্বর দাও। তারপর document-গুলো সবচেয়ে ভালো থেকে সবচেয়ে খারাপ ক্রমে সাজাও। প্রতিটার জন্য একটা ছোট কারণ লেখো।",
+                "expect": "<strong>D1</strong> আর <strong>D3</strong> সবচেয়ে বেশি score পায়, কারণ তারা ফেরতের প্রশ্নের উত্তর দেয়। <strong>D2</strong> আর <strong>D4</strong> কম score পায়।",
+                "example": "D1: 9। ফেরতের সীমা (14 দিন) বলেছে, তাই 40 দিন দেরি হয়ে গেছে।\nD3: 8। বলেছে electronics-এর সময় 30 দিনের চেয়ে কম।\nD5: 4। শুধু laptop ত্রুটিপূর্ণ হলে কাজে লাগে।\nD4: 3। pack করা নিয়ে, সময়ের সীমা নিয়ে না।\nD2: 0। এটা বিজ্ঞাপন, ফেরতের সাথে সম্পর্ক নেই।\nসেরা থেকে খারাপ: D1, D3, D5, D4, D2।"
+              },
+              {
+                "chat": "same",
+                "do": "যে document-এ <em>laptop</em> শব্দটা সবচেয়ে বেশি আছে (D2), সেটা খুঁজে বের করো। তার score লেখো আর বলো কেন কম।",
+                "expect": "D2-তে <em>laptop</em> তিনবার আছে, তবু score 0 বা তার কাছাকাছি। এটা একটা বিজ্ঞাপন, প্রশ্নের উত্তর দেয় না।"
+              }
+            ],
+            "learned": "দুটো text-এ অনেক শব্দ এক হলেও অর্থ আলাদা হতে পারে, যেমন নদীর <em>bank</em> আর টাকার <em>bank</em>। search system প্রথমে দ্রুত একটা পদ্ধতিতে অনেক সম্ভাব্য document বের করে, <strong>embedding</strong> দিয়ে (সংখ্যার একটা তালিকা, যেটা একই অর্থের জিনিসকে কাছাকাছি রাখে)। তারপর <strong>reranker</strong> (দ্বিতীয় একটা model, যে প্রশ্ন আর একটা document একসাথে পড়ে) সেরাগুলো বাছে। এখানে তোমার chat AI দুটোর কাজই করেছে, তাই তার score মোটামুটি আন্দাজ।",
+            "done": "তোমার কাছে ৪টা pair আর ৫টা document-এর score আছে, আর তুমি বলতে পারো D2 কেন কম পেল।",
+            "check": {
+              "question": "search system কেন আগে embedding ধাপ আর পরে reranker ব্যবহার করে?",
+              "answer": "embedding প্রতিটা text-এর জন্য একবারই বানানো হয়, তাই system লাখ লাখ text খুব দ্রুত খুঁজতে পারে, কিন্তু মিলটা কম নিখুঁত। reranker প্রশ্ন আর একটা document একসাথে পড়ে, তাই বেশি নিখুঁত কিন্তু ধীর। তাই সে শুধু সেরা কয়েকটা document আবার score করে।"
+            },
+            "challenge": "একটা D6 document যোগ করো, যেটা প্রশ্নের নিখুঁত উত্তর দেয় কিন্তু আলাদা শব্দ ব্যবহার করে: <em>অনলাইনে কেনা জিনিস পৌঁছানোর দুই সপ্তাহ পর্যন্ত refund-এর জন্য ফেরত পাঠানো যায়।</em> এটা কোথায় rank করে?"
+          }
         }
       ]
     },
@@ -2037,37 +2401,84 @@
       ],
       "practice": [
         {
-          "title": "Compare quick answers with step-by-step thinking",
-          "goal": "See that thinking steps help on multi-step problems, and that on easy questions they only add length and cost.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. Note the number. Work the correct answer out yourself with a calculator.",
-            "Send Prompt B in another <strong>new</strong> chat. Compare the result, and the length of the answer.",
-            "Send Prompt C in a <strong>new</strong> chat. Compare its length with a plain question and answer."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "A bakery bakes 8 trays with 25 buns each. 12% of all buns are burnt and thrown away. The rest are sold in full boxes of 6 buns at $4.50 per box. Buns that do not fill a box are given away free. How much money does the bakery earn? Reply with the final amount only. Do not show any working."
+          "en": {
+            "title": "Compare quick answers and step-by-step thinking",
+            "why": "When you build an AI feature, thinking step by step can fix wrong answers on hard problems. But on easy questions it only adds cost and waiting time. You must know which is which.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Write down the amount.",
+                "prompt": "A bakery bakes 8 trays with 25 buns each. 12% of all buns are burnt and thrown away. The rest are sold in full boxes of 6 buns at $4.50 per box. Buns that do not fill a box are given away free. How much money does the bakery earn? Reply with the final amount only. Do not show any working.",
+                "expect": "A money amount only, with no working. Many modern chats get it right. A wrong amount is more likely when there is no working shown.",
+                "example": "$130.50"
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Compare the answer with step 1, and look at how long it is.",
+                "prompt": "A bakery bakes 8 trays with 25 buns each. 12% of all buns are burnt and thrown away. The rest are sold in full boxes of 6 buns at $4.50 per box. Buns that do not fill a box are given away free. How much money does the bakery earn? Think step by step. Then give the final line as: Answer: $amount",
+                "expect": "A list of steps (200 buns, 24 burnt, 176 left, 29 full boxes), then <strong>Answer: $130.50</strong>. It is much longer than step 1.",
+                "example": "Step 1: Total buns = 8 x 25 = 200.\nStep 2: Burnt buns = 12% of 200 = 24.\nStep 3: Buns left = 200 - 24 = 176.\nStep 4: Full boxes = 176 / 6 = 29 boxes (29 x 6 = 174), and 2 buns are left over and given away.\nStep 5: Money = 29 x $4.50 = $130.50.\nAnswer: $130.50"
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Notice how much text comes back for such an easy question.",
+                "prompt": "Think step by step, then answer: What is the capital of Japan?",
+                "expect": "Often several lines of steps for a one-word question, for example <em>Tokyo</em>. This is extra work that was not needed.",
+                "example": "Step 1: The question asks for the capital city of Japan.\nStep 2: Japan's government and the Emperor are based in Tokyo.\nStep 3: So the capital is Tokyo.\nAnswer: Tokyo"
+              },
+              {
+                "chat": "same",
+                "do": "Now check the maths yourself with a calculator. Start with 8 x 25. Compare your final amount with the amounts in steps 1 and 2.",
+                "expect": "Your answer is <strong>$130.50</strong>. If step 1 gave a different amount, the quick answer was wrong."
+              }
+            ],
+            "learned": "In step 2 the AI wrote its thinking first, so each small step was easy and you could check it. This is the idea behind <strong>reasoning models</strong> (models that write many thinking words before the final answer). The thinking costs more words, so it costs more money and time. It helps on multi-step problems, but on \"capital of Japan\" it only wasted words.",
+            "done": "You have two bakery answers and the correct amount, $130.50, from your calculator.",
+            "check": {
+              "question": "Why do reasoning models use 5 to 50 times more tokens, and when is it worth it?",
+              "answer": "They write thinking tokens before the final answer, so they spend more compute on each question. This helps on hard maths, code, and planning. It adds cost and waiting time, so for simple chat or extraction a standard model is better."
             },
-            {
-              "label": "Prompt B",
-              "text": "A bakery bakes 8 trays with 25 buns each. 12% of all buns are burnt and thrown away. The rest are sold in full boxes of 6 buns at $4.50 per box. Buns that do not fill a box are given away free. How much money does the bakery earn? Think step by step. Then give the final line as: Answer: $amount"
-            },
-            {
-              "label": "Prompt C",
-              "text": "Think step by step, then answer: What is the capital of Japan?"
-            }
-          ],
-          "lookFor": [
-            "The correct answer is $130.50. Many modern models get it right even in Prompt A, but fast answers fail more often on multi-step problems.",
-            "Prompt B shows each step: 200 buns, 24 burnt, 176 left, 29 full boxes, then the money. This makes errors easy to see.",
-            "Prompt C gives a long answer to a one-word question. This is the waste that reasoning adds on easy tasks."
-          ],
-          "check": {
-            "question": "Why do reasoning models use 5 to 50 times more tokens, and when is it worth it?",
-            "answer": "They spend extra compute at inference time by writing thinking tokens before the final answer. This helps on hard math, code, and planning tasks, but it adds cost and latency, so for simple chat or extraction a standard model is better."
+            "challenge": "If your chat has a Think or Reasoning mode, turn it on and send the step 1 prompt again in a new chat. Does the answer change? Does it take longer?"
           },
-          "challenge": "If your chat has a Think or Reasoning mode, turn it on and send Prompt A again. Does the answer change, and does the response take longer?"
+          "bn": {
+            "title": "দ্রুত উত্তর আর ধাপে ধাপে ভাবার তুলনা করো",
+            "why": "AI feature বানানোর সময় ধাপে ধাপে ভাবলে কঠিন সমস্যায় ভুল উত্তর ঠিক হতে পারে। কিন্তু সহজ প্রশ্নে এতে শুধু খরচ আর অপেক্ষা বাড়ে। কোনটা কখন, সেটা তোমার জানা দরকার।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। টাকার অঙ্কটা লিখে রাখো।",
+                "prompt": "একটা bakery 8টা tray-তে প্রতিটায় 25টা করে bun বানায়। সব bun-এর 12% পুড়ে যায়, আর ফেলে দেওয়া হয়। বাকিগুলো 6টার পুরো box-এ বিক্রি হয়, প্রতি box $4.50 দামে। যে bun দিয়ে একটা box পূর্ণ হয় না, সেগুলো বিনা পয়সায় দিয়ে দেওয়া হয়। bakery মোট কত টাকা আয় করে? শুধু শেষ অঙ্কটা লেখো। কোনো হিসাব দেখিও না।",
+                "expect": "শুধু টাকার একটা অঙ্ক, কোনো হিসাব ছাড়া। অনেক আধুনিক chat ঠিক উত্তর দেয়। হিসাব না দেখালে ভুল অঙ্ক আসার সম্ভাবনা বেশি।",
+                "example": "$130.50"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। উত্তরটা ধাপ 1-এর সাথে মেলাও, আর কত লম্বা হলো দেখো।",
+                "prompt": "একটা bakery 8টা tray-তে প্রতিটায় 25টা করে bun বানায়। সব bun-এর 12% পুড়ে যায়, আর ফেলে দেওয়া হয়। বাকিগুলো 6টার পুরো box-এ বিক্রি হয়, প্রতি box $4.50 দামে। যে bun দিয়ে একটা box পূর্ণ হয় না, সেগুলো বিনা পয়সায় দিয়ে দেওয়া হয়। bakery মোট কত টাকা আয় করে? ধাপে ধাপে ভাবো। তারপর শেষ লাইনটা এভাবে লেখো: Answer: $amount",
+                "expect": "ধাপের একটা তালিকা (200 bun, 24 পোড়া, 176 বাকি, 29 পুরো box), তারপর <strong>Answer: $130.50</strong>। এটা ধাপ 1-এর চেয়ে অনেক লম্বা।",
+                "example": "ধাপ 1: মোট bun = 8 x 25 = 200।\nধাপ 2: পোড়া bun = 200-এর 12% = 24।\nধাপ 3: বাকি bun = 200 - 24 = 176।\nধাপ 4: পুরো box = 176 / 6 = 29টা (29 x 6 = 174), আর 2টা bun বাড়তি, সেগুলো বিনা পয়সায় যায়।\nধাপ 5: আয় = 29 x $4.50 = $130.50।\nAnswer: $130.50"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। এত সহজ প্রশ্নের জন্য কতটা text ফেরত এলো, খেয়াল করো।",
+                "prompt": "ধাপে ধাপে ভাবো, তারপর উত্তর দাও: জাপানের রাজধানী কী?",
+                "expect": "প্রায়ই একটা এক-শব্দের প্রশ্নের জন্য কয়েক লাইনের ধাপ, উত্তর যেমন <em>টোকিও</em>। এটা বাড়তি কাজ, যেটা দরকার ছিল না।",
+                "example": "ধাপ 1: প্রশ্নে জাপানের রাজধানী শহর জানতে চাওয়া হয়েছে।\nধাপ 2: জাপানের সরকার আর সম্রাট টোকিওতে থাকেন।\nধাপ 3: তাই রাজধানী টোকিও।\nAnswer: টোকিও"
+              },
+              {
+                "chat": "same",
+                "do": "এবার calculator দিয়ে নিজে হিসাবটা করো। শুরু করো 8 x 25 দিয়ে। তোমার শেষ অঙ্ক ধাপ 1 আর 2-এর অঙ্কের সাথে মেলাও।",
+                "expect": "তোমার উত্তর <strong>$130.50</strong>। ধাপ 1-এ অন্য অঙ্ক এলে দ্রুত উত্তরটা ভুল ছিল।"
+              }
+            ],
+            "learned": "ধাপ 2-এ AI আগে তার ভাবনা লিখেছে, তাই প্রতিটা ছোট ধাপ সহজ ছিল আর তুমি সেগুলো মিলিয়ে দেখতে পেরেছ। এটাই <strong>reasoning model</strong>-এর ধারণা (যে model শেষ উত্তরের আগে অনেক ভাবনার শব্দ লেখে)। ভাবনা লিখতে বেশি শব্দ লাগে, তাই খরচ আর সময়ও বেশি লাগে। বহু ধাপের সমস্যায় এটা কাজে লাগে, কিন্তু \"জাপানের রাজধানী\"-তে শুধু শব্দ নষ্ট হলো।",
+            "done": "তোমার কাছে bakery-র দুটো উত্তর আছে, আর calculator থেকে পাওয়া সঠিক অঙ্ক $130.50।",
+            "check": {
+              "question": "reasoning model কেন 5 থেকে 50 গুণ বেশি token ব্যবহার করে, আর কখন সেটা সার্থক?",
+              "answer": "শেষ উত্তরের আগে তারা thinking token লেখে, তাই প্রতিটা প্রশ্নে বেশি compute খরচ হয়। কঠিন অঙ্ক, code আর planning-এ এটা কাজে লাগে। এতে খরচ আর অপেক্ষা বাড়ে, তাই সহজ chat বা তথ্য বের করার কাজে সাধারণ model ভালো।"
+            },
+            "challenge": "তোমার chat-এ Think বা Reasoning mode থাকলে সেটা চালু করো, আর নতুন chat-এ ধাপ 1-এর prompt আবার পাঠাও। উত্তর কি বদলায়? সময় কি বেশি লাগে?"
+          }
         }
       ]
     }

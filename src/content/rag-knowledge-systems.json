@@ -276,33 +276,70 @@
       ],
       "practice": [
         {
-          "title": "Cut a policy in the wrong place",
-          "goal": "See how a chunk boundary in the wrong place can make the model give a wrong answer, and how a clean boundary fixes it.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. It gives the model only chunk 2 of a fixed-size split. Note the answer.",
-            "Send Prompt B in another <strong>new</strong> chat. It gives one chunk that was cut at the sentence boundary. Note the answer.",
-            "Compare the two answers. Find the exact words in each chunk that caused the difference."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "You are a support bot. Answer the question using ONLY the retrieved chunk below. If the chunk does not contain the answer, say \"Not enough information\".\n\nRetrieved chunk (chunk 2 of 2, cut every 90 characters):\n\"days of purchase. Pro plan customers may request a refund within 30 days. Refunds are paid to the original payment method in 5 business days.\"\n\nQuestion: How many days do Basic plan customers have to ask for a refund?"
+          "en": {
+            "title": "See how a bad cut breaks an answer",
+            "why": "When you build a support chatbot, your documents are cut into small pieces called chunks. If a cut lands in the middle of a fact, the bot can give a wrong answer, or no answer.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. It gives the AI a chunk that was cut in the middle of a sentence.",
+                "prompt": "You are a support bot. Answer the question using ONLY the chunk below. If the chunk does not contain the answer, say \"Not enough information\".\n\nChunk (cut every 90 characters, this is chunk 2 of 2):\n\"days of purchase. Pro plan customers may request a refund within 30 days. Refunds are paid to the original payment method in 5 business days.\"\n\nQuestion: How many days do Basic plan customers have to ask for a refund?",
+                "expect": "Most chats reply <em>Not enough information</em>, because the number for the Basic plan is missing. A few wrongly say <em>30</em>.",
+                "example": "Not enough information"
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. This chunk was cut at the end of a sentence.",
+                "prompt": "You are a support bot. Answer the question using ONLY the chunk below. If the chunk does not contain the answer, say \"Not enough information\".\n\nChunk (cut at the end of a sentence):\n\"Zentro Cloud Refund Policy. Basic plan customers may request a full refund within 14 days of purchase. Pro plan customers may request a refund within 30 days.\"\n\nQuestion: How many days do Basic plan customers have to ask for a refund?",
+                "expect": "<strong>14 days</strong>. The whole fact is inside one chunk.",
+                "example": "Basic plan customers have 14 days to request a refund."
+              },
+              {
+                "chat": "same",
+                "do": "Look at the chunk in step 1 again. Write down the words that are missing there.",
+                "expect": "The chunk starts with <em>days of purchase</em>. The number <em>14</em> and the words <em>Basic plan</em> are gone."
+              }
+            ],
+            "learned": "A chatbot does not read your whole document. It searches small pieces called <strong>chunks</strong> and sends only the best ones to the AI. A fixed-size cutter cuts after a set number of characters, even in the middle of a fact. Here the cut removed <em>14</em>, so the AI could not answer. A cutter that stops at sentence ends keeps the fact whole.",
+            "done": "You have two answers: one without the number 14, and one with <em>14 days</em>.",
+            "check": {
+              "question": "Why did step 1 fail, when the full policy exists in the document?",
+              "answer": "The cutter split the sentence, so the number and the plan name went into different chunks. The search sent only one chunk to the AI. A cutter that respects sentence ends keeps the fact in one piece."
             },
-            {
-              "label": "Prompt B",
-              "text": "You are a support bot. Answer the question using ONLY the retrieved chunk below. If the chunk does not contain the answer, say \"Not enough information\".\n\nRetrieved chunk (cut at the sentence boundary):\n\"Zentro Cloud Refund Policy. Basic plan customers may request a full refund within 14 days of purchase. Pro plan customers may request a refund within 30 days.\"\n\nQuestion: How many days do Basic plan customers have to ask for a refund?"
-            }
-          ],
-          "lookFor": [
-            "In Prompt A the number 14 is gone. The text was cut after \"within\", so the chunk starts with \"days of purchase\".",
-            "Some models say \"Not enough information\". Others may wrongly answer 30. Both are bad.",
-            "In Prompt B the whole fact sits in one chunk, so the answer is easy and correct."
-          ],
-          "check": {
-            "question": "Why did Prompt A fail even though the full policy exists in the document?",
-            "answer": "The fixed-size splitter cut through a fact, so the number and its subject landed in different chunks, and the retriever returned only one of them. Chunk overlap, a recursive splitter, or a sentence-aware splitter keeps coherent units whole."
+            "challenge": "In the chunk from step 2, replace the first sentence with <em>The company raised prices.</em> and ask <em>Which company is this about?</em> Then add the line <em>From the Zentro Cloud refund policy.</em> at the top and ask again. What changed?"
           },
-          "challenge": "Take the Prompt B chunk and change the first sentence to <em>The company raised prices.</em> Ask <em>Which company raised prices?</em> Then prepend a one-line context note. This is the idea behind contextual retrieval."
+          "bn": {
+            "title": "দেখো, ভুল জায়গায় কাটলে উত্তর কীভাবে নষ্ট হয়",
+            "why": "তুমি যখন একটা support chatbot বানাবে, তোমার document ছোট ছোট টুকরো করে কাটা হবে, যাকে chunk বলে। কাটাটা যদি কোনো তথ্যের মাঝখানে পড়ে, bot ভুল উত্তর দিতে পারে, বা কোনো উত্তরই দিতে পারবে না।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, chat-এ paste করে Enter চাপো। এখানে AI-কে একটা chunk দেওয়া হয়েছে, যেটা বাক্যের মাঝখানে কাটা।",
+                "prompt": "তুমি একটা support bot। শুধু নিচের chunk দেখে প্রশ্নের উত্তর দাও। chunk-এ উত্তর না থাকলে লেখো \"যথেষ্ট তথ্য নেই\"।\n\nChunk (প্রতি 90 অক্ষর পরপর কাটা, এটা 2 নম্বর chunk):\n\"দিনের মধ্যে। Pro plan-এর customer-রা 30 দিনের মধ্যে refund চাইতে পারবে। Refund মূল payment method-এ 5 কর্মদিবসে ফেরত দেওয়া হয়।\"\n\nপ্রশ্ন: Basic plan-এর customer-রা কত দিনের মধ্যে refund চাইতে পারবে?",
+                "expect": "বেশিরভাগ chat লিখবে <em>যথেষ্ট তথ্য নেই</em>, কারণ Basic plan-এর সংখ্যাটা নেই। কয়েকটা model ভুল করে <em>30</em> বলতে পারে।",
+                "example": "যথেষ্ট তথ্য নেই"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। এবার chunk-টা বাক্যের শেষে কাটা।",
+                "prompt": "তুমি একটা support bot। শুধু নিচের chunk দেখে প্রশ্নের উত্তর দাও। chunk-এ উত্তর না থাকলে লেখো \"যথেষ্ট তথ্য নেই\"।\n\nChunk (বাক্যের শেষে কাটা):\n\"Zentro Cloud Refund Policy. Basic plan-এর customer-রা কেনার 14 দিনের মধ্যে পুরো refund চাইতে পারবে। Pro plan-এর customer-রা 30 দিনের মধ্যে refund চাইতে পারবে।\"\n\nপ্রশ্ন: Basic plan-এর customer-রা কত দিনের মধ্যে refund চাইতে পারবে?",
+                "expect": "<strong>14 দিন</strong>। পুরো তথ্যটা একটা chunk-এর ভেতরেই আছে।",
+                "example": "Basic plan-এর customer-রা 14 দিনের মধ্যে refund চাইতে পারবে।"
+              },
+              {
+                "chat": "same",
+                "do": "ধাপ ১-এর chunk-টা আবার দেখো। কোন কোন শব্দ সেখানে নেই, লিখে রাখো।",
+                "expect": "chunk-টা শুরু হয়েছে <em>দিনের মধ্যে</em> দিয়ে। সংখ্যা <em>14</em> আর <em>Basic plan</em> শব্দ দুটো নেই।"
+              }
+            ],
+            "learned": "একটা chatbot তোমার পুরো document পড়ে না। সে ছোট টুকরো, মানে <strong>chunk</strong>, খোঁজে, আর সবচেয়ে ভালো কয়েকটা AI-কে পাঠায়। fixed-size cutter নির্দিষ্ট সংখ্যক অক্ষর পরপর কাটে, তথ্যের মাঝখানে হলেও। এখানে কাটায় <em>14</em> হারিয়ে গেছে, তাই AI উত্তর দিতে পারেনি। যে cutter বাক্যের শেষে থামে, সে তথ্যটা পুরো রাখে।",
+            "done": "তোমার কাছে দুটো উত্তর আছে: একটাতে 14 সংখ্যা নেই, আরেকটাতে <em>14 দিন</em> আছে।",
+            "check": {
+              "question": "পুরো policy document-এ থাকা সত্ত্বেও ধাপ ১ কেন ব্যর্থ হলো?",
+              "answer": "cutter বাক্যটা ভেঙে ফেলেছে, তাই সংখ্যা আর plan-এর নাম আলাদা chunk-এ চলে গেছে। search শুধু একটা chunk AI-কে পাঠিয়েছে। যে cutter বাক্যের শেষে কাটে, সে তথ্যটা এক টুকরোতেই রাখে।"
+            },
+            "challenge": "ধাপ ২-এর chunk-এর প্রথম বাক্যটা বদলে লেখো <em>কোম্পানি দাম বাড়িয়েছে।</em> তারপর জিজ্ঞেস করো <em>এটা কোন কোম্পানির কথা?</em> এরপর একদম উপরে <em>Zentro Cloud-এর refund policy থেকে।</em> লাইনটা যোগ করে আবার জিজ্ঞেস করো। কী বদলালো?"
+          }
         }
       ]
     },
@@ -608,33 +645,60 @@
       ],
       "practice": [
         {
-          "title": "Find three nearest neighbours three ways",
-          "goal": "See that L2 distance, cosine, and dot product can pick three different nearest vectors, and why the metric must match your embedding model.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. Check one row of the table by hand with a calculator.",
-            "In the <strong>same</strong> chat, send Prompt B. Read how the answer changes with the number of vectors.",
-            "Write down which vector wins under each metric. Do all three metrics agree?"
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "A tiny vector database holds these 2D vectors:\nP1 = (2, 2)\nP2 = (10, 9)\nP3 = (1, 0.5)\nP4 = (0, 3)\nP5 = (-1, -1)\n\nThe query vector is q = (1, 1).\n\nDo an exact flat scan. For every point, compute: (a) the L2 (straight-line) distance to q, (b) the cosine similarity with q, (c) the dot product with q. Show a table with 3 decimals. Then name the nearest neighbour under each metric (smallest L2, largest cosine, largest dot product). Show the calculation for P2 in full."
+          "en": {
+            "title": "Find the nearest point three different ways",
+            "why": "When you build document search, each text becomes a list of numbers (a vector), and a vector database finds the closest ones. The measure of <em>closest</em> that you pick can change which document comes back.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Write down the nearest point for each of the three measures.",
+                "prompt": "Here are 5 points, written as (x, y):\nP1 = (2, 2)\nP2 = (10, 9)\nP3 = (1, 0.5)\nP4 = (0, 3)\nP5 = (-1, -1)\n\nThe query point is q = (1, 1).\n\nFor every point, calculate three numbers:\n(a) L2 distance to q (the straight-line gap; smaller means nearer)\n(b) cosine similarity with q (how close the direction is; bigger means nearer)\n(c) dot product with q (direction mixed with length; bigger means nearer)\n\nShow one table with 3 decimals. Then name the nearest point for each of the three.",
+                "expect": "A table with 5 rows. The nearest point is <strong>P3</strong> by L2, <strong>P1</strong> by cosine, and <strong>P2</strong> by dot product. That is three different winners.",
+                "example": "Point | L2 | Cosine | Dot\nP1 | 1.414 | 1.000 | 4.000\nP2 | 12.042 | 0.999 | 19.000\nP3 | 0.500 | 0.949 | 1.500\nP4 | 2.236 | 0.707 | 3.000\nP5 | 2.828 | -1.000 | -2.000\n\nNearest by L2: P3. Nearest by cosine: P1. Nearest by dot product: P2."
+              },
+              {
+                "chat": "same",
+                "do": "Copy this prompt, paste it, and press Enter. Write down the nearest point for each measure again.",
+                "prompt": "Now divide every point by its own length, so every point has length 1. Do the same for q. Then repeat the table with L2 distance, cosine similarity, and dot product, with 3 decimals. Name the nearest point for each of the three.",
+                "expect": "All three measures now pick the same point, <strong>P1</strong>. The numbers in the table are close for P1 and P2.",
+                "example": "Point | L2 | Cosine | Dot\nP1 | 0.000 | 1.000 | 1.000\nP2 | 0.053 | 0.999 | 0.999\nP3 | 0.320 | 0.949 | 0.949\nP4 | 0.765 | 0.707 | 0.707\nP5 | 2.000 | -1.000 | -1.000\n\nNow all three measures pick the same point: P1."
+              }
+            ],
+            "learned": "Each measure has its own idea of <em>near</em>. <strong>L2</strong> is the straight-line gap, <strong>cosine</strong> looks only at direction, and the <strong>dot product</strong> also rewards length. P2 is far away but long, so only the dot product picks it. After you scale every point to length 1, the three measures agree.",
+            "done": "You have 3 different winners from step 1, and 1 shared winner from step 2.",
+            "check": {
+              "question": "Your embedding model (the model that turns text into vectors) was trained with cosine similarity. Which measure should the vector database use?",
+              "answer": "Use cosine, or the dot product on vectors scaled to length 1, which ranks the same. L2 or a raw dot product can pick by length, so the database would return different documents."
             },
-            {
-              "label": "Prompt B",
-              "text": "Now think like a database engineer. Case 1: a collection has 5,000 vectors. Case 2: a collection has 50 million vectors. For each case, say whether you would use a flat scan, an IVF index, or an HNSW graph index. Give 2 reasons per case. Then explain in 3 sentences why an approximate index can miss the true nearest neighbour."
-            }
-          ],
-          "lookFor": [
-            "Most models find three different winners: P3 for L2, P1 for cosine, and P2 for dot product.",
-            "P2 wins the dot product only because it is long. Its angle to q is almost the same as P1.",
-            "For 5,000 vectors a flat scan is exact and fast enough. For 50 million, an approximate index such as HNSW is needed, with some recall loss."
-          ],
-          "check": {
-            "question": "Your embedding model was trained with cosine similarity. Which metric should the vector database use, and why?",
-            "answer": "Use cosine (or dot product on unit-length vectors, which ranks the same). Another metric, such as L2 or raw dot product on unnormalised vectors, can rank by vector length and return different neighbours, so the index metric must match the model."
+            "challenge": "Go back to step 1, change q to (3, 3), and run it again. Which winner changes, and which stay the same? Why?"
           },
-          "challenge": "Ask the model to normalise all five vectors to length 1 and repeat the three metrics. Which winners now agree, and why?"
+          "bn": {
+            "title": "তিন রকমে সবচেয়ে কাছের point খোঁজো",
+            "why": "তুমি যখন document search বানাবে, প্রতিটা text একটা সংখ্যার তালিকা (vector) হয়ে যাবে, আর vector database সবচেয়ে কাছেরগুলো খুঁজে দেবে। <em>কাছে</em> মাপার কোন উপায় বেছে নিলে, সেটা বদলে দিতে পারে কোন document ফিরে আসবে।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, chat-এ paste করে Enter চাপো। তিনটা measure-এর প্রতিটায় সবচেয়ে কাছের point কোনটা, লিখে রাখো।",
+                "prompt": "এখানে 5টা point আছে, (x, y) আকারে:\nP1 = (2, 2)\nP2 = (10, 9)\nP3 = (1, 0.5)\nP4 = (0, 3)\nP5 = (-1, -1)\n\nquery point হলো q = (1, 1)।\n\nপ্রতিটা point-এর জন্য তিনটা সংখ্যা হিসাব করো:\n(a) q থেকে L2 distance (সরল রেখার দূরত্ব; যত ছোট, তত কাছে)\n(b) q-এর সাথে cosine similarity (দিক কতটা কাছাকাছি; যত বড়, তত কাছে)\n(c) q-এর সাথে dot product (দিক আর দৈর্ঘ্য মেশানো; যত বড়, তত কাছে)\n\nদশমিকের পর 3 ঘর দিয়ে একটা table দেখাও। তারপর তিনটার প্রতিটার জন্য সবচেয়ে কাছের point-এর নাম বলো।",
+                "expect": "5 সারির একটা table। L2 অনুযায়ী সবচেয়ে কাছে <strong>P3</strong>, cosine অনুযায়ী <strong>P1</strong>, আর dot product অনুযায়ী <strong>P2</strong>। অর্থাৎ তিনটা আলাদা winner।",
+                "example": "Point | L2 | Cosine | Dot\nP1 | 1.414 | 1.000 | 4.000\nP2 | 12.042 | 0.999 | 19.000\nP3 | 0.500 | 0.949 | 1.500\nP4 | 2.236 | 0.707 | 3.000\nP5 | 2.828 | -1.000 | -2.000\n\nL2 অনুযায়ী সবচেয়ে কাছে: P3। cosine অনুযায়ী: P1। dot product অনুযায়ী: P2।"
+              },
+              {
+                "chat": "same",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। প্রতিটা measure-এ সবচেয়ে কাছের point আবার লিখে রাখো।",
+                "prompt": "এবার প্রতিটা point-কে তার নিজের দৈর্ঘ্য দিয়ে ভাগ করো, যাতে প্রতিটা point-এর দৈর্ঘ্য 1 হয়। q-এর সাথেও একই করো। তারপর L2 distance, cosine similarity আর dot product দিয়ে table আবার বানাও, দশমিকের পর 3 ঘর দিয়ে। তিনটার প্রতিটার জন্য সবচেয়ে কাছের point-এর নাম বলো।",
+                "expect": "এবার তিনটা measure-ই একই point বাছবে, <strong>P1</strong>। table-এ P1 আর P2-এর সংখ্যা কাছাকাছি।",
+                "example": "Point | L2 | Cosine | Dot\nP1 | 0.000 | 1.000 | 1.000\nP2 | 0.053 | 0.999 | 0.999\nP3 | 0.320 | 0.949 | 0.949\nP4 | 0.765 | 0.707 | 0.707\nP5 | 2.000 | -1.000 | -1.000\n\nএখন তিনটা measure-ই একই point বেছেছে: P1।"
+              }
+            ],
+            "learned": "প্রতিটা measure-এর নিজের মতো করে <em>কাছে</em> বোঝার উপায় আছে। <strong>L2</strong> হলো সরল রেখার দূরত্ব, <strong>cosine</strong> শুধু দিক দেখে, আর <strong>dot product</strong> দৈর্ঘ্যকেও গুরুত্ব দেয়। P2 অনেক দূরে কিন্তু লম্বা, তাই শুধু dot product তাকে বাছে। প্রতিটা point-কে দৈর্ঘ্য 1-এ নামিয়ে আনলে তিনটা measure-ই একমত হয়।",
+            "done": "তোমার কাছে ধাপ ১-এর 3টা আলাদা winner আর ধাপ ২-এর 1টা একই winner আছে।",
+            "check": {
+              "question": "তোমার embedding model (যে model text থেকে vector বানায়) cosine similarity দিয়ে train করা। vector database-এ কোন measure ব্যবহার করবে?",
+              "answer": "cosine ব্যবহার করবে, বা দৈর্ঘ্য 1-এ নামানো vector-এ dot product, কারণ দুটোর ranking একই। L2 বা সাধারণ dot product দৈর্ঘ্য দেখে বেছে ফেলতে পারে, তখন database আলাদা document ফেরত দেবে।"
+            },
+            "challenge": "ধাপ ১-এ ফিরে গিয়ে q বদলে (3, 3) করো, আর আবার চালাও। কোন winner বদলায়, আর কোনগুলো একই থাকে? কেন?"
+          }
         }
       ]
     },
@@ -839,33 +903,60 @@
       ],
       "practice": [
         {
-          "title": "Fuse two ranked lists with RRF",
-          "goal": "Compute reciprocal rank fusion by hand, see that the constant k changes the final order, and see why raw scores cannot be added.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. Check the score of document B with a calculator for both k values.",
-            "In the <strong>same</strong> chat, send Prompt B. Look at which list the raw sum favours.",
-            "Write down: does the top document change when k changes from 60 to 2?"
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "Reciprocal rank fusion (RRF) gives each document the score: sum over all lists of 1 / (k + rank), where rank starts at 1.\n\nBM25 list (best first): A, B, E, C, G\nVector list (best first): C, B, D, F, A\n\nCompute the RRF score of every document twice: once with k = 60 and once with k = 2. Show a table with 4 decimals. Give the final ranking for each k. If two documents tie, say so."
+          "en": {
+            "title": "Merge two search lists with RRF",
+            "why": "When you build search for a help centre, keyword search and meaning search each give their own ranked list. You must merge them into one list, and the merge rule changes what the user sees first.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Write down the top document for k = 60 and for k = 2.",
+                "prompt": "Reciprocal rank fusion (RRF) merges ranked lists. Each document gets this score: add up 1 / (k + rank) for every list that contains it. Rank 1 is the best place.\n\nList 1, keyword search (best first): A, B, E, C, G\nList 2, meaning search (best first): D, G, B, F, A\n\nCalculate the score of every document (A to G) twice: once with k = 60 and once with k = 2. Show one table with 4 decimals. Then give the final ranking for each k. If two documents tie, say so.",
+                "expect": "A table with 7 rows. With k = 60 the top document is <strong>B</strong>. With k = 2 the top document is <strong>A</strong>. C and F tie at the bottom.",
+                "example": "Doc | k=60 | k=2\nA | 0.0318 | 0.4762\nB | 0.0320 | 0.4500\nC | 0.0156 | 0.1667\nD | 0.0164 | 0.3333\nE | 0.0159 | 0.2000\nF | 0.0156 | 0.1667\nG | 0.0315 | 0.3929\n\nk=60 ranking: B, A, G, D, E, then C and F tie.\nk=2 ranking: A, B, G, D, E, then C and F tie."
+              },
+              {
+                "chat": "same",
+                "do": "Copy this prompt, paste it, and press Enter. Write down which search decided the winner.",
+                "prompt": "A search system gives these scores to 3 documents.\n\nKeyword score (BM25): X = 14.2, Y = 9.8, Z = 2.1\nMeaning score (cosine): X = 0.61, Y = 0.83, Z = 0.88\n\nAdd the two scores of each document, and rank the documents by the sum. Which of the two searches decided the winner? Why is adding these two scores not fair? Answer in 3 short sentences after the ranking.",
+                "expect": "The sums are X = 14.81, Y = 10.63, Z = 2.98. X wins, because the keyword scores are far bigger than the cosine scores.",
+                "example": "Ranking by sum: X = 14.81, Y = 10.63, Z = 2.98.\nThe keyword search decided the winner. Its scores are large, so the cosine scores hardly matter. Cosine says Z is best, but Z comes last. The two scores are on different scales, so adding them is not fair."
+              }
+            ],
+            "learned": "RRF scores a document by its <strong>place</strong> in each list, not by its raw score: 1 / (k + place). With k = 60, a document that is high in both lists (B) wins. With k = 2, a first place counts much more, so A wins. Search tools use different k (Elasticsearch uses 60, Qdrant uses 2), so the same lists can give a different order.",
+            "done": "You have two rankings: B first with k = 60, and A first with k = 2.",
+            "check": {
+              "question": "Why does RRF use the place in each list and not the raw scores?",
+              "answer": "Keyword scores and meaning scores use different scales, so adding them is not fair: the bigger numbers win. Places have the same scale in every list."
             },
-            {
-              "label": "Prompt B",
-              "text": "A hybrid search system has these raw scores for three documents.\n\nBM25 scores: X = 14.2, Y = 9.8, Z = 2.1\nCosine scores: X = 0.61, Y = 0.83, Z = 0.88\n\n1) Add the raw scores for each document and rank them.\n2) Rank them again with RRF (k = 60), using each document's rank in each list.\n3) In 3 short sentences, explain which method treats both retrievers fairly and why."
-            }
-          ],
-          "lookFor": [
-            "With k = 60 the top document is B. With k = 2 the top document is C. A small change in k can change the order.",
-            "B is never first in either list, but it is ranked high in both lists. Agreement between retrievers wins.",
-            "In Prompt B the raw sum is almost the same as the BM25 order, because BM25 scores are large. RRF gives the two lists a similar weight."
-          ],
-          "check": {
-            "question": "Why does RRF use ranks and not the raw scores of BM25 and the vector search?",
-            "answer": "BM25 scores are unbounded and the vector scores are cosine values, so they sit on different scales and cannot be added fairly. Rank-based fusion removes the scale problem, but its constant k still matters, and engines use different defaults."
+            "challenge": "Ask the AI to add a third list, <em>Newest first: B, E, A, C, D, F, G</em>, and compute again with k = 60. Which document wins now?"
           },
-          "challenge": "Ask the model to add a third list, <em>Recency list: E, A, B, C, D, F, G</em>, and recompute with k = 60. Which document wins now?"
+          "bn": {
+            "title": "RRF দিয়ে দুটো search list মেলাও",
+            "why": "তুমি যখন help centre-এর জন্য search বানাবে, keyword search আর অর্থ দিয়ে search, দুটো আলাদা ranked list দেবে। তোমাকে দুটোকে এক list-এ মেলাতে হবে, আর মেলানোর নিয়মই ঠিক করে user আগে কী দেখবে।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, chat-এ paste করে Enter চাপো। k = 60 আর k = 2-এর জন্য সবার উপরের document কোনটা, লিখে রাখো।",
+                "prompt": "Reciprocal rank fusion (RRF) ranked list মেলানোর একটা উপায়। প্রতিটা document এই score পায়: যতগুলো list-এ document-টা আছে, প্রতিটার জন্য 1 / (k + rank) যোগ করো। Rank 1 মানে সবচেয়ে ভালো জায়গা।\n\nList 1, keyword search (সেরা আগে): A, B, E, C, G\nList 2, অর্থ দিয়ে search (সেরা আগে): D, G, B, F, A\n\nA থেকে G পর্যন্ত প্রতিটা document-এর score দুইবার হিসাব করো: একবার k = 60 দিয়ে, একবার k = 2 দিয়ে। দশমিকের পর 4 ঘর দিয়ে একটা table দেখাও। তারপর প্রতিটা k-এর জন্য চূড়ান্ত ranking দাও। দুটো document-এর score সমান হলে সেটা বলো।",
+                "expect": "7 সারির একটা table। k = 60 হলে সবার উপরে <strong>B</strong>। k = 2 হলে সবার উপরে <strong>A</strong>। C আর F-এর score সমান, তারা একদম নিচে।",
+                "example": "Doc | k=60 | k=2\nA | 0.0318 | 0.4762\nB | 0.0320 | 0.4500\nC | 0.0156 | 0.1667\nD | 0.0164 | 0.3333\nE | 0.0159 | 0.2000\nF | 0.0156 | 0.1667\nG | 0.0315 | 0.3929\n\nk=60 ranking: B, A, G, D, E, তারপর C আর F সমান।\nk=2 ranking: A, B, G, D, E, তারপর C আর F সমান।"
+              },
+              {
+                "chat": "same",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। কোন search winner ঠিক করেছে, লিখে রাখো।",
+                "prompt": "একটা search system 3টা document-কে এই score দিয়েছে।\n\nKeyword score (BM25): X = 14.2, Y = 9.8, Z = 2.1\nঅর্থের score (cosine): X = 0.61, Y = 0.83, Z = 0.88\n\nপ্রতিটা document-এর দুটো score যোগ করো, আর যোগফল দিয়ে ranking বানাও। দুটো search-এর মধ্যে কোনটা winner ঠিক করেছে? এই দুটো score যোগ করা কেন ঠিক নয়? ranking-এর পরে 3টা ছোট বাক্যে উত্তর দাও।",
+                "expect": "যোগফল X = 14.81, Y = 10.63, Z = 2.98। X জেতে, কারণ keyword score cosine score-এর চেয়ে অনেক বড়।",
+                "example": "যোগফল অনুযায়ী ranking: X = 14.81, Y = 10.63, Z = 2.98।\nKeyword search winner ঠিক করেছে। তার score বড়, তাই cosine score প্রায় কোনো কাজেই লাগেনি। cosine বলছে Z সেরা, কিন্তু Z শেষে। দুটো score-এর scale আলাদা, তাই যোগ করা ঠিক নয়।"
+              }
+            ],
+            "learned": "RRF একটা document-কে score দেয় প্রতিটা list-এ তার <strong>জায়গা</strong> দেখে, raw score দেখে নয়: 1 / (k + জায়গা)। k = 60 হলে যে document দুই list-এই উপরের দিকে (B), সে জেতে। k = 2 হলে প্রথম জায়গার দাম অনেক বেশি, তাই A জেতে। বিভিন্ন search tool আলাদা k ব্যবহার করে (Elasticsearch 60, Qdrant 2), তাই একই list থেকে আলাদা order আসতে পারে।",
+            "done": "তোমার কাছে দুটো ranking আছে: k = 60 হলে B প্রথম, আর k = 2 হলে A প্রথম।",
+            "check": {
+              "question": "RRF কেন raw score না নিয়ে প্রতিটা list-এ জায়গা ব্যবহার করে?",
+              "answer": "Keyword score আর অর্থের score-এর scale আলাদা, তাই যোগ করা ঠিক নয়: বড় সংখ্যাই জিতে যায়। জায়গার scale সব list-এ একই।"
+            },
+            "challenge": "AI-কে বলো তৃতীয় একটা list যোগ করতে, <em>সবচেয়ে নতুন আগে: B, E, A, C, D, F, G</em>, আর k = 60 দিয়ে আবার হিসাব করতে। এবার কোন document জেতে?"
+          }
         }
       ]
     },
@@ -1076,37 +1167,74 @@
       ],
       "practice": [
         {
-          "title": "Search with a hypothetical answer",
-          "goal": "See that a vague user query matches the wrong passage by keyword, and that a HyDE-style hypothetical answer finds the right one.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. Note which document the model picks for the raw query.",
-            "In the <strong>same</strong> chat, send Prompt B. Copy the passage the model writes.",
-            "Send Prompt C in the same chat, with that passage pasted in place of the marked text. Compare the picked document with step 1."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "You are a keyword search engine. Score each document by the number of words it shares with the query (ignore the words: a, the, it, I, when, to, on). List the shared words and the count per document. Then name the best document.\n\nQuery: \"it keeps saying not allowed when I push\"\n\nD1: Fixing HTTP 403 Forbidden on git push. Your access token lacks write permission. Create a new personal access token with the repo scope.\nD2: How to push a new branch. Run git push origin branch-name. Use --set-upstream to track it.\nD3: Branch protection rules block direct pushes to main. Permission is denied for everyone except admins. Open a pull request instead.\nD4: Cleaning up old branches. Delete merged branches with git branch -d."
+          "en": {
+            "title": "Search with a made-up answer",
+            "why": "When you build a help-centre chatbot, users type vague questions like <em>it keeps saying not allowed</em>. The help articles use other words, like <em>permission denied</em>, so a keyword search misses them.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Write down which document wins.",
+                "prompt": "You are a keyword search engine. Score each document by the number of different words it shares with the query. Ignore these small words: a, an, the, it, I, you, your, is, are, was, to, on, in, of, for, with, and, or, if, when, that, this, there, no. Show the shared words and the count for each document. Then name the best document.\n\nQuery: \"it keeps saying not allowed when I push\"\n\nD1: Fixing HTTP 403 Forbidden on git push. Your access token lacks write permission. Create a new personal access token with the repo scope.\nD2: How to push a new branch. Run git push origin branch-name. If the terminal keeps saying there is no upstream, use --set-upstream.\nD3: Branch protection rules block direct pushes to main. Permission is denied for everyone except admins. Open a pull request instead.\nD4: Cleaning up old branches. Delete merged branches with git branch -d.",
+                "expect": "<strong>D2</strong> wins with 3 shared words (<em>push</em>, <em>keeps</em>, <em>saying</em>). D1 has 1, and D3 and D4 have 0. D2 only shows how to push. It does not fix the error.",
+                "example": "Shared words:\nD1: push = 1\nD2: keeps, push, saying = 3\nD3: none = 0\nD4: none = 0\nBest document: D2"
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Then copy the passage that the AI writes.",
+                "prompt": "Write a short passage (3 sentences) that could appear in a help-centre article answering this question: \"it keeps saying not allowed when I push\". The passage may contain guesses. Do not add a title or a comment.",
+                "expect": "A passage of 3 sentences with words like <em>permission</em>, <em>denied</em>, <em>forbidden</em>, or <em>token</em>.",
+                "example": "If you see 'permission denied' or '403 Forbidden' when you push, your access token may not have write permission. The branch may also be protected, so direct pushes are blocked. Create a new token with the repo scope, or open a pull request instead."
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt. Replace the words in brackets with your passage from step 2. Paste it and press Enter.",
+                "prompt": "You are a keyword search engine. Score each document by the number of different words it shares with the query. Ignore these small words: a, an, the, it, I, you, your, is, are, was, to, on, in, of, for, with, and, or, if, when, that, this, there, no. Show the shared words and the count for each document. Then name the best document.\n\nQuery: \"[PASTE YOUR PASSAGE HERE]\"\n\nD1: Fixing HTTP 403 Forbidden on git push. Your access token lacks write permission. Create a new personal access token with the repo scope.\nD2: How to push a new branch. Run git push origin branch-name. If the terminal keeps saying there is no upstream, use --set-upstream.\nD3: Branch protection rules block direct pushes to main. Permission is denied for everyone except admins. Open a pull request instead.\nD4: Cleaning up old branches. Delete merged branches with git branch -d.",
+                "expect": "<strong>D1</strong> or <strong>D3</strong> wins now, and D2 falls behind. For the example passage below, D1 has 11 shared words, D3 has 9, and D2 has 3.",
+                "example": "Shared words:\nD1: 403, access, create, forbidden, new, permission, push, repo, scope, token, write = 11\nD2: branch, new, push = 3\nD3: branch, denied, direct, instead, open, permission, pull, pushes, request = 9\nD4: branch = 1\nBest document: D1"
+              }
+            ],
+            "learned": "A short, vague question and the real answer often use different words. In <strong>HyDE</strong> (search with a made-up answer), the AI first writes a fake answer, and you search with that text instead of the question. The fake answer can have wrong details. But it uses the words real answers use, like <em>permission</em> and <em>denied</em>, so it finds D1 and D3 instead of D2.",
+            "done": "You have two winners: D2 for the raw question, and D1 or D3 for the made-up passage.",
+            "check": {
+              "question": "Why can a made-up answer find better documents than the original question?",
+              "answer": "The made-up answer is written in the style and words of a real answer, so it matches the right documents better than a short, vague question. It can contain false details, because the search only needs its words, not its facts."
             },
-            {
-              "label": "Prompt B",
-              "text": "Write a short passage (3 sentences) that could appear in a help-centre article answering this question: \"it keeps saying not allowed when I push\". The passage may contain guesses. Do not add any title or comment."
-            },
-            {
-              "label": "Prompt C",
-              "text": "Repeat the same keyword search with the same rules and the same documents D1 to D4. This time the query is the passage below. List the shared words and the count per document, then name the best document.\n\nQuery: \"[PASTE THE PASSAGE FROM PROMPT B HERE]\""
-            }
-          ],
-          "lookFor": [
-            "With the raw query, D2 often wins on the single word \"push\", but D2 does not explain the error.",
-            "The hypothetical passage is likely to use words such as permission, denied, forbidden, token, or protection.",
-            "With the passage as query, D1 or D3 often wins. The passage may contain wrong details, but the right documents still match."
-          ],
-          "check": {
-            "question": "Why can a made-up answer retrieve better than the original question in HyDE?",
-            "answer": "The hypothetical document is written in the style and vocabulary of a real answer, so it matches relevant documents better than a short vague query. It may contain false details, but the retrieval step only needs its relevance pattern, not its facts."
+            "challenge": "In a new chat, ask the AI for three different rewrites of the query from step 1. Run the keyword search with each rewrite. Do the top documents agree?"
           },
-          "challenge": "Ask the model for three different rewrites of the raw query. Run the keyword search with each one. Do the three lists of top documents agree?"
+          "bn": {
+            "title": "বানানো একটা উত্তর দিয়ে search করো",
+            "why": "তুমি যখন একটা help-centre chatbot বানাবে, user অস্পষ্ট প্রশ্ন লিখবে, যেমন <em>it keeps saying not allowed</em>। help article-এ লেখা থাকবে অন্য শব্দ, যেমন <em>permission denied</em>, তাই keyword search সেগুলো মিস করে।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, chat-এ paste করে Enter চাপো। কোন document জেতে, লিখে রাখো। এই prompt টা English-এ রাখা হয়েছে, কারণ এখানে English শব্দ মেলানো হবে।",
+                "prompt": "You are a keyword search engine. Score each document by the number of different words it shares with the query. Ignore these small words: a, an, the, it, I, you, your, is, are, was, to, on, in, of, for, with, and, or, if, when, that, this, there, no. Show the shared words and the count for each document. Then name the best document.\n\nQuery: \"it keeps saying not allowed when I push\"\n\nD1: Fixing HTTP 403 Forbidden on git push. Your access token lacks write permission. Create a new personal access token with the repo scope.\nD2: How to push a new branch. Run git push origin branch-name. If the terminal keeps saying there is no upstream, use --set-upstream.\nD3: Branch protection rules block direct pushes to main. Permission is denied for everyone except admins. Open a pull request instead.\nD4: Cleaning up old branches. Delete merged branches with git branch -d.",
+                "expect": "<strong>D2</strong> জেতে, 3টা মেলা শব্দ নিয়ে (<em>push</em>, <em>keeps</em>, <em>saying</em>)। D1-এ আছে 1টা, আর D3 ও D4-এ 0। D2 শুধু push করা শেখায়, error ঠিক করা শেখায় না।",
+                "example": "Shared words:\nD1: push = 1\nD2: keeps, push, saying = 3\nD3: none = 0\nD4: none = 0\nBest document: D2"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। তারপর AI যে passage লেখে, সেটা copy করো। এই prompt টা English-এ রাখা হয়েছে, কারণ এখানে English শব্দ মেলানো হবে।",
+                "prompt": "Write a short passage (3 sentences) that could appear in a help-centre article answering this question: \"it keeps saying not allowed when I push\". The passage may contain guesses. Do not add a title or a comment.",
+                "expect": "3 বাক্যের একটা passage, যেখানে <em>permission</em>, <em>denied</em>, <em>forbidden</em>, বা <em>token</em>-এর মতো শব্দ আছে।",
+                "example": "If you see 'permission denied' or '403 Forbidden' when you push, your access token may not have write permission. The branch may also be protected, so direct pushes are blocked. Create a new token with the repo scope, or open a pull request instead."
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো। brackets-এর ভেতরের লেখাটা ধাপ ২-এর passage দিয়ে বদলাও। paste করে Enter চাপো। এই prompt টা English-এ রাখা হয়েছে, কারণ এখানে English শব্দ মেলানো হবে।",
+                "prompt": "You are a keyword search engine. Score each document by the number of different words it shares with the query. Ignore these small words: a, an, the, it, I, you, your, is, are, was, to, on, in, of, for, with, and, or, if, when, that, this, there, no. Show the shared words and the count for each document. Then name the best document.\n\nQuery: \"[PASTE YOUR PASSAGE HERE]\"\n\nD1: Fixing HTTP 403 Forbidden on git push. Your access token lacks write permission. Create a new personal access token with the repo scope.\nD2: How to push a new branch. Run git push origin branch-name. If the terminal keeps saying there is no upstream, use --set-upstream.\nD3: Branch protection rules block direct pushes to main. Permission is denied for everyone except admins. Open a pull request instead.\nD4: Cleaning up old branches. Delete merged branches with git branch -d.",
+                "expect": "এবার <strong>D1</strong> বা <strong>D3</strong> জেতে, আর D2 পিছিয়ে যায়। নিচের example passage-এ D1-এর 11টা, D3-এর 9টা, আর D2-এর 3টা মেলা শব্দ।",
+                "example": "Shared words:\nD1: 403, access, create, forbidden, new, permission, push, repo, scope, token, write = 11\nD2: branch, new, push = 3\nD3: branch, denied, direct, instead, open, permission, pull, pushes, request = 9\nD4: branch = 1\nBest document: D1"
+              }
+            ],
+            "learned": "ছোট, অস্পষ্ট প্রশ্ন আর আসল উত্তর প্রায়ই আলাদা শব্দ ব্যবহার করে। <strong>HyDE</strong>-তে (বানানো উত্তর দিয়ে search) AI আগে একটা নকল উত্তর লেখে, আর তুমি প্রশ্নের বদলে সেই লেখা দিয়ে search করো। নকল উত্তরে ভুল details থাকতে পারে। কিন্তু সে সেই শব্দগুলো ব্যবহার করে যা আসল উত্তরে থাকে, যেমন <em>permission</em> আর <em>denied</em>, তাই D2-এর বদলে D1 আর D3 পাওয়া যায়।",
+            "done": "তোমার কাছে দুটো winner আছে: মূল প্রশ্নে D2, আর বানানো passage-এ D1 বা D3।",
+            "check": {
+              "question": "বানানো একটা উত্তর কেন মূল প্রশ্নের চেয়ে ভালো document খুঁজে পায়?",
+              "answer": "বানানো উত্তরটা আসল উত্তরের ধরন আর শব্দে লেখা, তাই ছোট অস্পষ্ট প্রশ্নের চেয়ে সে সঠিক document-এর সাথে ভালো মেলে। তাতে ভুল details থাকতে পারে, কারণ search-এর শুধু শব্দ দরকার, তথ্য নয়।"
+            },
+            "challenge": "নতুন chat-এ AI-কে ধাপ ১-এর query-টার তিনটা আলাদা rewrite বানাতে বলো। প্রতিটা rewrite দিয়ে keyword search চালাও। সবার top document কি এক?"
+          }
         }
       ]
     },
@@ -1320,37 +1448,88 @@
       ],
       "practice": [
         {
-          "title": "Play the search tool for an agent",
-          "goal": "See that a multi-hop question needs several searches, where each query depends on the last result, and that the model must decide when to stop.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. The model should answer with one search call. Do not answer it yet.",
-            "In the <strong>same</strong> chat, send Prompt B as the first tool result. Then send Prompt C as the next tool result.",
-            "If the model asks for a third search, reply: <code>Search result: Amina Rahman works in the Chattogram office.</code> Count the searches."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "You are a research agent. You can use one tool.\n\nTool: search(query: string) -> returns a short text snippet from the company wiki.\n\nRules:\n- Reply with ONLY one line, either: SEARCH: <your query>  or  FINAL: <your answer>.\n- Use at most 4 searches.\n- Use only information from search results. Do not guess.\n\nQuestion: In which city does the manager of the team that built the Kestrel payment API work?"
+          "en": {
+            "title": "Play the search tool for an AI agent",
+            "why": "When you build a research agent, some questions need several searches, and each search depends on the last result. The agent must also know when to stop.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Do not answer the search yet.",
+                "prompt": "You are a research agent. You can use one tool.\n\nTool: search(query) returns a short text from the company wiki.\n\nRules:\n- Reply with ONLY one line: either SEARCH: <your query> or FINAL: <your answer>.\n- Use at most 4 searches.\n- Use only facts from search results. Do not guess.\n\nQuestion: In which city does the manager of the team that built the Kestrel payment API work?",
+                "expect": "One line that starts with <code>SEARCH:</code>, for example <em>SEARCH: Kestrel payment API team</em>. It should not say <code>FINAL:</code> yet, because it knows no facts.",
+                "example": "SEARCH: Which team built the Kestrel payment API?"
+              },
+              {
+                "chat": "same",
+                "do": "You are the search tool now. Copy this line, paste it, and press Enter.",
+                "prompt": "Search result: The Kestrel payment API was built by the Ledger team in 2023.",
+                "expect": "A new search that uses the team name, for example <em>SEARCH: Who manages the Ledger team?</em>",
+                "example": "SEARCH: Who manages the Ledger team?"
+              },
+              {
+                "chat": "same",
+                "do": "Copy this line, paste it, and press Enter.",
+                "prompt": "Search result: The Ledger team is managed by Amina Rahman.",
+                "expect": "A third search that uses the manager's name, for example <em>SEARCH: In which city does Amina Rahman work?</em>",
+                "example": "SEARCH: In which city does Amina Rahman work?"
+              },
+              {
+                "chat": "same",
+                "do": "Copy this line, paste it, and press Enter. Count the searches the AI made.",
+                "prompt": "Search result: Amina Rahman works in the Chattogram office.",
+                "expect": "<code>FINAL:</code> with the city <strong>Chattogram</strong>. The AI made 3 searches.",
+                "example": "FINAL: Chattogram"
+              }
+            ],
+            "learned": "No single search could answer this question. Each search needed a fact from the search before it: the team, then the manager, then the city. A question like this is called <strong>multi-hop</strong>. In agentic retrieval, the AI chooses the next search itself and decides when to stop. The price is more AI calls.",
+            "done": "You have a <code>FINAL:</code> answer, <em>Chattogram</em>, after 3 searches.",
+            "check": {
+              "question": "Why can one single search not answer this question well?",
+              "answer": "The second and third searches need facts that only the earlier searches found, so no single query holds everything. The AI has to choose each next search, and that costs more AI calls."
             },
-            {
-              "label": "Prompt B",
-              "text": "Search result: The Kestrel payment API was built by the Ledger team in 2023."
-            },
-            {
-              "label": "Prompt C",
-              "text": "Search result: The Ledger team is managed by Amina Rahman."
-            }
-          ],
-          "lookFor": [
-            "The first query asks about Kestrel. It cannot contain the final answer, because the manager's name is not known yet.",
-            "The second query uses a fact from the first result (the Ledger team). Each search depends on the last one.",
-            "The model should write FINAL only after it has the city. Some models stop early and guess. That is a failure."
-          ],
-          "check": {
-            "question": "Why can one single retrieval step not answer this question well?",
-            "answer": "The second and third searches depend on what the earlier searches found, so no single query holds all the needed facts. This is a multi-hop question, and agentic retrieval lets the model choose the next query and when to stop, at the cost of more LLM calls."
+            "challenge": "Start a new chat with the prompt from step 1, but change the rule to <em>Use at most 2 searches</em>. Play the tool again. What does the AI do when it cannot finish in time? Is that what you want?"
           },
-          "challenge": "Start a new chat with Prompt A, but change the rule to <em>Use at most 2 searches</em>. What does the model do when it cannot finish in time? Is that what you want?"
+          "bn": {
+            "title": "AI agent-এর search tool সেজে দেখো",
+            "why": "তুমি যখন একটা research agent বানাবে, কিছু প্রশ্নের জন্য কয়েকবার search লাগবে, আর প্রতিটা search আগের result-এর উপর নির্ভর করে। agent-কে এটাও জানতে হবে কখন থামতে হবে।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, chat-এ paste করে Enter চাপো। search-এর উত্তর এখনই দিও না।",
+                "prompt": "তুমি একজন research agent। তুমি একটা tool ব্যবহার করতে পারো।\n\nTool: search(query) company wiki থেকে একটা ছোট text ফেরত দেয়।\n\nনিয়ম:\n- শুধু একটা লাইনে উত্তর দাও: হয় SEARCH: <তোমার query> অথবা FINAL: <তোমার উত্তর>।\n- সর্বোচ্চ 4বার search করতে পারবে।\n- শুধু search result-এর তথ্য ব্যবহার করবে। অনুমান করবে না।\n\nপ্রশ্ন: Kestrel payment API যে team বানিয়েছে, তার manager কোন শহরে কাজ করেন?",
+                "expect": "একটা লাইন, যেটা <code>SEARCH:</code> দিয়ে শুরু, যেমন <em>SEARCH: Kestrel payment API team</em>। এখনই <code>FINAL:</code> লেখা উচিত নয়, কারণ সে কোনো তথ্য জানে না।",
+                "example": "SEARCH: Kestrel payment API কোন team বানিয়েছে?"
+              },
+              {
+                "chat": "same",
+                "do": "এখন তুমি search tool। এই লাইনটা copy করো, paste করে Enter চাপো।",
+                "prompt": "Search result: Kestrel payment API 2023 সালে Ledger team বানিয়েছে।",
+                "expect": "team-এর নাম দিয়ে নতুন একটা search, যেমন <em>SEARCH: Ledger team-এর manager কে?</em>",
+                "example": "SEARCH: Ledger team-এর manager কে?"
+              },
+              {
+                "chat": "same",
+                "do": "এই লাইনটা copy করো, paste করে Enter চাপো।",
+                "prompt": "Search result: Ledger team-এর manager Amina Rahman।",
+                "expect": "manager-এর নাম দিয়ে তৃতীয় একটা search, যেমন <em>SEARCH: Amina Rahman কোন শহরে কাজ করেন?</em>",
+                "example": "SEARCH: Amina Rahman কোন শহরে কাজ করেন?"
+              },
+              {
+                "chat": "same",
+                "do": "এই লাইনটা copy করো, paste করে Enter চাপো। AI কয়বার search করল, গুনে রাখো।",
+                "prompt": "Search result: Amina Rahman Chattogram office-এ কাজ করেন।",
+                "expect": "<code>FINAL:</code> দিয়ে শহরের নাম <strong>Chattogram</strong>। AI মোট 3বার search করেছে।",
+                "example": "FINAL: Chattogram"
+              }
+            ],
+            "learned": "একটা search দিয়ে এই প্রশ্নের উত্তর পাওয়া যেত না। প্রতিটা search-এর আগের search থেকে একটা তথ্য লেগেছে: আগে team, তারপর manager, তারপর শহর। এরকম প্রশ্নকে বলে <strong>multi-hop</strong>। agentic retrieval-এ AI নিজেই ঠিক করে পরের search কী হবে, আর কখন থামবে। এর দাম হলো বেশি AI call।",
+            "done": "3টা search-এর পর তোমার কাছে একটা <code>FINAL:</code> উত্তর আছে, <em>Chattogram</em>।",
+            "check": {
+              "question": "একটা মাত্র search এই প্রশ্নের ভালো উত্তর কেন দিতে পারে না?",
+              "answer": "দ্বিতীয় আর তৃতীয় search-এর যে তথ্য লাগে, তা আগের search-গুলোই পেয়েছে, তাই একটা query-তে সব তথ্য থাকে না। AI-কে প্রতিবার পরের search ঠিক করতে হয়, আর তাতে বেশি AI call লাগে।"
+            },
+            "challenge": "নতুন chat-এ ধাপ ১-এর prompt দিয়ে শুরু করো, কিন্তু নিয়মটা বদলে লেখো <em>সর্বোচ্চ 2বার search করতে পারবে</em>। আবার tool সাজো। সময়মতো শেষ করতে না পারলে AI কী করে? তুমি কি এটাই চাও?"
+          }
         }
       ]
     },
@@ -1555,33 +1734,60 @@
       ],
       "practice": [
         {
-          "title": "Rerank candidates, then cut too early",
-          "goal": "See a reranker fix a wrong keyword order, and see that it cannot find a passage that stage one did not return.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. Compare the new order with the first-stage order.",
-            "Send Prompt B in a <strong>new</strong> chat. It has only the top 2 candidates from the same list.",
-            "Write down what the model says about Prompt B. Could any reranker give a good answer here?"
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "You are a reranker. Read the query and the 6 candidate passages, which are in first-stage (keyword) order. Give each passage a relevance score from 0 to 10 for the query, with a 1-sentence reason. Then output the new order, best first.\n\nQuery: Can I get my money back if the course is bad?\n\n1. Our course gets very good reviews, and the money you spend on learning is well spent.\n2. Please get back to us within 24 hours if the course website is down.\n3. Refund policy: if you are not satisfied, request a refund within 30 days. We return the full amount to your card.\n4. Course prices include tax. Money transfers from other banks take 2 days.\n5. Refunds need a receipt or an order number.\n6. Bad weather may delay in-person classes."
+          "en": {
+            "title": "Let an AI reorder search results",
+            "why": "When you build a help-centre search, the first search is fast but often puts the wrong passage on top. A reranker is a second AI step that reads the question with each passage and reorders them.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Compare the new order with the order in the prompt.",
+                "prompt": "You are a reranker. Read the query and the 6 passages below. They are in the order a keyword search gave them. Give each passage a relevance score from 0 to 10 for the query, with a 1-sentence reason. Then give the new order, best first.\n\nQuery: Can I get my money back if the course is bad?\n\n1. Our course gets very good reviews, and the money you spend on learning is well spent.\n2. Please get back to us within 24 hours if the course website is down.\n3. Refund policy: if you are not satisfied, request a refund within 30 days. We return the full amount to your card.\n4. Course prices include tax. Money transfers from other banks take 2 days.\n5. Refunds need a receipt or an order number.\n6. Bad weather may delay in-person classes.",
+                "expect": "Passage <strong>3</strong> (the refund policy) moves to the top. Passage 5 gets a middle score. Passages 1, 2, 4, and 6 get low scores.",
+                "example": "1. Score 2. It praises the course but says nothing about refunds.\n2. Score 1. It is about a website problem.\n3. Score 10. It says you can get a full refund in 30 days.\n4. Score 2. It is about prices and bank transfers.\n5. Score 6. It is about refunds, but gives only what you need to ask.\n6. Score 0. It is about weather.\n\nNew order: 3, 5, 1, 4, 2, 6"
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. It has only the top 2 passages of the same list.",
+                "prompt": "You are a reranker. Read the query and the 2 passages below. They are the top 2 results of a first search. Give each passage a relevance score from 0 to 10 for the query, with a 1-sentence reason. Then say if these 2 passages are enough to answer the query.\n\nQuery: Can I get my money back if the course is bad?\n\n1. Our course gets very good reviews, and the money you spend on learning is well spent.\n2. Please get back to us within 24 hours if the course website is down.",
+                "expect": "Both scores are low, and the AI says these passages are <strong>not enough</strong>. The refund policy is not in the list.",
+                "example": "1. Score 2. It praises the course but does not say how to get money back.\n2. Score 1. It is about a website problem.\nThese 2 passages are not enough. Neither one talks about refunds."
+              }
+            ],
+            "learned": "The first search matched single words like <em>money</em> and <em>course</em>. The reranker reads the question and each passage together, so it sees that passage 3 really answers it. But a reranker can only reorder the passages it gets. In step 2 the right passage was not in the list, so no reranker could find it.",
+            "done": "You have a new order with passage 3 on top, and a low-score answer for the list of 2.",
+            "check": {
+              "question": "What can a reranker do, and what can it not do?",
+              "answer": "It can reorder the passages it receives and put the best one on top, because it reads the question and the passage together. It cannot find a passage that the first search did not return."
             },
-            {
-              "label": "Prompt B",
-              "text": "You are a reranker. Read the query and the 2 candidate passages, which are the top 2 from a first-stage search. Give each passage a relevance score from 0 to 10 for the query, with a 1-sentence reason. Then say if the candidates are enough to answer the query.\n\nQuery: Can I get my money back if the course is bad?\n\n1. Our course gets very good reviews, and the money you spend on learning is well spent.\n2. Please get back to us within 24 hours if the course website is down."
-            }
-          ],
-          "lookFor": [
-            "In Prompt A, passage 3 (the refund policy) should move to the top, and passage 5 should be high. They share few exact words with the query.",
-            "Passages 1, 2, and 4 share words like \"money\" and \"course\" but do not answer the question, so they get low scores.",
-            "In Prompt B both scores are low. The right passage is not in the list, so no reranking can recover it."
-          ],
-          "check": {
-            "question": "Why does a cross-encoder reranker give better order than the first-stage retriever, and what can it not do?",
-            "answer": "A reranker reads the query and the passage together, so it can judge meaning, while first-stage retrieval scores each document without the query in view. But a reranker only re-orders the candidates it receives. If the right passage is not in the top-N, it is lost."
+            "challenge": "In a new chat, add a seventh passage at the end of the step 1 prompt: <em>7. Money-back requests are handled by billing.</em> Where does the AI put it? Is its score fair?"
           },
-          "challenge": "Add a seventh passage, <em>Money-back requests are handled by billing.</em>, at the end of Prompt A. Where does the model put it, and is its score fair?"
+          "bn": {
+            "title": "AI দিয়ে search result নতুন করে সাজাও",
+            "why": "তুমি যখন help-centre search বানাবে, প্রথম search দ্রুত হলেও প্রায়ই ভুল passage উপরে রাখে। reranker হলো দ্বিতীয় একটা AI ধাপ, যে প্রশ্নটা আর প্রতিটা passage একসাথে পড়ে নতুন করে সাজায়।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, chat-এ paste করে Enter চাপো। prompt-এর order-এর সাথে নতুন order মেলাও।",
+                "prompt": "তুমি একটা reranker। নিচের query আর 6টা passage পড়ো। passage-গুলো সাজানো আছে keyword search যে order-এ দিয়েছে সেভাবে। প্রতিটা passage-কে query-র জন্য 0 থেকে 10 পর্যন্ত একটা relevance score দাও, সাথে 1 বাক্যে কারণ। তারপর নতুন order দাও, সেরা আগে।\n\nQuery: কোর্সটা খারাপ হলে কি আমি টাকা ফেরত পাব?\n\n1. আমাদের কোর্সের review খুব ভালো, আর শেখার পেছনে তুমি যে টাকা খরচ করো তা সার্থক হয়।\n2. কোর্সের website বন্ধ থাকলে 24 ঘণ্টার মধ্যে আমাদের জানাও।\n3. Refund policy: সন্তুষ্ট না হলে 30 দিনের মধ্যে refund চাইতে পারবে। আমরা পুরো টাকা তোমার card-এ ফেরত দিই।\n4. কোর্সের দামে tax ধরা আছে। অন্য bank থেকে টাকা পাঠাতে 2 দিন লাগে।\n5. Refund পেতে receipt বা order number লাগে।\n6. খারাপ আবহাওয়ায় সামনাসামনি ক্লাস দেরি হতে পারে।",
+                "expect": "<strong>3</strong> নম্বর passage (refund policy) একদম উপরে চলে আসে। 5 নম্বর মাঝারি score পায়। 1, 2, 4, আর 6 কম score পায়।",
+                "example": "1. Score 2। কোর্সের প্রশংসা আছে, কিন্তু refund-এর কথা নেই।\n2. Score 1। এটা website-এর সমস্যা নিয়ে।\n3. Score 10। এখানে বলা আছে 30 দিনে পুরো refund পাওয়া যায়।\n4. Score 2। এটা দাম আর bank transfer নিয়ে।\n5. Score 6। এটা refund নিয়ে, কিন্তু শুধু কী লাগবে সেটুকু বলে।\n6. Score 0। এটা আবহাওয়া নিয়ে।\n\nনতুন order: 3, 5, 1, 4, 2, 6"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। এখানে একই list-এর শুধু top 2 passage আছে।",
+                "prompt": "তুমি একটা reranker। নিচের query আর 2টা passage পড়ো। এগুলো প্রথম search-এর top 2 result। প্রতিটা passage-কে query-র জন্য 0 থেকে 10 পর্যন্ত একটা relevance score দাও, সাথে 1 বাক্যে কারণ। তারপর বলো এই 2টা passage দিয়ে query-র উত্তর দেওয়া যায় কি না।\n\nQuery: কোর্সটা খারাপ হলে কি আমি টাকা ফেরত পাব?\n\n1. আমাদের কোর্সের review খুব ভালো, আর শেখার পেছনে তুমি যে টাকা খরচ করো তা সার্থক হয়।\n2. কোর্সের website বন্ধ থাকলে 24 ঘণ্টার মধ্যে আমাদের জানাও।",
+                "expect": "দুটো score-ই কম, আর AI বলে এই passage-গুলো <strong>যথেষ্ট নয়</strong>। refund policy list-এ নেই।",
+                "example": "1. Score 2। কোর্সের প্রশংসা আছে, কিন্তু টাকা ফেরত পাওয়ার কথা নেই।\n2. Score 1। এটা website-এর সমস্যা নিয়ে।\nএই 2টা passage যথেষ্ট নয়। কোনোটাই refund নিয়ে কথা বলে না।"
+              }
+            ],
+            "learned": "প্রথম search মিলিয়েছে আলাদা আলাদা শব্দ, যেমন <em>টাকা</em> আর <em>কোর্স</em>। reranker প্রশ্ন আর প্রতিটা passage একসাথে পড়ে, তাই সে বোঝে 3 নম্বর passage-ই আসল উত্তর। কিন্তু reranker শুধু যে passage পায়, সেগুলোই নতুন করে সাজাতে পারে। ধাপ ২-এ সঠিক passage list-এ ছিল না, তাই কোনো reranker তাকে খুঁজে পেত না।",
+            "done": "তোমার কাছে 3 নম্বর passage উপরে থাকা একটা নতুন order আছে, আর 2টা passage-এর list-এর জন্য একটা কম-score উত্তর আছে।",
+            "check": {
+              "question": "reranker কী করতে পারে, আর কী পারে না?",
+              "answer": "সে যে passage পায়, সেগুলো নতুন করে সাজিয়ে সেরাটা উপরে আনতে পারে, কারণ সে প্রশ্ন আর passage একসাথে পড়ে। প্রথম search যে passage ফেরত দেয়নি, তাকে সে খুঁজে বের করতে পারে না।"
+            },
+            "challenge": "নতুন chat-এ ধাপ ১-এর prompt-এর শেষে সপ্তম একটা passage যোগ করো: <em>7. টাকা ফেরতের অনুরোধ billing বিভাগ দেখে।</em> AI তাকে কোথায় বসায়? তার score কি ন্যায্য?"
+          }
         }
       ]
     },
@@ -1810,33 +2016,74 @@
       ],
       "practice": [
         {
-          "title": "Test pre-filter against post-filter",
-          "goal": "See that filtering after the search can return zero results, and see how an LLM can turn a text request into a structured filter.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. Check the number of results for each method.",
-            "In the <strong>same</strong> chat, send Prompt B. Check that the filters only use the fields in the schema.",
-            "Write down what a downstream LLM would do with an empty result list."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "A movie search has a vector similarity score for the query \"space survival\". The user wants the top 3 movies with year greater than 2000.\n\nCatalog (title, year, rating, similarity):\nOrbit Lost, 1998, 8.4, 0.92\nRed Dust, 1995, 7.9, 0.90\nMoon Base Zero, 1999, 8.1, 0.88\nSilent Ship, 2004, 8.6, 0.80\nStar Harbor, 2012, 7.2, 0.78\nLunar Mail, 2016, 8.3, 0.75\nDeep Orbit, 2019, 8.8, 0.70\nDust Planet, 2001, 6.9, 0.66\n\nMethod 1 (post-filter): take the top 3 by similarity first, then remove movies with year 2000 or earlier.\nMethod 2 (pre-filter): remove movies with year 2000 or earlier first, then take the top 3 by similarity.\n\nShow the result of each method. Say how many results each returns."
+          "en": {
+            "title": "Filter before or after the search",
+            "why": "When you build a movie or product search, users add rules like <em>after 2000</em> or <em>under 500 taka</em>. If your system applies the rule at the wrong time, it can return nothing, and the AI behind it may start to guess.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Write down how many results each method gives.",
+                "prompt": "A movie search has a similarity score for the query \"space survival\". The user wants the top 3 movies with year greater than 2000.\n\nCatalog (title, year, rating, similarity):\nOrbit Lost, 1998, 8.4, 0.92\nRed Dust, 1995, 7.9, 0.90\nMoon Base Zero, 1999, 8.1, 0.88\nSilent Ship, 2004, 8.6, 0.80\nStar Harbor, 2012, 7.2, 0.78\nLunar Mail, 2016, 8.3, 0.75\nDeep Orbit, 2019, 8.8, 0.70\nDust Planet, 2001, 6.9, 0.66\n\nMethod 1 (post-filter): take the top 3 by similarity first, then remove the movies with year 2000 or earlier.\nMethod 2 (pre-filter): remove the movies with year 2000 or earlier first, then take the top 3 by similarity.\n\nShow the result of each method. Say how many results each method returns.",
+                "expect": "Method 1 gives <strong>0 results</strong>. Method 2 gives <strong>3 results</strong>: Silent Ship, Star Harbor, and Lunar Mail.",
+                "example": "Method 1 (post-filter): The top 3 by similarity are Orbit Lost (1998), Red Dust (1995), and Moon Base Zero (1999). All three are 2000 or earlier, so all are removed. Result: 0 movies.\n\nMethod 2 (pre-filter): Movies after 2000: Silent Ship (0.80), Star Harbor (0.78), Lunar Mail (0.75), Deep Orbit (0.70), Dust Planet (0.66). The top 3 are Silent Ship, Star Harbor, and Lunar Mail. Result: 3 movies."
+              },
+              {
+                "chat": "same",
+                "do": "Copy this prompt, paste it, and press Enter. See what the bot says when the search result is empty.",
+                "prompt": "Now you are the support bot. Answer the user using ONLY the results of Method 1. If there are no results, tell the user what happened.\n\nUser: Recommend one space survival movie made after 2000.",
+                "expect": "A good bot says it found no matching movie. A weaker bot may name a movie from memory, which is a made-up answer.",
+                "example": "Sorry, the search found no space survival movies made after 2000, so I cannot recommend one right now."
+              },
+              {
+                "chat": "same",
+                "do": "Copy this prompt, paste it, and press Enter. Compare the answer with step 2.",
+                "prompt": "Answer the same user again, now using ONLY the results of Method 2.",
+                "expect": "A real recommendation, most likely <em>Silent Ship</em> (2004), because it has the highest similarity.",
+                "example": "I recommend Silent Ship (2004). It is the closest match to space survival, and it has a rating of 8.6."
+              }
+            ],
+            "learned": "A <strong>post-filter</strong> searches first and removes items after. If the best matches fail the rule, nothing is left. A <strong>pre-filter</strong> removes the items first and then takes the top 3, so you get 3 results when 3 exist. An empty list is dangerous, because the AI behind it may guess. Check how many results come back, not only how good they look.",
+            "done": "You have 0 results for Method 1, 3 results for Method 2, and two different bot answers.",
+            "check": {
+              "question": "Why is an empty result list from a post-filter dangerous in a RAG system?",
+              "answer": "The search took the top items before the filter, so the matching items were never in the list. The AI then has nothing to use and may guess. A pre-filter returns the items that match the rule, so check the number of results, not only the scores."
             },
-            {
-              "label": "Prompt B",
-              "text": "You are a self-querying retriever. Turn each request into JSON with two keys: \"query\" (the meaning part) and \"filter\" (the structured part). Use ONLY these fields: genre (string), year (integer), rating (float). Allowed operators: $eq, $gt, $gte, $lt, $lte, $and. If a request needs a field that does not exist, put it in a \"unsupported\" key instead of inventing a field.\n\nRequests:\n1. sci-fi movies after 2000 with rating above 8\n2. gentle comedies from the 1990s\n3. movies directed by Nolan about dreams"
-            }
-          ],
-          "lookFor": [
-            "Method 1 returns no movies. The top 3 by similarity are all from 1999 or earlier, so the filter removes all of them.",
-            "Method 2 returns Silent Ship, Star Harbor, and Lunar Mail, which is exactly 3 results.",
-            "In request 3 a good model reports \"director\" as unsupported. A poor one invents a director field that the database does not have."
-          ],
-          "check": {
-            "question": "Why is an empty result list from a post-filter dangerous in a RAG system?",
-            "answer": "The filter ran after the approximate search, so the matching items were never in the candidate list, and the downstream LLM then answers from nothing or guesses. Pre-filtering (or filtering inside the index graph) returns k matching items, and you should check result counts, not only scores."
+            "challenge": "Ask the AI: <em>Turn this request into JSON with the keys query and filter: sci-fi movies after 2000 with rating above 8.</em> Which parts go into the query, and which into the filter?"
           },
-          "challenge": "Ask the model: <em>How many movies in the catalog have rating above 8, and what is their average year?</em> Is this a similarity problem or a database query? Which tool is the right one?"
+          "bn": {
+            "title": "Search-এর আগে নাকি পরে filter করবে",
+            "why": "তুমি যখন movie বা product search বানাবে, user নিয়ম দেবে, যেমন <em>2000 সালের পরে</em> বা <em>500 টাকার কম</em>। তোমার system নিয়মটা ভুল সময়ে লাগালে কিছুই ফেরত আসতে পারে না, আর পেছনের AI অনুমান করা শুরু করতে পারে।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, chat-এ paste করে Enter চাপো। প্রতিটা method কয়টা result দেয়, লিখে রাখো।",
+                "prompt": "একটা movie search \"space survival\" query-র জন্য প্রতিটা movie-কে similarity score দিয়েছে। user চায় 2000 সালের পরের সেরা 3টা movie।\n\nCatalog (title, year, rating, similarity):\nOrbit Lost, 1998, 8.4, 0.92\nRed Dust, 1995, 7.9, 0.90\nMoon Base Zero, 1999, 8.1, 0.88\nSilent Ship, 2004, 8.6, 0.80\nStar Harbor, 2012, 7.2, 0.78\nLunar Mail, 2016, 8.3, 0.75\nDeep Orbit, 2019, 8.8, 0.70\nDust Planet, 2001, 6.9, 0.66\n\nMethod 1 (post-filter): আগে similarity অনুযায়ী top 3 নাও, তারপর যে movie-র year 2000 বা তার আগের, সেগুলো বাদ দাও।\nMethod 2 (pre-filter): আগে year 2000 বা তার আগের movie বাদ দাও, তারপর similarity অনুযায়ী top 3 নাও।\n\nপ্রতিটা method-এর result দেখাও। প্রতিটা method কয়টা result দেয়, বলো।",
+                "expect": "Method 1 দেয় <strong>0টা result</strong>। Method 2 দেয় <strong>3টা result</strong>: Silent Ship, Star Harbor, আর Lunar Mail।",
+                "example": "Method 1 (post-filter): similarity অনুযায়ী top 3 হলো Orbit Lost (1998), Red Dust (1995), আর Moon Base Zero (1999)। তিনটাই 2000 বা তার আগের, তাই সবগুলো বাদ গেছে। Result: 0টা movie।\n\nMethod 2 (pre-filter): 2000-এর পরের movie: Silent Ship (0.80), Star Harbor (0.78), Lunar Mail (0.75), Deep Orbit (0.70), Dust Planet (0.66)। top 3 হলো Silent Ship, Star Harbor, আর Lunar Mail। Result: 3টা movie।"
+              },
+              {
+                "chat": "same",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। search result খালি থাকলে bot কী বলে, দেখো।",
+                "prompt": "এখন তুমি support bot। শুধু Method 1-এর result দেখে user-কে উত্তর দাও। কোনো result না থাকলে user-কে কী হয়েছে বলো।\n\nUser: 2000 সালের পরে বানানো একটা space survival movie recommend করো।",
+                "expect": "ভালো bot বলে সে কোনো মিল-থাকা movie পায়নি। দুর্বল bot নিজের মনে থাকা একটা movie-র নাম বলে দিতে পারে, যেটা বানানো উত্তর।",
+                "example": "দুঃখিত, search-এ 2000 সালের পরের কোনো space survival movie পাওয়া যায়নি, তাই এখন কোনোটা recommend করতে পারছি না।"
+              },
+              {
+                "chat": "same",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। উত্তরটা ধাপ ২-এর সাথে মেলাও।",
+                "prompt": "একই user-কে আবার উত্তর দাও, এবার শুধু Method 2-এর result দেখে।",
+                "expect": "একটা আসল recommendation, সম্ভবত <em>Silent Ship</em> (2004), কারণ তার similarity সবচেয়ে বেশি।",
+                "example": "আমি Silent Ship (2004) recommend করছি। এটা space survival-এর সবচেয়ে কাছের মিল, আর এর rating 8.6।"
+              }
+            ],
+            "learned": "<strong>post-filter</strong> আগে search করে, পরে item বাদ দেয়। সেরা মিলগুলো নিয়মে না টিকলে কিছুই থাকে না। <strong>pre-filter</strong> আগে item বাদ দেয়, তারপর top 3 নেয়, তাই 3টা থাকলে 3টাই পাওয়া যায়। খালি list বিপজ্জনক, কারণ পেছনের AI অনুমান করতে পারে। result কত ভালো দেখাচ্ছে শুধু তা নয়, কয়টা এসেছে সেটাও দেখো।",
+            "done": "তোমার কাছে Method 1-এর 0টা result, Method 2-এর 3টা result, আর bot-এর দুটো আলাদা উত্তর আছে।",
+            "check": {
+              "question": "RAG system-এ post-filter থেকে খালি result list কেন বিপজ্জনক?",
+              "answer": "search filter-এর আগেই top item নিয়ে নিয়েছে, তাই যেগুলো নিয়ম মানে সেগুলো list-এ কখনো ছিলই না। তখন AI-এর হাতে কিছু থাকে না, আর সে অনুমান করতে পারে। pre-filter নিয়ম-মানা item ফেরত দেয়, তাই শুধু score নয়, result-এর সংখ্যাও দেখো।"
+            },
+            "challenge": "AI-কে বলো: <em>এই অনুরোধটাকে query আর filter key সহ JSON করো: 2000-এর পরের sci-fi movie, rating 8-এর বেশি।</em> কোন অংশ query-তে যায়, আর কোনটা filter-এ?"
+          }
         }
       ]
     },
@@ -2028,37 +2275,74 @@
       ],
       "practice": [
         {
-          "title": "Build a tiny knowledge graph",
-          "goal": "Do the GraphRAG index steps by hand: extract entities and relations, summarise communities, then answer a whole-corpus question and spot extraction errors.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. Read the relation lines. Look for entities that were merged or missed.",
-            "In the <strong>same</strong> chat, send Prompt B. Then send Prompt C.",
-            "Compare the answer to Prompt C with what you see in the text. Note any wrong or missing link."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "Step 1 of a GraphRAG index. Read the text and extract entities and relationships. Output only lines in this format: Entity A -> relation -> Entity B. Do nothing else.\n\nText: Dhaka Plant makes motor housings. Chattogram Plant makes gearboxes. Delta Steel supplies steel to Dhaka Plant. Delta Steel Ltd. also supplies steel to Chattogram Plant. Orion Bolts supplies bolts to Dhaka Plant only. Nova Paints supplies paint to Chattogram Plant. Both plants ship to Rahim Motors, a bus maker. A strike at Delta Steel in June delayed deliveries to both plants. Orion Bolts is owned by Karim Holdings, which also owns Nova Paints."
+          "en": {
+            "title": "Build a tiny knowledge graph with AI",
+            "why": "When you build a chatbot over many documents, users ask big questions like <em>what are the main risks?</em> No single piece of text answers that. GraphRAG first builds a map of the facts, then answers from the map.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Read the lines. Check if one thing appears under two names.",
+                "prompt": "Read the text and list the things (entities) and how they are linked (relations). Output only lines in this format: Entity A -> relation -> Entity B. Write nothing else.\n\nText: Dhaka Plant makes motor housings. Chattogram Plant makes gearboxes. Delta Steel supplies steel to Dhaka Plant. Delta Steel Ltd. also supplies steel to Chattogram Plant. Orion Bolts supplies bolts to Dhaka Plant only. Nova Paints supplies paint to Chattogram Plant. Both plants ship to Rahim Motors, a bus maker. A strike at Delta Steel in June delayed deliveries to both plants. Orion Bolts is owned by Karim Holdings, which also owns Nova Paints.",
+                "expect": "About 10 to 12 lines like <em>Delta Steel -> supplies steel to -> Dhaka Plant</em>. Some models keep <em>Delta Steel</em> and <em>Delta Steel Ltd.</em> as two things. That is a mistake.",
+                "example": "Dhaka Plant -> makes -> motor housings\nChattogram Plant -> makes -> gearboxes\nDelta Steel -> supplies steel to -> Dhaka Plant\nDelta Steel -> supplies steel to -> Chattogram Plant\nOrion Bolts -> supplies bolts to -> Dhaka Plant\nNova Paints -> supplies paint to -> Chattogram Plant\nDhaka Plant -> ships to -> Rahim Motors\nChattogram Plant -> ships to -> Rahim Motors\nDelta Steel -> had a strike in -> June\nKarim Holdings -> owns -> Orion Bolts\nKarim Holdings -> owns -> Nova Paints"
+              },
+              {
+                "chat": "same",
+                "do": "Copy this prompt, paste it, and press Enter. Write down how many communities you get.",
+                "prompt": "Now group the entities into communities of closely linked entities. Give each community a name and a one-sentence summary. Output only the communities.",
+                "expect": "2 to 4 groups, each with a name and one sentence, for example <em>Delta Steel supply</em> and <em>Karim Holdings group</em>.",
+                "example": "1. Delta Steel supply: Delta Steel supplies steel to both plants, and a June strike delayed both.\n2. Karim Holdings group: Karim Holdings owns Orion Bolts and Nova Paints, which supply bolts and paint.\n3. Plants and customer: Dhaka Plant and Chattogram Plant ship to Rahim Motors."
+              },
+              {
+                "chat": "same",
+                "do": "Copy this prompt, paste it, and press Enter. Compare the answer with the text from step 1.",
+                "prompt": "Using ONLY the community summaries above, answer this question in 3 sentences: What are the main risks and themes across this whole supplier network?",
+                "expect": "3 sentences about <em>themes</em>, for example one steel supplier for both plants, one owner for two suppliers, and one customer. No single sentence of the text says this.",
+                "example": "The network depends on Delta Steel, which supplies both plants, and its June strike delayed both. Karim Holdings owns two other suppliers, so one problem there could hit both bolts and paint. Both plants ship to one customer, Rahim Motors, so a delay reaches it."
+              }
+            ],
+            "learned": "You built the two first parts of GraphRAG by hand. First the AI turned text into a <strong>knowledge graph</strong> (things and the links between them). Then it grouped the graph into <strong>communities</strong> and wrote a summary of each. The last answer came from these summaries, so it could name themes that no single sentence holds.",
+            "done": "You have a list of links, 2 to 4 community summaries, and a 3-sentence answer about the whole network.",
+            "check": {
+              "question": "Why does GraphRAG write community summaries before the user asks, and what is the cost?",
+              "answer": "A big question like <em>what are the main themes?</em> has no single matching piece of text, so GraphRAG writes summaries of connected groups in advance and answers from them. The cost is many AI calls, and a mistake in the graph, like a missed or merged name, harms every later answer."
             },
-            {
-              "label": "Prompt B",
-              "text": "Step 2. Group the entities into communities of closely connected entities. Give each community a name and a one-sentence summary. Output only the communities."
-            },
-            {
-              "label": "Prompt C",
-              "text": "Step 3. Using ONLY the community summaries above, answer this global question in 3 sentences: What are the main risks and themes across this whole supplier network?"
-            }
-          ],
-          "lookFor": [
-            "Delta Steel and Delta Steel Ltd. may appear as two entities. If they do, the graph hides that one supplier links both plants.",
-            "The community summaries are short. They hold facts from many sentences, such as the shared owner and the strike.",
-            "The final answer talks about themes (dependence on one steel supplier, shared ownership). One text chunk alone would not give these."
-          ],
-          "check": {
-            "question": "Why does GraphRAG build community summaries at index time, and what is the main cost?",
-            "answer": "A global question such as \"what are the main themes?\" has no single matching chunk, so GraphRAG pre-writes summaries of communities in the entity graph and merges them at query time. The cost is the many LLM calls for extraction and summarisation, and extraction errors (missed or merged entities) limit every later answer."
+            "challenge": "Open a <strong>new</strong> chat. Send only the first two sentences of the text from step 1, and ask the question from step 3. How much worse is the answer, and why?"
           },
-          "challenge": "Open a <strong>new</strong> chat. Send only the first two sentences of the text and ask the same question as Prompt C. How much worse is the answer, and why?"
+          "bn": {
+            "title": "AI দিয়ে একটা ছোট knowledge graph বানাও",
+            "why": "তুমি যখন অনেক document-এর উপর একটা chatbot বানাবে, user বড় প্রশ্ন করবে, যেমন <em>প্রধান ঝুঁকিগুলো কী?</em> কোনো একটা text-এর টুকরো এর উত্তর দেয় না। GraphRAG আগে তথ্যের একটা map বানায়, তারপর map থেকে উত্তর দেয়।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, chat-এ paste করে Enter চাপো। লাইনগুলো পড়ো। একই জিনিস দুই নামে এসেছে কি না দেখো।",
+                "prompt": "text-টা পড়ো, আর জিনিসগুলো (entity) এবং তারা কীভাবে যুক্ত (relation) তার তালিকা করো। শুধু এই format-এর লাইন লেখো: Entity A -> relation -> Entity B। আর কিছু লিখবে না।\n\nText: Dhaka Plant motor housing বানায়। Chattogram Plant gearbox বানায়। Delta Steel, Dhaka Plant-কে steel সরবরাহ করে। Delta Steel Ltd.-ও Chattogram Plant-কে steel সরবরাহ করে। Orion Bolts শুধু Dhaka Plant-কে bolt সরবরাহ করে। Nova Paints, Chattogram Plant-কে paint সরবরাহ করে। দুটো plant-ই বাস নির্মাতা Rahim Motors-কে মাল পাঠায়। জুন মাসে Delta Steel-এ strike হওয়ায় দুই plant-এই সরবরাহ দেরি হয়। Orion Bolts-এর মালিক Karim Holdings, যারা Nova Paints-এরও মালিক।",
+                "expect": "প্রায় 10 থেকে 12টা লাইন, যেমন <em>Delta Steel -> supplies steel to -> Dhaka Plant</em>। কিছু model <em>Delta Steel</em> আর <em>Delta Steel Ltd.</em>-কে দুটো আলাদা জিনিস ধরে। সেটা ভুল।",
+                "example": "Dhaka Plant -> makes -> motor housing\nChattogram Plant -> makes -> gearbox\nDelta Steel -> supplies steel to -> Dhaka Plant\nDelta Steel -> supplies steel to -> Chattogram Plant\nOrion Bolts -> supplies bolts to -> Dhaka Plant\nNova Paints -> supplies paint to -> Chattogram Plant\nDhaka Plant -> ships to -> Rahim Motors\nChattogram Plant -> ships to -> Rahim Motors\nDelta Steel -> had a strike in -> June\nKarim Holdings -> owns -> Orion Bolts\nKarim Holdings -> owns -> Nova Paints"
+              },
+              {
+                "chat": "same",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। কয়টা community পেলে, লিখে রাখো।",
+                "prompt": "এবার entity-গুলোকে ঘনিষ্ঠভাবে যুক্ত community-তে ভাগ করো। প্রতিটা community-কে একটা নাম আর এক বাক্যের summary দাও। শুধু community-গুলো লেখো।",
+                "expect": "2 থেকে 4টা group, প্রতিটার একটা নাম আর এক বাক্য, যেমন <em>Delta Steel সরবরাহ</em> আর <em>Karim Holdings group</em>।",
+                "example": "1. Delta Steel সরবরাহ: Delta Steel দুই plant-কেই steel দেয়, আর জুনের strike দুটোকেই দেরি করিয়েছে।\n2. Karim Holdings group: Karim Holdings মালিক Orion Bolts আর Nova Paints-এর, যারা bolt আর paint সরবরাহ করে।\n3. Plant আর customer: Dhaka Plant আর Chattogram Plant দুটোই Rahim Motors-কে মাল পাঠায়।"
+              },
+              {
+                "chat": "same",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। উত্তরটা ধাপ ১-এর text-এর সাথে মেলাও।",
+                "prompt": "শুধু উপরের community summary-গুলো দেখে 3 বাক্যে এই প্রশ্নের উত্তর দাও: এই পুরো supplier network-এর প্রধান ঝুঁকি আর theme কী কী?",
+                "expect": "<em>theme</em> নিয়ে 3 বাক্য, যেমন দুই plant-এর জন্য একটাই steel supplier, দুই supplier-এর একটাই মালিক, আর একটাই customer। text-এর কোনো একটা বাক্য এটা বলে না।",
+                "example": "Network-টা Delta Steel-এর উপর নির্ভরশীল, যে দুই plant-কেই steel দেয়, আর তার জুনের strike দুটোকেই দেরি করিয়েছে। Karim Holdings আরও দুই supplier-এর মালিক, তাই সেখানে একটা সমস্যা হলে bolt আর paint দুটোই আটকে যেতে পারে। দুই plant-ই একটা customer Rahim Motors-কে মাল পাঠায়, তাই দেরি তার কাছেও পৌঁছায়।"
+              }
+            ],
+            "learned": "তুমি হাতে হাতে GraphRAG-এর প্রথম দুটো অংশ বানিয়েছ। প্রথমে AI text থেকে একটা <strong>knowledge graph</strong> বানিয়েছে (জিনিস আর তাদের মধ্যে যোগ)। তারপর graph-টাকে <strong>community</strong>-তে ভাগ করে প্রতিটার summary লিখেছে। শেষ উত্তরটা এসেছে এই summary থেকে, তাই সে এমন theme বলতে পেরেছে যা কোনো একটা বাক্যে নেই।",
+            "done": "তোমার কাছে যোগের একটা তালিকা, 2 থেকে 4টা community summary, আর পুরো network নিয়ে 3 বাক্যের একটা উত্তর আছে।",
+            "check": {
+              "question": "user প্রশ্ন করার আগেই GraphRAG কেন community summary লেখে, আর এর খরচ কী?",
+              "answer": "<em>প্রধান theme কী?</em> ধরনের বড় প্রশ্নের জন্য text-এর একটা মাত্র টুকরো মেলে না, তাই GraphRAG আগেই যুক্ত group-গুলোর summary লিখে রাখে, আর সেখান থেকে উত্তর দেয়। খরচ হলো অনেক AI call, আর graph-এ ভুল (নাম বাদ পড়া বা মিশে যাওয়া) পরের সব উত্তর খারাপ করে।"
+            },
+            "challenge": "<strong>নতুন</strong> chat খোলো। ধাপ ১-এর text-এর শুধু প্রথম দুটো বাক্য পাঠাও, আর ধাপ ৩-এর প্রশ্নটা করো। উত্তর কতটা খারাপ হলো, আর কেন?"
+          }
         }
       ]
     },
@@ -2269,37 +2553,74 @@
       ],
       "practice": [
         {
-          "title": "Feed the model broken parsed text",
-          "goal": "See how bad parsing (mixed columns, empty scan output) harms the answer, and why a clean structure and an OCR fallback matter.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. This text came from a two-column page read line by line. Note the answer.",
-            "Send Prompt B in a <strong>new</strong> chat. It is the same page with the columns parsed correctly. Compare the answers.",
-            "Send Prompt C in a <strong>new</strong> chat. This is a scanned page with no text layer. Read how the model reacts."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "Answer the question using ONLY the extracted page text below. If you are not sure, say what is unclear.\n\nExtracted text:\n\"Basic costs 8 USD a Basic allows 3 month. Pro costs 25 users. Pro allows USD a month. The free 20 users. Extra users trial lasts 14 days. cost 2 USD each.\"\n\nQuestion: How many users does the Pro plan allow, and how much does an extra user cost?"
+          "en": {
+            "title": "Feed the AI broken page text",
+            "why": "When you build a chatbot over PDFs, a parser first turns each page into text. If the parser mixes two columns, or finds no text in a scan, the chatbot works with broken text.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. The text came from a two-column page that was read line by line. Write down the answer.",
+                "prompt": "Answer the question using ONLY the extracted page text below. If you are not sure, say what is unclear.\n\nExtracted text:\n\"Basic costs 8 USD a Basic allows 3 month. Pro costs 25 users. Pro allows USD a month. The free 20 users. Extra users trial lasts 14 days. cost 2 USD each.\"\n\nQuestion: How many users does the Pro plan allow, and how much does an extra user cost?",
+                "expect": "A good model works out <strong>20 users</strong> and <strong>2 USD</strong>, or says the text is confusing. A weaker one may say <em>25 users</em>, which is wrong.",
+                "example": "The text looks mixed up. It seems to say Pro allows 20 users, and extra users cost 2 USD each. I am not fully sure, because the words are out of order."
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. It is the same page, with the columns read in the right order.",
+                "prompt": "Answer the question using ONLY the extracted page text below. If you are not sure, say what is unclear.\n\nExtracted text (Markdown):\n\"## Pricing\nBasic costs 8 USD a month. Pro costs 25 USD a month. The free trial lasts 14 days.\n\n## Limits\nBasic allows 3 users. Pro allows 20 users. Extra users cost 2 USD each.\"\n\nQuestion: How many users does the Pro plan allow, and how much does an extra user cost?",
+                "expect": "A clear answer: <strong>20 users</strong> and <strong>2 USD</strong>. The headings make the structure easy.",
+                "example": "The Pro plan allows 20 users. An extra user costs 2 USD."
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. It is a scanned page where the parser found no text.",
+                "prompt": "Answer the question using ONLY the extracted page text below. If you are not sure, say what is unclear.\n\nExtracted text:\n\"\"\n\nQuestion: How many users does the Pro plan allow, and how much does an extra user cost?",
+                "expect": "A good model says the text is empty and it cannot answer.",
+                "example": "The extracted text is empty, so I cannot answer. Please give me the page text."
+              }
+            ],
+            "learned": "The chatbot can only use the text the <strong>parser</strong> (the tool that reads the file) gives it. With mixed columns the words come out in the wrong order, so the AI may answer with a wrong number. With a scan the parser finds nothing, unless it uses <strong>OCR</strong> (a tool that reads text from a picture). Always check the parser output before you use it.",
+            "done": "You have 3 answers: a careful or wrong one, a correct one (20 users, 2 USD), and a <em>no text</em> one.",
+            "check": {
+              "question": "Why should a RAG system check for empty or odd parser output before it cuts the text into chunks?",
+              "answer": "The system can only store what the parser found. A scan gives empty text, and a simple reader can mix columns, so a bad parse gives bad answers later. Check for empty output, re-run with OCR or a layout-aware parser, and look at multi-column pages by eye."
             },
-            {
-              "label": "Prompt B",
-              "text": "Answer the question using ONLY the extracted page text below. If you are not sure, say what is unclear.\n\nExtracted text (Markdown):\n\"## Pricing\nBasic costs 8 USD a month. Pro costs 25 USD a month. The free trial lasts 14 days.\n\n## Limits\nBasic allows 3 users. Pro allows 20 users. Extra users cost 2 USD each.\"\n\nQuestion: How many users does the Pro plan allow, and how much does an extra user cost?"
-            },
-            {
-              "label": "Prompt C",
-              "text": "Answer the question using ONLY the extracted page text below. If you are not sure, say what is unclear.\n\nExtracted text:\n\"\"\n\nQuestion: How many users does the Pro plan allow, and how much does an extra user cost?"
-            }
-          ],
-          "lookFor": [
-            "With Prompt A some models decode the text correctly, but they may mix up the numbers or tell you the text is confusing. The risk is a confident wrong answer.",
-            "With Prompt B the answer is easy and correct (20 users, 2 USD). The headings make the structure clear.",
-            "With Prompt C a good model says there is no text. A parser must detect an empty result and run OCR."
-          ],
-          "check": {
-            "question": "Why should a RAG pipeline check for empty or odd parser output before chunking?",
-            "answer": "The index can only hold what the parser recovered. A fast text-layer parser returns nothing for a scan, and a naive reader can mix columns, so a check for empty output, a re-run with OCR or a layout-aware parser, and a visual spot-check of multi-column pages protect the quality."
+            "challenge": "In a new chat, take the broken text from step 1 and write it yourself as a Markdown table with 3 rows (Basic, Pro, Free trial). Ask the same question. How much did the structure help?"
           },
-          "challenge": "In Prompt A, keep the same words but write them as a 3-row table in Markdown by yourself. Then ask the same question. How much did structure help?"
+          "bn": {
+            "title": "AI-কে ভাঙা page text খাওয়াও",
+            "why": "তুমি যখন PDF-এর উপর একটা chatbot বানাবে, একটা parser আগে প্রতিটা page-কে text বানায়। parser যদি দুই column মিশিয়ে ফেলে, বা scan-এ কোনো text না পায়, chatbot ভাঙা text নিয়ে কাজ করবে।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, chat-এ paste করে Enter চাপো। text-টা এসেছে দুই column-এর একটা page থেকে, যেটা লাইন ধরে ধরে পড়া হয়েছে। উত্তরটা লিখে রাখো। এই prompt টা English-এ রাখা হয়েছে, কারণ এখানে English text-এর শব্দের ক্রম নিয়ে পরীক্ষা হচ্ছে।",
+                "prompt": "Answer the question using ONLY the extracted page text below. If you are not sure, say what is unclear.\n\nExtracted text:\n\"Basic costs 8 USD a Basic allows 3 month. Pro costs 25 users. Pro allows USD a month. The free 20 users. Extra users trial lasts 14 days. cost 2 USD each.\"\n\nQuestion: How many users does the Pro plan allow, and how much does an extra user cost?",
+                "expect": "ভালো model বের করে ফেলে <strong>20 users</strong> আর <strong>2 USD</strong>, বা বলে text-টা গোলমেলে। দুর্বল model ভুল করে <em>25 users</em> বলতে পারে।",
+                "example": "The text looks mixed up. It seems to say Pro allows 20 users, and extra users cost 2 USD each. I am not fully sure, because the words are out of order."
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। এটা একই page, শুধু column-গুলো ঠিক order-এ পড়া হয়েছে। এই prompt টা English-এ রাখা হয়েছে, কারণ এখানে English text-এর শব্দের ক্রম নিয়ে পরীক্ষা হচ্ছে।",
+                "prompt": "Answer the question using ONLY the extracted page text below. If you are not sure, say what is unclear.\n\nExtracted text (Markdown):\n\"## Pricing\nBasic costs 8 USD a month. Pro costs 25 USD a month. The free trial lasts 14 days.\n\n## Limits\nBasic allows 3 users. Pro allows 20 users. Extra users cost 2 USD each.\"\n\nQuestion: How many users does the Pro plan allow, and how much does an extra user cost?",
+                "expect": "পরিষ্কার উত্তর: <strong>20 users</strong> আর <strong>2 USD</strong>। heading থাকায় কাঠামো সহজ।",
+                "example": "The Pro plan allows 20 users. An extra user costs 2 USD."
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। এটা একটা scan করা page, যেখানে parser কোনো text পায়নি। এই prompt টা English-এ রাখা হয়েছে, কারণ এখানে English text-এর শব্দের ক্রম নিয়ে পরীক্ষা হচ্ছে।",
+                "prompt": "Answer the question using ONLY the extracted page text below. If you are not sure, say what is unclear.\n\nExtracted text:\n\"\"\n\nQuestion: How many users does the Pro plan allow, and how much does an extra user cost?",
+                "expect": "ভালো model বলে text খালি, তাই সে উত্তর দিতে পারছে না।",
+                "example": "The extracted text is empty, so I cannot answer. Please give me the page text."
+              }
+            ],
+            "learned": "chatbot শুধু সেই text ব্যবহার করতে পারে যা <strong>parser</strong> (যে tool ফাইল পড়ে) তাকে দেয়। column মিশে গেলে শব্দগুলো ভুল order-এ আসে, তাই AI ভুল সংখ্যা বলতে পারে। scan-এ parser কিছুই পায় না, যদি না সে <strong>OCR</strong> (ছবি থেকে লেখা পড়ার tool) ব্যবহার করে। ব্যবহারের আগে সবসময় parser-এর output দেখে নাও।",
+            "done": "তোমার কাছে 3টা উত্তর আছে: একটা সতর্ক বা ভুল, একটা ঠিক (20 users, 2 USD), আর একটা <em>text নেই</em>।",
+            "check": {
+              "question": "RAG system-এর text-কে chunk-এ কাটার আগে কেন parser-এর output খালি বা অদ্ভুত কি না দেখা উচিত?",
+              "answer": "system শুধু সেটাই জমা রাখতে পারে যা parser পেয়েছে। scan খালি text দেয়, আর সাধারণ reader column মিশিয়ে ফেলতে পারে, তাই খারাপ parse পরে খারাপ উত্তর দেয়। খালি output আছে কি না দেখো, OCR বা layout বোঝে এমন parser দিয়ে আবার চালাও, আর multi-column page চোখে দেখে নাও।"
+            },
+            "challenge": "নতুন chat-এ ধাপ ১-এর ভাঙা text নিজে 3 সারির একটা Markdown table হিসেবে লেখো (Basic, Pro, Free trial)। একই প্রশ্ন করো। কাঠামো কতটা সাহায্য করল?"
+          }
         }
       ]
     },
@@ -2532,37 +2853,74 @@
       ],
       "practice": [
         {
-          "title": "Search by summary, answer from raw",
-          "goal": "See that a summary used as a retrieval key can hide a detail, and that handing the raw table to the answer step restores it.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. Copy the one-sentence summary the model writes.",
-            "Send Prompt B in a <strong>new</strong> chat, with the summary pasted in place of the marked text. Note the answer.",
-            "Send Prompt C in a <strong>new</strong> chat. It gives the raw table. Compare the answer with step 2."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "Write ONE sentence that summarises this table, so that it can be stored in a search index. Reply with the sentence only.\n\nTable: Quarterly revenue by branch (lakh BDT)\nBranch | Q1 | Q2 | Q3 | Q4\nDhaka | 42 | 45 | 51 | 60\nChattogram | 30 | 28 | 35 | 41\nSylhet | 18 | 22 | 19 | 27\nRajshahi | 15 | 16 | 21 | 24"
+          "en": {
+            "title": "Search by summary, answer from the raw table",
+            "why": "When you build a chatbot over reports with tables and charts, you often store a short AI summary of each table for search. A summary can leave out the one detail a user asks about.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Then copy the one sentence the AI writes.",
+                "prompt": "Write ONE sentence that summarises this table, so that it can be stored in a search index. Reply with the sentence only.\n\nTable: Quarterly revenue by branch (lakh BDT)\nBranch | Q1 | Q2 | Q3 | Q4\nDhaka | 42 | 45 | 51 | 60\nChattogram | 30 | 28 | 35 | 41\nSylhet | 18 | 22 | 19 | 27\nRajshahi | 15 | 16 | 21 | 24",
+                "expect": "One sentence about the general trend, for example that Dhaka leads and revenue grows. It probably does not mention any drop.",
+                "example": "Dhaka had the highest quarterly revenue in every quarter, rising from 42 to 60 lakh BDT, and all four branches grew over the year."
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt. Replace the words in brackets with your summary from step 1. Paste it and press Enter.",
+                "prompt": "Answer the question using ONLY the text below. If the text does not contain the answer, say \"The text does not contain the answer\".\n\nText: \"[PASTE YOUR SUMMARY HERE]\"\n\nQuestion: Which branch had a revenue drop from Q2 to Q3, and by how many lakh BDT?",
+                "expect": "Most chats reply <em>The text does not contain the answer</em>. A few guess a branch, which is worse.",
+                "example": "The text does not contain the answer"
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. This time the AI gets the raw table, not the summary.",
+                "prompt": "Answer the question using ONLY the table below. If the table does not contain the answer, say \"The table does not contain the answer\".\n\nTable: Quarterly revenue by branch (lakh BDT)\nBranch | Q1 | Q2 | Q3 | Q4\nDhaka | 42 | 45 | 51 | 60\nChattogram | 30 | 28 | 35 | 41\nSylhet | 18 | 22 | 19 | 27\nRajshahi | 15 | 16 | 21 | 24\n\nQuestion: Which branch had a revenue drop from Q2 to Q3, and by how many lakh BDT?",
+                "expect": "<strong>Sylhet</strong>, down <strong>3 lakh BDT</strong> (from 22 to 19). It is the only branch with a drop.",
+                "example": "Sylhet. Its revenue fell from 22 lakh BDT in Q2 to 19 lakh BDT in Q3, a drop of 3 lakh BDT."
+              }
+            ],
+            "learned": "The search only sees what the summary says. The summary talked about the general trend, so the small Sylhet drop was lost, and the AI had nothing to answer from. The fix is to search with the summary but give the AI the <strong>raw table</strong> when it writes the answer. Then it can read every number.",
+            "done": "You have two answers: <em>the text does not contain the answer</em> from the summary, and <em>Sylhet, 3 lakh BDT</em> from the table.",
+            "check": {
+              "question": "Why keep a link to the raw table or image when you search with a summary?",
+              "answer": "The search can only find what the summary says, so a missing detail cannot be found or answered. If the raw table goes to the answer step, the AI can still read the exact numbers."
             },
-            {
-              "label": "Prompt B",
-              "text": "Answer the question using ONLY the text below. If the text does not contain the answer, say \"The text does not contain the answer\".\n\nText: \"[PASTE THE SUMMARY FROM PROMPT A HERE]\"\n\nQuestion: Which branch had a revenue drop from Q2 to Q3, and by how many lakh BDT?"
-            },
-            {
-              "label": "Prompt C",
-              "text": "Answer the question using ONLY the table below. If the table does not contain the answer, say \"The table does not contain the answer\".\n\nTable: Quarterly revenue by branch (lakh BDT)\nBranch | Q1 | Q2 | Q3 | Q4\nDhaka | 42 | 45 | 51 | 60\nChattogram | 30 | 28 | 35 | 41\nSylhet | 18 | 22 | 19 | 27\nRajshahi | 15 | 16 | 21 | 24\n\nQuestion: Which branch had a revenue drop from Q2 to Q3, and by how many lakh BDT?"
-            }
-          ],
-          "lookFor": [
-            "The summary is usually about the general trend (Dhaka leads, revenue grows), not about one small drop.",
-            "With the summary only, the model should say it cannot answer. Some models guess, which is worse.",
-            "With the raw table the answer is Sylhet, down 3 lakh BDT (22 to 19)."
-          ],
-          "check": {
-            "question": "In multimodal RAG, why keep a pointer to the raw table or image when you index a summary?",
-            "answer": "The retriever only sees what the summariser wrote, so a detail left out of the summary cannot be found or answered. If the summary is the retrieval key and the raw object goes to the answer step (option 3), the generator can still read the exact cell values."
+            "challenge": "If your chat allows image upload, take a screenshot of the table and ask the same question with the image. Compare the answer with step 3. If you cannot upload images, skip this."
           },
-          "challenge": "If your chat allows image upload, put the table in a screenshot and ask the same question with the image. Compare the answer with Prompt C. If you have no image upload, skip this."
+          "bn": {
+            "title": "Summary দিয়ে search করো, raw table থেকে উত্তর দাও",
+            "why": "তুমি যখন table আর chart-ওয়ালা report-এর উপর একটা chatbot বানাবে, search-এর জন্য প্রায়ই প্রতিটা table-এর একটা ছোট AI summary রাখবে। summary সেই একটা details বাদ দিয়ে দিতে পারে, যেটা user জিজ্ঞেস করে।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, chat-এ paste করে Enter চাপো। তারপর AI যে একটা বাক্য লেখে, সেটা copy করো।",
+                "prompt": "এই table-টার একটা মাত্র বাক্যে summary লেখো, যাতে সেটা search index-এ রাখা যায়। শুধু বাক্যটা লেখো।\n\nTable: শাখা অনুযায়ী ত্রৈমাসিক revenue (লাখ টাকা)\nBranch | Q1 | Q2 | Q3 | Q4\nDhaka | 42 | 45 | 51 | 60\nChattogram | 30 | 28 | 35 | 41\nSylhet | 18 | 22 | 19 | 27\nRajshahi | 15 | 16 | 21 | 24",
+                "expect": "সাধারণ trend নিয়ে একটা বাক্য, যেমন Dhaka এগিয়ে আর revenue বাড়ছে। সম্ভবত কোনো কমার কথা থাকবে না।",
+                "example": "Dhaka প্রতিটা quarter-এ সবচেয়ে বেশি revenue করেছে, 42 থেকে বেড়ে 60 লাখ টাকা হয়েছে, আর চারটা branch-ই বছরজুড়ে বেড়েছে।"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো। brackets-এর ভেতরের লেখাটা ধাপ ১-এর summary দিয়ে বদলাও। paste করে Enter চাপো।",
+                "prompt": "শুধু নিচের text দেখে প্রশ্নের উত্তর দাও। text-এ উত্তর না থাকলে লেখো \"text-এ উত্তর নেই\"।\n\nText: \"[এখানে তোমার summary paste করো]\"\n\nপ্রশ্ন: কোন branch-এর revenue Q2 থেকে Q3-তে কমেছে, আর কত লাখ টাকা কমেছে?",
+                "expect": "বেশিরভাগ chat লেখে <em>text-এ উত্তর নেই</em>। কয়েকটা একটা branch অনুমান করে বসে, যেটা আরও খারাপ।",
+                "example": "text-এ উত্তর নেই"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। এবার AI summary না পেয়ে raw table পাচ্ছে।",
+                "prompt": "শুধু নিচের table দেখে প্রশ্নের উত্তর দাও। table-এ উত্তর না থাকলে লেখো \"table-এ উত্তর নেই\"।\n\nTable: শাখা অনুযায়ী ত্রৈমাসিক revenue (লাখ টাকা)\nBranch | Q1 | Q2 | Q3 | Q4\nDhaka | 42 | 45 | 51 | 60\nChattogram | 30 | 28 | 35 | 41\nSylhet | 18 | 22 | 19 | 27\nRajshahi | 15 | 16 | 21 | 24\n\nপ্রশ্ন: কোন branch-এর revenue Q2 থেকে Q3-তে কমেছে, আর কত লাখ টাকা কমেছে?",
+                "expect": "<strong>Sylhet</strong>, <strong>3 লাখ টাকা</strong> কমেছে (22 থেকে 19)। শুধু এই branch-এই revenue কমেছে।",
+                "example": "Sylhet। Q2-তে এর revenue ছিল 22 লাখ টাকা, Q3-তে হয়েছে 19 লাখ টাকা, মানে 3 লাখ টাকা কমেছে।"
+              }
+            ],
+            "learned": "search শুধু সেটাই দেখে যা summary-তে লেখা আছে। summary সাধারণ trend নিয়ে কথা বলেছে, তাই Sylhet-এর ছোট কমাটা হারিয়ে গেছে, আর AI-এর কাছে উত্তর দেওয়ার মতো কিছু ছিল না। সমাধান হলো summary দিয়ে search করা, কিন্তু উত্তর লেখার সময় AI-কে <strong>raw table</strong> দেওয়া। তখন সে প্রতিটা সংখ্যা পড়তে পারে।",
+            "done": "তোমার কাছে দুটো উত্তর আছে: summary থেকে <em>text-এ উত্তর নেই</em>, আর table থেকে <em>Sylhet, 3 লাখ টাকা</em>।",
+            "check": {
+              "question": "summary দিয়ে search করলেও কেন raw table বা ছবির link রেখে দিতে হয়?",
+              "answer": "search শুধু সেটাই খুঁজে পায় যা summary-তে আছে, তাই বাদ পড়া details খুঁজে পাওয়া বা তার উত্তর দেওয়া যায় না। raw table উত্তর দেওয়ার ধাপে গেলে AI ঠিক সংখ্যাগুলো পড়তে পারে।"
+            },
+            "challenge": "তোমার chat-এ image upload করা গেলে table-এর একটা screenshot নিয়ে ছবি দিয়ে একই প্রশ্ন করো। উত্তরটা ধাপ ৩-এর সাথে মেলাও। image upload করা না গেলে এটা বাদ দাও।"
+          }
         }
       ]
     }

@@ -318,120 +318,296 @@
       ],
       "practice": [
         {
-          "title": "Catch a regression with a golden set",
-          "goal": "See that a small prompt change can fix one case and break another, and that only a fixed test set shows it.",
-          "steps": [
-            "Read the 9 tickets in Prompt A. This is your <strong>golden set</strong>. Correct labels: BILLING, BUG, ACCOUNT, OTHER, BILLING, BUG, ACCOUNT, OTHER, BUG.",
-            "Send Prompt A in a <strong>new</strong> chat. Count how many labels match the golden set.",
-            "Send Prompt B in another <strong>new</strong> chat. It is the same task with one new rule. Count the matches again.",
-            "Compare the two scores ticket by ticket. Find which ticket got better and which got worse."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "You are a support ticket classifier. Give each ticket exactly one label: BILLING, BUG, ACCOUNT, or OTHER.\nReply with a numbered list. Write only the number and the label.\n\nTickets:\n1. I was charged twice for my March plan.\n2. The export button shows a blank page on Firefox.\n3. I forgot my password and I cannot log in.\n4. Do you have an office in Dhaka?\n5. My invoice shows the wrong company name.\n6. The app crashes when I upload a file larger than 10 MB.\n7. Please change the email address on my profile.\n8. I love the new dashboard!\n9. The confirmation email never arrived after I paid."
+          "en": {
+            "title": "Catch a broken prompt with a golden set",
+            "why": "When you build a support bot, you will edit its prompt many times. Each edit can fix one case and quietly break another. A fixed test list, called a golden set, shows this at once.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. It sorts 9 support tickets into labels.",
+                "prompt": "You are a support ticket classifier. Give each ticket exactly one label: BILLING, BUG, ACCOUNT, or OTHER.\nReply with a numbered list. Write only the number and the label.\n\nTickets:\n1. I was charged twice for my March plan.\n2. The export button shows a blank page on Firefox.\n3. I forgot my password and I cannot log in.\n4. Do you have an office in Dhaka?\n5. My invoice shows the wrong company name.\n6. The app crashes when I upload a file larger than 10 MB.\n7. Please change the email address on my profile.\n8. I love the new dashboard!\n9. The confirmation email never arrived after I paid.",
+                "expect": "A numbered list of 9 labels, one for each ticket.",
+                "example": "1. BILLING\n2. BUG\n3. ACCOUNT\n4. OTHER\n5. BILLING\n6. BUG\n7. ACCOUNT\n8. OTHER\n9. BUG"
+              },
+              {
+                "chat": "same",
+                "do": "Compare your list with this answer key. Count how many labels match. Key: 1 BILLING, 2 BUG, 3 ACCOUNT, 4 OTHER, 5 BILLING, 6 BUG, 7 ACCOUNT, 8 OTHER, 9 BUG.",
+                "expect": "Most chats match all 9, so the score is <strong>9 out of 9</strong>. One miss is fine too. Write down your score."
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. It is the same task, with one new rule about email.",
+                "prompt": "You are a support ticket classifier. Give each ticket exactly one label: BILLING, BUG, ACCOUNT, or OTHER.\nRule: if a ticket mentions email, always label it BUG, because email problems are usually delivery bugs.\nReply with a numbered list. Write only the number and the label.\n\nTickets:\n1. I was charged twice for my March plan.\n2. The export button shows a blank page on Firefox.\n3. I forgot my password and I cannot log in.\n4. Do you have an office in Dhaka?\n5. My invoice shows the wrong company name.\n6. The app crashes when I upload a file larger than 10 MB.\n7. Please change the email address on my profile.\n8. I love the new dashboard!\n9. The confirmation email never arrived after I paid.",
+                "expect": "A numbered list of 9 labels. Ticket 7 (<em>change the email address</em>) now often gets BUG.",
+                "example": "1. BILLING\n2. BUG\n3. ACCOUNT\n4. OTHER\n5. BILLING\n6. BUG\n7. BUG\n8. OTHER\n9. BUG"
+              },
+              {
+                "chat": "same",
+                "do": "Compare this list with the same answer key. Count the matches. Find the ticket that is now wrong.",
+                "expect": "A lower score, for example <strong>8 out of 9</strong>. Ticket 7 should be ACCOUNT, but the new rule made it BUG."
+              }
+            ],
+            "learned": "The golden set is a fixed list of inputs with known right answers. You ran it before and after one change. The new email rule did not fix ticket 9, which was already right. It broke ticket 7. A <strong>regression</strong> means something that worked before breaks after a change.",
+            "done": "You have two scores for the same 9 tickets, and you know which ticket got worse.",
+            "check": {
+              "question": "Why do teams run the same golden set after every prompt change?",
+              "answer": "The set is fixed, so the scores are comparable. If a change breaks a case that worked before, the score drops and you see it. A single manual test would miss that. Teams can also block a release in CI when the score drops."
             },
-            {
-              "label": "Prompt B",
-              "text": "You are a support ticket classifier. Give each ticket exactly one label: BILLING, BUG, ACCOUNT, or OTHER.\nRule: if a ticket mentions email, always label it BUG, because email problems are usually delivery bugs.\nReply with a numbered list. Write only the number and the label.\n\nTickets:\n1. I was charged twice for my March plan.\n2. The export button shows a blank page on Firefox.\n3. I forgot my password and I cannot log in.\n4. Do you have an office in Dhaka?\n5. My invoice shows the wrong company name.\n6. The app crashes when I upload a file larger than 10 MB.\n7. Please change the email address on my profile.\n8. I love the new dashboard!\n9. The confirmation email never arrived after I paid."
-            }
-          ],
-          "lookFor": [
-            "Prompt B probably labels ticket 7 as BUG, which is wrong. The new rule was meant to fix email bugs, but it broke a ticket that was fine before.",
-            "Ticket 9 may be right in both versions. Then the rule gave no gain and only a loss.",
-            "Without the fixed list of 9 tickets, you would test only the email case and miss the new error."
-          ],
-          "check": {
-            "question": "Why do teams keep a golden dataset and run it on every prompt change?",
-            "answer": "A golden dataset is a fixed set of (input, expected output) pairs. Running it after each change shows regressions that a single manual test misses, so CI can block a release when accuracy drops."
+            "challenge": "Add a tenth ticket that mixes two topics, such as <em>I was charged twice and the app crashed.</em> Decide the right label first, then run both prompts again."
           },
-          "challenge": "Add two more tickets that you got wrong in real life, such as a mixed ticket about a refund bug. Run Prompt A and B again. Does the score change?"
+          "bn": {
+            "title": "Golden set দিয়ে ভাঙা prompt ধরো",
+            "why": "Support bot বানালে তুমি তার prompt অনেকবার বদলাবে। প্রতিটা বদল একটা case ঠিক করতে পারে, কিন্তু চুপচাপ আরেকটা case ভেঙে দিতে পারে। একটা fixed test list, যার নাম golden set, সেটা সাথে সাথে দেখিয়ে দেয়।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, chat-এ paste করে Enter চাপো। এটা 9টা support ticket-কে label-এ ভাগ করবে। (label গুলো English-এ রাখা হয়েছে, কারণ নিচে সেগুলো মিলিয়ে দেখব।)",
+                "prompt": "তুমি একজন support ticket classifier। প্রতিটা ticket-কে ঠিক একটা label দাও: BILLING, BUG, ACCOUNT, বা OTHER।\nএকটা numbered list-এ উত্তর দাও। শুধু নম্বর আর label লেখো।\n\nTickets:\n1. March-এর plan-এর জন্য আমার কাছ থেকে দুইবার টাকা কাটা হয়েছে।\n2. Firefox-এ export বাটন চাপলে একটা ফাঁকা পাতা দেখায়।\n3. আমি password ভুলে গেছি, তাই login করতে পারছি না।\n4. ঢাকায় কি আপনাদের কোনো অফিস আছে?\n5. আমার invoice-এ কোম্পানির নাম ভুল এসেছে।\n6. 10 MB-এর চেয়ে বড় file upload করলে app crash করে।\n7. আমার profile-এর email address টা বদলে দিন।\n8. নতুন dashboard টা আমার খুব ভালো লেগেছে!\n9. টাকা দেওয়ার পরও confirmation email আসেনি।",
+                "expect": "9টা label-এর একটা numbered list, প্রতিটা ticket-এর জন্য একটা করে।",
+                "example": "1. BILLING\n2. BUG\n3. ACCOUNT\n4. OTHER\n5. BILLING\n6. BUG\n7. ACCOUNT\n8. OTHER\n9. BUG"
+              },
+              {
+                "chat": "same",
+                "do": "তোমার list টা এই answer key-র সাথে মেলাও। কয়টা label মিলেছে গোনো। Key: 1 BILLING, 2 BUG, 3 ACCOUNT, 4 OTHER, 5 BILLING, 6 BUG, 7 ACCOUNT, 8 OTHER, 9 BUG।",
+                "expect": "বেশিরভাগ chat-এ সবগুলো মেলে, মানে score <strong>9-এর মধ্যে 9</strong>। একটা ভুল হলেও সমস্যা নেই। তোমার score লিখে রাখো।"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। কাজ একই, শুধু email নিয়ে একটা নতুন নিয়ম আছে।",
+                "prompt": "তুমি একজন support ticket classifier। প্রতিটা ticket-কে ঠিক একটা label দাও: BILLING, BUG, ACCOUNT, বা OTHER।\nনিয়ম: কোনো ticket-এ email-এর কথা থাকলে সবসময় BUG লেখো, কারণ email-এর সমস্যা সাধারণত delivery bug।\nএকটা numbered list-এ উত্তর দাও। শুধু নম্বর আর label লেখো।\n\nTickets:\n1. March-এর plan-এর জন্য আমার কাছ থেকে দুইবার টাকা কাটা হয়েছে।\n2. Firefox-এ export বাটন চাপলে একটা ফাঁকা পাতা দেখায়।\n3. আমি password ভুলে গেছি, তাই login করতে পারছি না।\n4. ঢাকায় কি আপনাদের কোনো অফিস আছে?\n5. আমার invoice-এ কোম্পানির নাম ভুল এসেছে।\n6. 10 MB-এর চেয়ে বড় file upload করলে app crash করে।\n7. আমার profile-এর email address টা বদলে দিন।\n8. নতুন dashboard টা আমার খুব ভালো লেগেছে!\n9. টাকা দেওয়ার পরও confirmation email আসেনি।",
+                "expect": "9টা label-এর একটা numbered list। Ticket 7 (<em>email address বদলাও</em>) এবার প্রায়ই BUG পায়।",
+                "example": "1. BILLING\n2. BUG\n3. ACCOUNT\n4. OTHER\n5. BILLING\n6. BUG\n7. BUG\n8. OTHER\n9. BUG"
+              },
+              {
+                "chat": "same",
+                "do": "এই list টা একই answer key-র সাথে মেলাও। কয়টা মিলেছে গোনো। কোন ticket এখন ভুল, সেটা খুঁজে বের করো।",
+                "expect": "আগের চেয়ে কম score, যেমন <strong>9-এর মধ্যে 8</strong>। Ticket 7 হওয়ার কথা ACCOUNT, কিন্তু নতুন নিয়মে সেটা BUG হয়ে গেছে।"
+              }
+            ],
+            "learned": "Golden set হলো এমন একটা fixed input list, যার ঠিক উত্তর আগে থেকে জানা। একটা বদলের আগে আর পরে তুমি একই list চালিয়েছ। নতুন email নিয়ম ticket 9 ঠিক করেনি, কারণ ওটা আগেই ঠিক ছিল। কিন্তু ticket 7 ভেঙে দিয়েছে। <strong>Regression</strong> মানে আগে যা ঠিক ছিল, বদলের পর সেটা ভেঙে যাওয়া।",
+            "done": "একই 9টা ticket-এর জন্য তোমার কাছে দুটো score আছে, আর তুমি জানো কোন ticket খারাপ হয়েছে।",
+            "check": {
+              "question": "প্রতিটা prompt বদলের পরে team গুলো একই golden set কেন চালায়?",
+              "answer": "Set টা fixed, তাই score গুলো তুলনা করা যায়। বদলের ফলে আগে-ঠিক-থাকা কোনো case ভাঙলে score কমে যায় আর তুমি দেখতে পাও। একটা হাতে-করা test এটা ধরতে পারত না। Score কমলে CI-তে release আটকেও দেওয়া যায়।"
+            },
+            "challenge": "দশ নম্বর একটা ticket যোগ করো, যেটাতে দুটো বিষয় মেশানো, যেমন <em>দুইবার টাকা কেটেছে আর app crash করেছে।</em> আগে ঠিক label টা ঠিক করো, তারপর দুটো prompt আবার চালাও।"
+          }
         },
         {
-          "title": "Test an LLM judge for bias",
-          "goal": "See how a pairwise judge and a rubric judge behave, and check whether the judge is biased by answer order or length.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. Note which answer the judge picks and why.",
-            "Send Prompt B in a <strong>new</strong> chat. It has the same two answers in swapped order. Does the winner stay the same?",
-            "Send Prompt C in a <strong>new</strong> chat. Read the rubric scores. Did the judge find the wrong claim in Answer 2?",
-            "Decide: which answer do you think is better? Compare your view with the judge."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "You are a judge. A beginner asked: \"What is an API key?\"\nCompare the two answers. Say which one is better, Answer 1 or Answer 2, and explain in two sentences.\n\nAnswer 1:\nAn API key is a secret string that a program sends with each request. The service uses it to know who is calling, and to apply limits and billing. Keep it private, and never put it in public code.\n\nAnswer 2:\nGreat question! An API key is an incredibly powerful and versatile credential that is fundamentally essential to modern software engineering. It works just like a shared team password, so you should send it to all of your teammates in a group chat so that everyone can log in easily. It also makes your application faster and more secure in every possible way."
+          "en": {
+            "title": "Check if an AI judge is fair",
+            "why": "To test a chatbot at scale, many teams ask a second AI to judge its answers. But a judge can be unfair, for example by liking the first answer or the longer answer. You must test the judge before you trust it.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Answer 1 is short and correct. Answer 2 is long and gives unsafe advice. Note which one wins.",
+                "prompt": "You are a judge. A beginner asked: \"What is an API key?\"\nCompare the two answers. Say which one is better, Answer 1 or Answer 2, and explain in two sentences.\n\nAnswer 1:\nAn API key is a secret string that a program sends with each request. The service uses it to know who is calling, and to apply limits and billing. Keep it private, and never put it in public code.\n\nAnswer 2:\nGreat question! An API key is an incredibly powerful and versatile credential that is fundamentally essential to modern software engineering. It works just like a shared team password, so you should send it to all of your teammates in a group chat so that everyone can log in easily. It also makes your application faster and more secure in every possible way.",
+                "expect": "The judge picks <strong>Answer 1</strong>, and says that Answer 2 gives unsafe advice.",
+                "example": "Answer 1 is better. It correctly says an API key identifies the caller and must stay private. Answer 2 wrongly tells you to share the key in a group chat, which is unsafe."
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. These are the same two answers, but in swapped order. Note which text wins now.",
+                "prompt": "You are a judge. A beginner asked: \"What is an API key?\"\nCompare the two answers. Say which one is better, Answer 1 or Answer 2, and explain in two sentences.\n\nAnswer 1:\nGreat question! An API key is an incredibly powerful and versatile credential that is fundamentally essential to modern software engineering. It works just like a shared team password, so you should send it to all of your teammates in a group chat so that everyone can log in easily. It also makes your application faster and more secure in every possible way.\n\nAnswer 2:\nAn API key is a secret string that a program sends with each request. The service uses it to know who is calling, and to apply limits and billing. Keep it private, and never put it in public code.",
+                "expect": "The judge picks <strong>Answer 2</strong>. That is the same short, correct text as before. If it picks the long text, or always picks the first one, the judge has a bias.",
+                "example": "Answer 2 is better. It explains clearly what an API key is and says to keep it private. Answer 1 is vague and suggests sharing the key in a group chat, which is dangerous."
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. This time the judge gives scores for the long, bad answer only.",
+                "prompt": "You are a judge. A beginner asked: \"What is an API key?\"\nScore the answer below from 0 to 5 on each criterion. Give one short reason for each score.\nCriteria: 1) Factual accuracy, 2) Clarity for a beginner, 3) Safe advice, 4) Conciseness.\nEnd with the total score out of 20.\n\nAnswer:\nGreat question! An API key is an incredibly powerful and versatile credential that is fundamentally essential to modern software engineering. It works just like a shared team password, so you should send it to all of your teammates in a group chat so that everyone can log in easily. It also makes your application faster and more secure in every possible way.",
+                "expect": "Four scores from 0 to 5 with short reasons. Accuracy and Safe advice should be low, and the total should be low, for example <strong>4 out of 20</strong>.",
+                "example": "1) Factual accuracy: 1/5. It calls a key a shared password, which is wrong.\n2) Clarity: 2/5. It is wordy and vague.\n3) Safe advice: 0/5. It tells you to share the key in a group chat.\n4) Conciseness: 1/5. It uses many empty words.\nTotal: 4/20."
+              },
+              {
+                "chat": "same",
+                "do": "Look at your results from steps 1 and 2. Write down: did the judge pick the same text both times?",
+                "expect": "Most judges pick the short, correct text both times. A different pick after the swap is called <strong>position bias</strong>."
+              }
+            ],
+            "learned": "An <strong>LLM judge</strong> is an AI that grades answers. You tested it in two ways. First, you swapped the order of the answers. A fair judge keeps the same winner. Second, you gave it a rubric, which is a list of criteria with scores. The rubric showed why the long answer is bad. Teams also compare the judge with human labels from time to time.",
+            "done": "You know which text won in both orders, and you have a rubric score for the bad answer.",
+            "check": {
+              "question": "Why swap the order of the two answers?",
+              "answer": "A judge can prefer the first answer, or the longer one, even when it is worse. If the winner changes after the swap, the judge is biased and its scores are not reliable."
             },
-            {
-              "label": "Prompt B",
-              "text": "You are a judge. A beginner asked: \"What is an API key?\"\nCompare the two answers. Say which one is better, Answer 1 or Answer 2, and explain in two sentences.\n\nAnswer 1:\nGreat question! An API key is an incredibly powerful and versatile credential that is fundamentally essential to modern software engineering. It works just like a shared team password, so you should send it to all of your teammates in a group chat so that everyone can log in easily. It also makes your application faster and more secure in every possible way.\n\nAnswer 2:\nAn API key is a secret string that a program sends with each request. The service uses it to know who is calling, and to apply limits and billing. Keep it private, and never put it in public code."
-            },
-            {
-              "label": "Prompt C",
-              "text": "You are a judge. A beginner asked: \"What is an API key?\"\nScore the answer below from 0 to 5 on each criterion. Give one short reason for each score.\nCriteria: 1) Factual accuracy, 2) Clarity for a beginner, 3) Safe advice, 4) Conciseness.\nEnd with the total score out of 20.\n\nAnswer:\nGreat question! An API key is an incredibly powerful and versatile credential that is fundamentally essential to modern software engineering. It works just like a shared team password, so you should send it to all of your teammates in a group chat so that everyone can log in easily. It also makes your application faster and more secure in every possible way."
-            }
-          ],
-          "lookFor": [
-            "Most judges prefer the short, correct answer in both orders. If your judge changes its pick when you swap the order, that is position bias.",
-            "The rubric in Prompt C usually gives low marks for accuracy and safe advice, and shows why the long answer is bad.",
-            "Some judges praise the friendly, long text. That is a sign to compare the judge with human labels."
-          ],
-          "check": {
-            "question": "Why swap the order of the answers, and why check the judge against human labels?",
-            "answer": "A judge model can have biases, such as a preference for the first answer or for longer text. Swapping the order and comparing with human labels shows whether the LLM-as-judge is reliable before you trust its scores."
+            "challenge": "Write a longer Answer 2 that is also correct and safe. Run step 1 again. Does the judge still pick the short answer?"
           },
-          "challenge": "Write a better Answer 2 that is long but correct. Run Prompt A again. Does the judge still prefer the short answer?"
+          "bn": {
+            "title": "AI judge ন্যায্য কিনা পরীক্ষা করো",
+            "why": "একটা chatbot-কে অনেক বেশি পরিমাণে test করতে অনেক team দ্বিতীয় একটা AI দিয়ে তার উত্তর judge করায়। কিন্তু judge অন্যায্য হতে পারে, যেমন প্রথম উত্তর বা লম্বা উত্তর বেশি পছন্দ করা। Judge-কে বিশ্বাস করার আগে তাকে test করতে হবে।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। Answer 1 ছোট আর ঠিক। Answer 2 লম্বা আর বিপজ্জনক পরামর্শ দেয়। কোনটা জেতে, লিখে রাখো।",
+                "prompt": "তুমি একজন judge। একজন beginner জিজ্ঞেস করেছে: \"API key কী?\"\nদুটো উত্তর তুলনা করো। বলো কোনটা ভালো, Answer 1 নাকি Answer 2, আর দুই বাক্যে কারণ লেখো।\n\nAnswer 1:\nAPI key হলো একটা গোপন string, যেটা একটা program প্রতিটা request-এর সাথে পাঠায়। Service এটা দিয়ে বোঝে কে request করছে, আর limit ও billing ঠিক করে। এটা private রাখো, আর কখনো public code-এ রেখো না।\n\nAnswer 2:\nদারুণ প্রশ্ন! API key হলো একটা অবিশ্বাস্য শক্তিশালী ও বহুমুখী credential, যা আধুনিক software engineering-এর জন্য মৌলিকভাবে অপরিহার্য। এটা ঠিক team-এর shared password-এর মতো, তাই সবাই যাতে সহজে login করতে পারে সেজন্য এটা group chat-এ সব teammate-কে পাঠিয়ে দেওয়া উচিত। এটা তোমার application-কে সম্ভাব্য সব দিক থেকে আরও দ্রুত আর নিরাপদ করে।",
+                "expect": "Judge <strong>Answer 1</strong> বাছে, আর বলে Answer 2 অনিরাপদ পরামর্শ দিচ্ছে।",
+                "example": "Answer 1 ভালো। এটা ঠিকভাবে বলেছে যে API key দেখায় কে request করছে, আর এটা private রাখতে হয়। Answer 2 ভুলভাবে key টা group chat-এ শেয়ার করতে বলেছে, যেটা অনিরাপদ।"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। উত্তর দুটো একই, শুধু ক্রম উল্টে দেওয়া হয়েছে। এবার কোন লেখাটা জেতে, লিখে রাখো।",
+                "prompt": "তুমি একজন judge। একজন beginner জিজ্ঞেস করেছে: \"API key কী?\"\nদুটো উত্তর তুলনা করো। বলো কোনটা ভালো, Answer 1 নাকি Answer 2, আর দুই বাক্যে কারণ লেখো।\n\nAnswer 1:\nদারুণ প্রশ্ন! API key হলো একটা অবিশ্বাস্য শক্তিশালী ও বহুমুখী credential, যা আধুনিক software engineering-এর জন্য মৌলিকভাবে অপরিহার্য। এটা ঠিক team-এর shared password-এর মতো, তাই সবাই যাতে সহজে login করতে পারে সেজন্য এটা group chat-এ সব teammate-কে পাঠিয়ে দেওয়া উচিত। এটা তোমার application-কে সম্ভাব্য সব দিক থেকে আরও দ্রুত আর নিরাপদ করে।\n\nAnswer 2:\nAPI key হলো একটা গোপন string, যেটা একটা program প্রতিটা request-এর সাথে পাঠায়। Service এটা দিয়ে বোঝে কে request করছে, আর limit ও billing ঠিক করে। এটা private রাখো, আর কখনো public code-এ রেখো না।",
+                "expect": "Judge <strong>Answer 2</strong> বাছে। এটা আগের সেই ছোট, ঠিক লেখাটাই। যদি সে লম্বা লেখাটা বাছে, বা সবসময় প্রথমটাই বাছে, তাহলে judge-এর bias আছে।",
+                "example": "Answer 2 ভালো। এটা পরিষ্কারভাবে বলেছে API key কী, আর এটা private রাখতে বলেছে। Answer 1 অস্পষ্ট, আর key group chat-এ শেয়ার করতে বলেছে, যেটা বিপজ্জনক।"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। এবার judge শুধু লম্বা, খারাপ উত্তরটাকে নম্বর দেবে।",
+                "prompt": "তুমি একজন judge। একজন beginner জিজ্ঞেস করেছে: \"API key কী?\"\nনিচের উত্তরটাকে প্রতিটা criterion-এ 0 থেকে 5 নম্বর দাও। প্রতিটা নম্বরের জন্য একটা ছোট কারণ লেখো।\nCriteria: 1) তথ্য কতটা ঠিক (Factual accuracy), 2) Beginner-এর জন্য কতটা পরিষ্কার (Clarity), 3) নিরাপদ পরামর্শ (Safe advice), 4) সংক্ষিপ্ততা (Conciseness)।\nশেষে 20-এর মধ্যে মোট নম্বর লেখো।\n\nAnswer:\nদারুণ প্রশ্ন! API key হলো একটা অবিশ্বাস্য শক্তিশালী ও বহুমুখী credential, যা আধুনিক software engineering-এর জন্য মৌলিকভাবে অপরিহার্য। এটা ঠিক team-এর shared password-এর মতো, তাই সবাই যাতে সহজে login করতে পারে সেজন্য এটা group chat-এ সব teammate-কে পাঠিয়ে দেওয়া উচিত। এটা তোমার application-কে সম্ভাব্য সব দিক থেকে আরও দ্রুত আর নিরাপদ করে।",
+                "expect": "0 থেকে 5-এর চারটা নম্বর, সাথে ছোট কারণ। Accuracy আর Safe advice কম হওয়ার কথা, আর মোট নম্বরও কম, যেমন <strong>20-এর মধ্যে 4</strong>।",
+                "example": "1) Factual accuracy: 1/5। এটা key-কে shared password বলেছে, যেটা ভুল।\n2) Clarity: 2/5। কথা বেশি, কিন্তু অস্পষ্ট।\n3) Safe advice: 0/5। এটা key group chat-এ শেয়ার করতে বলেছে।\n4) Conciseness: 1/5। অনেক ফাঁকা শব্দ আছে।\nমোট: 4/20।"
+              },
+              {
+                "chat": "same",
+                "do": "ধাপ ১ আর ২-এর ফল দেখো। লিখে রাখো: Judge কি দুইবারই একই লেখা বেছেছে?",
+                "expect": "বেশিরভাগ judge দুইবারই ছোট, ঠিক লেখাটা বাছে। ক্রম উল্টানোর পর পছন্দ বদলে গেলে সেটাকে বলে <strong>position bias</strong>।"
+              }
+            ],
+            "learned": "<strong>LLM judge</strong> হলো এমন একটা AI, যে উত্তরে নম্বর দেয়। তুমি তাকে দুইভাবে test করেছ। প্রথমত, উত্তরের ক্রম উল্টে দিয়েছ। ন্যায্য judge-এর বিজয়ী একই থাকে। দ্বিতীয়ত, তাকে একটা rubric দিয়েছ, মানে নম্বরসহ criteria-র একটা তালিকা। Rubric দেখিয়ে দিল লম্বা উত্তরটা কেন খারাপ। Team গুলো মাঝে মাঝে judge-এর নম্বর মানুষের দেওয়া label-এর সাথেও মেলায়।",
+            "done": "দুই ক্রমেই কোন লেখা জিতল তুমি জানো, আর খারাপ উত্তরটার একটা rubric score তোমার কাছে আছে।",
+            "check": {
+              "question": "দুটো উত্তরের ক্রম উল্টে দেওয়া হয় কেন?",
+              "answer": "Judge অনেক সময় প্রথম উত্তর বা লম্বা উত্তরটা বেশি পছন্দ করে, এমনকি সেটা খারাপ হলেও। ক্রম উল্টানোর পর বিজয়ী বদলে গেলে বোঝা যায় judge-এর bias আছে, আর তার নম্বর ভরসাযোগ্য নয়।"
+            },
+            "challenge": "আরও লম্বা একটা Answer 2 লেখো, যেটা ঠিক আর নিরাপদও। ধাপ ১ আবার চালাও। Judge কি এখনও ছোট উত্তরটা বাছে?"
+          }
         },
         {
-          "title": "Score a RAG answer with four metrics",
-          "goal": "Practise the four RAG metrics (faithfulness, answer relevance, context precision, context recall) on one real-looking example.",
-          "steps": [
-            "Read the question, the three retrieved chunks, and the answer in Prompt A. Guess which problems you can find before you send it.",
-            "Send Prompt A in a <strong>new</strong> chat. Compare the four scores with your guesses.",
-            "Ask the chat in the same chat: <em>Which exact words in the answer are not supported by the chunks?</em>",
-            "Decide which part to fix first: the retriever or the generator."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "You are a RAG evaluator. Score the system on four metrics, each from 0 to 1, with one sentence of reasoning:\n1) Faithfulness: does the answer only use facts in the retrieved chunks?\n2) Answer relevance: does the answer address the question?\n3) Context precision: are the retrieved chunks mostly relevant?\n4) Context recall: do the chunks contain everything needed for a full answer? (A fact needed for a full answer is listed under Ground truth.)\n\nQuestion: Can I carry over unused leave days to next year, how many, and what happens to the rest?\n\nRetrieved chunks:\n[1] Employees may carry over up to 5 unused annual leave days into the next calendar year. Carried days expire on 31 March.\n[2] The office canteen is open from 8:00 to 16:00 on working days.\n[3] Sick leave does not carry over to the next year.\n\nAnswer: Yes. You can carry over up to 10 days until 31 March. HR pays the remaining days in cash at the end of the year.\n\nGround truth: Up to 5 days carry over until 31 March. Days above the limit are lost, and there is no cash payment."
-            }
-          ],
-          "lookFor": [
-            "Faithfulness is low: the answer says 10 days and a cash payment, but the chunks do not say that.",
-            "Answer relevance is often high. The answer is on topic, even though it is wrong. A high score on one metric does not mean the system is good.",
-            "Context precision is low (only one of three chunks helps), and context recall is low (the rule for the extra days is missing)."
-          ],
-          "check": {
-            "question": "The answer is on topic but wrong. Which metrics catch this, and which one does not?",
-            "answer": "Faithfulness catches it, because the answer adds facts that are not in the retrieved chunks. Answer relevance does not catch it, because it only asks whether the answer addresses the question. Low context recall points to a retrieval problem."
+          "en": {
+            "title": "Score a RAG answer with four metrics",
+            "why": "When you build a chatbot that answers from company documents (a RAG system), a wrong answer can come from two places: the search step or the writing step. Four scores help you find which one is broken.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. It shows a question, 3 found text chunks, and a wrong answer. The AI scores them on four metrics.",
+                "prompt": "You are a RAG evaluator. Score the system on four metrics, each from 0 to 1, with one sentence of reasoning:\n1) Faithfulness: does the answer only use facts in the retrieved chunks?\n2) Answer relevance: does the answer address the question?\n3) Context precision: are the retrieved chunks mostly relevant?\n4) Context recall: do the chunks contain everything needed for a full answer? (A fact needed for a full answer is listed under Ground truth.)\n\nQuestion: Can I carry over unused leave days to next year, how many, and what happens to the rest?\n\nRetrieved chunks:\n[1] Employees may carry over up to 5 unused annual leave days into the next calendar year. Carried days expire on 31 March.\n[2] The office canteen is open from 8:00 to 16:00 on working days.\n[3] Sick leave does not carry over to the next year.\n\nAnswer: Yes. You can carry over up to 10 days until 31 March. HR pays the remaining days in cash at the end of the year.\n\nGround truth: Up to 5 days carry over until 31 March. Days above the limit are lost, and there is no cash payment.",
+                "expect": "Four scores from 0 to 1. Faithfulness is low. Answer relevance is higher, because the answer is on topic. Context precision and recall are not high.",
+                "example": "1) Faithfulness: 0.3. The answer says 10 days and a cash payment, but the chunks say 5 days and do not mention cash.\n2) Answer relevance: 0.9. It answers the question that was asked.\n3) Context precision: 0.5. Only chunk 1 is clearly useful. Chunk 3 helps a little.\n4) Context recall: 0.5. The chunks do not say what happens to the extra days."
+              },
+              {
+                "chat": "same",
+                "do": "Copy this follow-up question, paste it, and press Enter.",
+                "prompt": "Which exact words in the answer are not supported by the chunks?",
+                "expect": "A short list. It should name <em>10 days</em> and <em>HR pays the remaining days in cash</em>.",
+                "example": "Two parts are not supported:\n- \"up to 10 days\": chunk 1 says up to 5 days.\n- \"HR pays the remaining days in cash\": no chunk mentions a cash payment."
+              },
+              {
+                "chat": "same",
+                "do": "Copy this follow-up question, paste it, and press Enter.",
+                "prompt": "Which of the four scores point to a problem in the search step (the retriever), and which point to a problem in the writing step (the generator)?",
+                "expect": "Faithfulness points to the generator. Context precision and recall point to the retriever.",
+                "example": "Context precision and context recall point to the retriever: it found a canteen chunk and missed the rule for extra days. Faithfulness points to the generator: it added facts that are not in the chunks. Answer relevance is fine."
+              }
+            ],
+            "learned": "A RAG answer can sound right and still be wrong. Answer relevance only asks if the answer is on topic, so it stayed high. <strong>Faithfulness</strong> asks if every fact comes from the chunks, so it caught the made-up numbers. <strong>Context precision</strong> and <strong>context recall</strong> check the search step: did it find mostly useful chunks, and did it find all the facts needed?",
+            "done": "You have four scores, and you can say which scores point to the retriever and which point to the generator.",
+            "check": {
+              "question": "The answer is on topic but wrong. Which metric catches this, and which one does not?",
+              "answer": "Faithfulness catches it, because the answer adds facts that are not in the chunks. Answer relevance does not catch it, because it only checks that the answer is about the question."
+            },
+            "challenge": "Add a fourth chunk: <em>Days above the limit are lost. No cash payment is made.</em> Ask the same chat to score again. Which scores go up?"
           },
-          "challenge": "Fix the retrieval by adding a fourth chunk: <em>Days above the limit are lost. No cash payment is made.</em> Ask the chat to re-score. Which metrics change?"
+          "bn": {
+            "title": "চারটা metric দিয়ে RAG উত্তর মাপো",
+            "why": "তুমি যখন company-র document থেকে উত্তর দেওয়া একটা chatbot (RAG system) বানাবে, তখন ভুল উত্তর দুই জায়গা থেকে আসতে পারে: খোঁজার ধাপ বা লেখার ধাপ। চারটা score দেখে বোঝা যায় কোনটা ভেঙেছে।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। এতে একটা প্রশ্ন, পাওয়া 3টা text chunk আর একটা ভুল উত্তর আছে। AI চারটা metric-এ নম্বর দেবে।",
+                "prompt": "তুমি একজন RAG evaluator। System-কে চারটা metric-এ 0 থেকে 1-এর মধ্যে নম্বর দাও, প্রতিটার জন্য এক বাক্যে কারণ লেখো:\n1) Faithfulness: উত্তর কি শুধু retrieved chunk-এর তথ্য ব্যবহার করেছে?\n2) Answer relevance: উত্তর কি প্রশ্নের জবাব দিয়েছে?\n3) Context precision: Retrieved chunk-গুলোর বেশিরভাগ কি প্রাসঙ্গিক?\n4) Context recall: পুরো উত্তরের জন্য যা যা দরকার, chunk-গুলোতে কি তার সবটা আছে? (পুরো উত্তরের জন্য দরকারি তথ্য Ground truth-এ দেওয়া আছে।)\n\nপ্রশ্ন: আমি কি ব্যবহার না করা ছুটির দিন পরের বছরে নিয়ে যেতে পারি? কয়দিন পারি? বাকিগুলোর কী হয়?\n\nRetrieved chunks:\n[1] কর্মীরা ব্যবহার না করা সর্বোচ্চ 5 দিনের annual leave পরের ক্যালেন্ডার বছরে নিয়ে যেতে পারবেন। নিয়ে যাওয়া দিনগুলো 31 মার্চ শেষ হয়ে যায়।\n[2] অফিসের canteen কাজের দিনে সকাল 8:00 থেকে বিকেল 16:00 পর্যন্ত খোলা থাকে।\n[3] Sick leave পরের বছরে নিয়ে যাওয়া যায় না।\n\nAnswer: হ্যাঁ। তুমি সর্বোচ্চ 10 দিন 31 মার্চ পর্যন্ত নিয়ে যেতে পারো। বছরের শেষে HR বাকি দিনগুলোর টাকা নগদে দিয়ে দেয়।\n\nGround truth: সর্বোচ্চ 5 দিন 31 মার্চ পর্যন্ত নিয়ে যাওয়া যায়। সীমার বাইরের দিনগুলো বাতিল হয়ে যায়, আর নগদ টাকা দেওয়া হয় না।",
+                "expect": "0 থেকে 1-এর চারটা score। Faithfulness কম। Answer relevance বেশি, কারণ উত্তর বিষয়ের মধ্যেই আছে। Context precision আর recall বেশি নয়।",
+                "example": "1) Faithfulness: 0.3। উত্তরে 10 দিন আর নগদ টাকার কথা আছে, কিন্তু chunk-এ আছে 5 দিন, আর নগদ টাকার কথা নেই।\n2) Answer relevance: 0.9। যে প্রশ্ন করা হয়েছে, উত্তর সেটারই জবাব দিয়েছে।\n3) Context precision: 0.5। শুধু chunk 1 পরিষ্কারভাবে কাজের। Chunk 3 একটু কাজের।\n4) Context recall: 0.5। বাড়তি দিনগুলোর কী হয়, সেটা chunk-এ নেই।"
+              },
+              {
+                "chat": "same",
+                "do": "এই follow-up প্রশ্নটা copy করো, paste করে Enter চাপো।",
+                "prompt": "উত্তরের কোন কোন অংশ chunk-গুলো দিয়ে সমর্থিত নয়? ঠিক শব্দগুলো বলো।",
+                "expect": "একটা ছোট তালিকা। তাতে <em>10 দিন</em> আর <em>HR নগদ টাকা দেয়</em> থাকার কথা।",
+                "example": "দুটো অংশ সমর্থিত নয়:\n- \"সর্বোচ্চ 10 দিন\": chunk 1-এ আছে সর্বোচ্চ 5 দিন।\n- \"HR বাকি দিনগুলোর টাকা নগদে দেয়\": কোনো chunk-এ নগদ টাকার কথা নেই।"
+              },
+              {
+                "chat": "same",
+                "do": "এই follow-up প্রশ্নটা copy করো, paste করে Enter চাপো।",
+                "prompt": "চারটা score-এর মধ্যে কোনগুলো খোঁজার ধাপের (retriever) সমস্যা দেখায়, আর কোনগুলো লেখার ধাপের (generator) সমস্যা দেখায়?",
+                "expect": "Faithfulness generator-এর দিকে ইঙ্গিত করে। Context precision আর recall retriever-এর দিকে ইঙ্গিত করে।",
+                "example": "Context precision আর context recall retriever-এর সমস্যা দেখায়: সে canteen-এর chunk এনেছে, আর বাড়তি দিনের নিয়মটা আনেনি। Faithfulness generator-এর সমস্যা দেখায়: সে chunk-এ নেই এমন তথ্য যোগ করেছে। Answer relevance ঠিক আছে।"
+              }
+            ],
+            "learned": "RAG-এর উত্তর শুনতে ঠিক লাগলেও ভুল হতে পারে। Answer relevance শুধু দেখে উত্তর বিষয়ের মধ্যে আছে কিনা, তাই সেটা বেশি থেকে গেছে। <strong>Faithfulness</strong> দেখে প্রতিটা তথ্য chunk থেকে এসেছে কিনা, তাই সে বানানো সংখ্যা ধরে ফেলেছে। <strong>Context precision</strong> আর <strong>context recall</strong> খোঁজার ধাপ মাপে: বেশিরভাগ chunk কি কাজের ছিল, আর দরকারি সব তথ্য কি পাওয়া গেছে?",
+            "done": "তোমার কাছে চারটা score আছে, আর কোন score retriever-এর দিকে আর কোনটা generator-এর দিকে ইঙ্গিত করে, তুমি তা বলতে পারো।",
+            "check": {
+              "question": "উত্তর বিষয়ের মধ্যে আছে, কিন্তু ভুল। কোন metric এটা ধরে, আর কোনটা ধরে না?",
+              "answer": "Faithfulness ধরে, কারণ উত্তরে এমন তথ্য যোগ হয়েছে যা chunk-এ নেই। Answer relevance ধরে না, কারণ সে শুধু দেখে উত্তর প্রশ্নের বিষয়ে কিনা।"
+            },
+            "challenge": "চতুর্থ একটা chunk যোগ করো: <em>সীমার বাইরের দিনগুলো বাতিল হয়ে যায়। নগদ টাকা দেওয়া হয় না।</em> একই chat-এ আবার score করতে বলো। কোন score গুলো বাড়ল?"
+          }
         },
         {
-          "title": "Grade an agent's path, not only its result",
-          "goal": "See that an agent can reach a correct final result by a bad path, and learn to score task success, tool-call accuracy, and step efficiency.",
-          "steps": [
-            "Read the agent log in Prompt A. Count the steps. Write the minimum number of steps you think are needed.",
-            "Send Prompt A in a <strong>new</strong> chat. Read the scores.",
-            "Check the judge: did it find the wrong date in step 3 and the extra search in step 2?",
-            "Decide: would you ship this agent? Why or why not?"
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "You are an agent evaluator. Below is a task and the log of an agent run. Score the run on:\n1) Task success (yes/no): is the final outcome correct?\n2) Tool-call accuracy: for each tool call, say whether the arguments were right.\n3) Trajectory: did the agent take a reasonable path?\n4) Step efficiency: steps used vs the minimum needed.\nGive a short verdict at the end.\n\nTask: Book the cheapest flight from Dhaka (DAC) to Chattogram (CGP) on 12 Nov 2026. The budget is 5000 BDT.\n\nTools: search_flights(from, to, date), book_flight(flight_id)\n\nAgent log:\nStep 1: search_flights(from=\"DAC\", to=\"CGP\", date=\"2026-11-12\") -> F1: 5200 BDT, F2: 4800 BDT, F3: 4300 BDT\nStep 2: search_flights(from=\"DAC\", to=\"CGP\", date=\"2026-11-12\") -> F1: 5200 BDT, F2: 4800 BDT, F3: 4300 BDT\nStep 3: search_flights(from=\"DAC\", to=\"CGP\", date=\"2026-12-11\") -> F4: 4100 BDT, F5: 4600 BDT\nStep 4: book_flight(flight_id=\"F2\") -> Booked F2 for 12 Nov 2026\nFinal answer: I booked the cheapest flight under your budget."
-            }
-          ],
-          "lookFor": [
-            "The judge should say task success is questionable: F2 is under budget, but F3 is cheaper, so the agent did not book the cheapest flight.",
-            "Step 2 is a repeated call, and step 3 has a wrong date. The tool-call accuracy is below 100%.",
-            "The minimum path is two steps (one search, one booking of F3). The agent used four."
-          ],
-          "check": {
-            "question": "Why is checking only the final answer not enough for an agent?",
-            "answer": "An agent can look successful while it wastes steps, uses wrong arguments, or picks a wrong option. Agent evals also track trajectory match, tool-call accuracy, and step efficiency, so you see how the agent got the result."
+          "en": {
+            "title": "Grade an agent's path, not only its result",
+            "why": "When you build an agent that books flights or sends emails, the final message can sound right while the work behind it is wrong or wasteful. You need to grade each step, not only the last line.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. It has a flight-booking agent log with 4 steps. The AI grades the run.",
+                "prompt": "You are an agent evaluator. Below is a task and the log of an agent run. Score the run on:\n1) Task success (yes/no): is the final outcome correct?\n2) Tool-call accuracy: for each tool call, say whether the arguments were right.\n3) Trajectory: did the agent take a reasonable path?\n4) Step efficiency: steps used vs the minimum needed.\nGive a short verdict at the end.\n\nTask: Book the cheapest flight from Dhaka (DAC) to Chattogram (CGP) on 12 Nov 2026. The budget is 5000 BDT.\n\nTools: search_flights(from, to, date), book_flight(flight_id)\n\nAgent log:\nStep 1: search_flights(from=\"DAC\", to=\"CGP\", date=\"2026-11-12\") -> F1: 5200 BDT, F2: 4800 BDT, F3: 4300 BDT\nStep 2: search_flights(from=\"DAC\", to=\"CGP\", date=\"2026-11-12\") -> F1: 5200 BDT, F2: 4800 BDT, F3: 4300 BDT\nStep 3: search_flights(from=\"DAC\", to=\"CGP\", date=\"2026-12-11\") -> F4: 4100 BDT, F5: 4600 BDT\nStep 4: book_flight(flight_id=\"F2\") -> Booked F2 for 12 Nov 2026\nFinal answer: I booked the cheapest flight under your budget.",
+                "expect": "Task success is <strong>no</strong>. The agent booked F2 (4800 BDT), but F3 (4300 BDT) was cheaper. The grader also finds the repeated search and the wrong date in step 3.",
+                "example": "1) Task success: No. F2 costs 4800 BDT. F3 costs 4300 BDT and is cheaper, so the final answer is false.\n2) Tool-call accuracy: Step 1 is right. Step 2 repeats step 1. Step 3 uses the wrong date, 2026-12-11. Step 4 books F2, not F3.\n3) Trajectory: Poor. One search was enough.\n4) Step efficiency: 4 steps used, 2 needed.\nVerdict: Do not ship."
+              },
+              {
+                "chat": "same",
+                "do": "Copy this follow-up question, paste it, and press Enter.",
+                "prompt": "Write the shortest correct log for this task. How many steps does it have?",
+                "expect": "A log with 2 steps: one search, then book F3.",
+                "example": "Step 1: search_flights(from=\"DAC\", to=\"CGP\", date=\"2026-11-12\") -> F1: 5200 BDT, F2: 4800 BDT, F3: 4300 BDT\nStep 2: book_flight(flight_id=\"F3\") -> Booked F3 for 12 Nov 2026\nIt has 2 steps."
+              },
+              {
+                "chat": "same",
+                "do": "Write down the steps used (4) and the steps needed. Then decide: would you ship this agent? Write one reason.",
+                "expect": "You need 2 steps, so the agent used twice as many as needed. Most people say no, because it booked the wrong flight and told the user it was the cheapest."
+              }
+            ],
+            "learned": "The agent's last line said it booked the cheapest flight, but that was false. If you read only the last line, you would miss this. <strong>Tool-call accuracy</strong> checks the arguments of each tool call, for example the date in step 3. <strong>Step efficiency</strong> compares the steps used (4) with the least steps needed (2). Good agent evals grade the whole path.",
+            "done": "You know the agent used 4 steps when 2 were enough, and you can name two mistakes in its path.",
+            "check": {
+              "question": "Why is the final answer not enough to grade an agent?",
+              "answer": "An agent can say it succeeded while it used wrong arguments, wasted steps, or picked the wrong option. Grading the path (the tool calls and the number of steps) shows how the result was made and where it went wrong."
+            },
+            "challenge": "Change step 4 in the log to book F3. Ask the AI to grade it again. Which scores go up, and which stay low?"
           },
-          "challenge": "Change step 4 to book F3 and keep the other steps. Ask the chat to score again. Which scores go up, and which stay low?"
+          "bn": {
+            "title": "Agent-এর পথ মাপো, শুধু ফল নয়",
+            "why": "তুমি যখন এমন agent বানাবে যে flight book করে বা email পাঠায়, তখন শেষ message শুনতে ঠিক লাগতে পারে, অথচ ভেতরের কাজ ভুল বা বাজে। তাই শুধু শেষ লাইন নয়, প্রতিটা step-ই মাপতে হবে।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। এতে 4 step-এর একটা flight-booking agent log আছে। AI run টা মাপবে। (Tool call গুলো English-এ রাখা হয়েছে, কারণ এগুলো code।)",
+                "prompt": "তুমি একজন agent evaluator। নিচে একটা task আর একটা agent run-এর log আছে। Run টাকে এই চার দিক থেকে নম্বর দাও:\n1) Task success (yes/no): শেষ ফলাফল কি ঠিক?\n2) Tool-call accuracy: প্রতিটা tool call-এর argument কি ঠিক ছিল?\n3) Trajectory: Agent কি যুক্তিসঙ্গত পথে গেছে?\n4) Step efficiency: কতগুলো step ব্যবহার হয়েছে, আর কমপক্ষে কয়টা লাগত?\nশেষে ছোট একটা verdict দাও।\n\nTask: Book the cheapest flight from Dhaka (DAC) to Chattogram (CGP) on 12 Nov 2026. The budget is 5000 BDT.\n\nTools: search_flights(from, to, date), book_flight(flight_id)\n\nAgent log:\nStep 1: search_flights(from=\"DAC\", to=\"CGP\", date=\"2026-11-12\") -> F1: 5200 BDT, F2: 4800 BDT, F3: 4300 BDT\nStep 2: search_flights(from=\"DAC\", to=\"CGP\", date=\"2026-11-12\") -> F1: 5200 BDT, F2: 4800 BDT, F3: 4300 BDT\nStep 3: search_flights(from=\"DAC\", to=\"CGP\", date=\"2026-12-11\") -> F4: 4100 BDT, F5: 4600 BDT\nStep 4: book_flight(flight_id=\"F2\") -> Booked F2 for 12 Nov 2026\nFinal answer: I booked the cheapest flight under your budget.",
+                "expect": "Task success হবে <strong>no</strong>। Agent F2 (4800 BDT) book করেছে, কিন্তু F3 (4300 BDT) সস্তা ছিল। এছাড়া grader আবার-করা search আর step 3-এর ভুল তারিখও ধরবে।",
+                "example": "1) Task success: No। F2-এর দাম 4800 BDT। F3 সস্তা, 4300 BDT, তাই শেষ উত্তরটা মিথ্যা।\n2) Tool-call accuracy: Step 1 ঠিক। Step 2 আবার step 1 করেছে। Step 3-এ তারিখ ভুল, 2026-12-11। Step 4 F3-এর বদলে F2 book করেছে।\n3) Trajectory: খারাপ। একটা search-ই যথেষ্ট ছিল।\n4) Step efficiency: 4 step ব্যবহার হয়েছে, লাগত 2টা।\nVerdict: Ship করা উচিত না।"
+              },
+              {
+                "chat": "same",
+                "do": "এই follow-up প্রশ্নটা copy করো, paste করে Enter চাপো।",
+                "prompt": "এই task-এর জন্য সবচেয়ে ছোট ঠিক log টা লেখো। এতে কয়টা step?",
+                "expect": "2 step-এর একটা log: একটা search, তারপর F3 book করা।",
+                "example": "Step 1: search_flights(from=\"DAC\", to=\"CGP\", date=\"2026-11-12\") -> F1: 5200 BDT, F2: 4800 BDT, F3: 4300 BDT\nStep 2: book_flight(flight_id=\"F3\") -> Booked F3 for 12 Nov 2026\nএতে 2টা step।"
+              },
+              {
+                "chat": "same",
+                "do": "লিখে রাখো কয়টা step ব্যবহার হয়েছে (4) আর কয়টা লাগত। তারপর ঠিক করো: তুমি কি এই agent ship করবে? একটা কারণ লেখো।",
+                "expect": "লাগত 2 step, মানে agent দ্বিগুণ step ব্যবহার করেছে। বেশিরভাগ মানুষ বলবে ship করবে না, কারণ সে ভুল flight book করেছে আর user-কে বলেছে সেটা সবচেয়ে সস্তা।"
+              }
+            ],
+            "learned": "Agent-এর শেষ লাইন বলেছিল সে সবচেয়ে সস্তা flight book করেছে, কিন্তু কথাটা মিথ্যা ছিল। শুধু শেষ লাইন পড়লে এটা ধরা পড়ত না। <strong>Tool-call accuracy</strong> প্রতিটা tool call-এর argument দেখে, যেমন step 3-এর তারিখ। <strong>Step efficiency</strong> ব্যবহার হওয়া step (4) আর সবচেয়ে কম লাগা step (2) তুলনা করে। ভালো agent eval পুরো পথটা মাপে।",
+            "done": "তুমি জানো 2 step যথেষ্ট ছিল অথচ agent 4 step ব্যবহার করেছে, আর তার পথের দুটো ভুল তুমি বলতে পারো।",
+            "check": {
+              "question": "Agent মাপতে শুধু শেষ উত্তর যথেষ্ট নয় কেন?",
+              "answer": "Agent বলতে পারে সে সফল, অথচ সে ভুল argument দিয়েছে, step নষ্ট করেছে, বা ভুল option বেছেছে। পথ মাপলে (tool call আর step-এর সংখ্যা) বোঝা যায় ফল কীভাবে এসেছে আর কোথায় ভুল হয়েছে।"
+            },
+            "challenge": "Log-এর step 4 বদলে F3 book করাও। AI-কে আবার মাপতে বলো। কোন score গুলো বাড়ে, আর কোনগুলো কম থাকে?"
+          }
         }
       ]
     }

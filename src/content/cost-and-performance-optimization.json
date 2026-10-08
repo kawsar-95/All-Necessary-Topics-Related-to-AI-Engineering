@@ -228,124 +228,292 @@
       ],
       "practice": [
         {
-          "title": "Design a cheap-to-expensive model cascade",
-          "goal": "Route easy requests to a cheap model and hard ones to an expensive model, and calculate how much money the cascade saves.",
-          "steps": [
-            "Read the 10 requests in Prompt A. Before you send it, mark each one EASY or HARD in your own notes.",
-            "Send Prompt A in a <strong>new</strong> chat. Compare the routing with your marks.",
-            "Calculate the cost. All large: 10 x 20 = 200 credits. Cascade: 10 x 1 + (number of HARD) x 20.",
-            "Send Prompt B in a <strong>new</strong> chat. See if the escalation check catches the bad draft."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "You are a router for a customer-support system. Each request goes first to a SMALL model (cost 1 credit) or directly to a LARGE model (cost 20 credits). Use SMALL for easy requests. Use LARGE for requests that need long reasoning, code, or many steps.\nFor each request reply with: number, SMALL or LARGE, and a confidence from 0 to 1. Add one short reason.\n\nRequests:\n1. What is your return window?\n2. Where is my order #4471?\n3. Translate \"thank you\" into Bangla.\n4. Two of my orders came in one parcel. One item is damaged. I used a coupon that split the refund across both orders. How much should I get back?\n5. How do I reset my password?\n6. Summarise the legal risks of changing our refund policy for customers in three countries.\n7. What is your phone number?\n8. Write a Python script that matches our payment file to bank statements and flags the mismatches.\n9. Is the blue shirt in stock in size M?\n10. Explain why our conversion rate dropped 12% after the checkout redesign and propose three tests."
+          "en": {
+            "title": "Send easy requests to a cheap model",
+            "why": "When you build a support chatbot, most questions are easy. If a big, costly model answers all of them, you pay too much. A router sends easy questions to a cheap model and hard ones to the big one.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. The AI acts as a router for 10 customer requests.",
+                "prompt": "You are a router for a customer-support system. Each request goes to a SMALL model (cost 1 credit) or a LARGE model (cost 20 credits). Use SMALL for easy requests. Use LARGE for requests that need long reasoning, code, or many steps.\nFor each request reply with: the number, SMALL or LARGE, and a reason of at most 6 words.\n\nRequests:\n1. What is your return window?\n2. Where is my order #4471?\n3. Translate \"thank you\" into Bangla.\n4. Two of my orders came in one parcel. One item is damaged. I used a coupon that split the refund across both orders. How much should I get back?\n5. How do I reset my password?\n6. Summarise the legal risks of changing our refund policy for customers in three countries.\n7. What is your phone number?\n8. Write a Python script that matches our payment file to bank statements and flags the mismatches.\n9. Is the blue shirt in stock in size M?\n10. Explain why our conversion rate dropped 12% after the checkout redesign and propose three tests.",
+                "expect": "A list of 10 lines. About 4 requests (the long, many-step ones) go to LARGE, and the rest go to SMALL.",
+                "example": "1. SMALL - simple policy fact\n2. SMALL - order status lookup\n3. SMALL - short translation\n4. LARGE - multi-step refund maths\n5. SMALL - standard how-to\n6. LARGE - legal reasoning, three countries\n7. SMALL - fixed contact fact\n8. LARGE - needs code\n9. SMALL - simple stock check\n10. LARGE - analysis and test design"
+              },
+              {
+                "chat": "same",
+                "do": "Count the LARGE lines. Then calculate the cost: SMALL count x 1 + LARGE count x 20. Compare it with 10 x 20 = 200 credits.",
+                "expect": "With 4 LARGE and 6 SMALL: 6 x 1 + 4 x 20 = <strong>86 credits</strong>, against 200 credits if all go to LARGE. That saves 114 credits, which is 57%."
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Now a checker looks at a draft answer from the small model.",
+                "prompt": "A small model wrote a draft answer. Decide if the draft is good enough to send (KEEP) or if a large model must redo it (ESCALATE). Reply with KEEP or ESCALATE and one sentence of reason.\n\nQuestion: A customer bought 3 shirts at 450 BDT each and 1 cap at 280 BDT. A 10% coupon applies to the whole order. Delivery costs 60 BDT and is not discounted. What is the total?\n\nDraft answer: The shirts cost 1,350 BDT and the cap costs 280 BDT. The subtotal is 1,630 BDT. After the 10% coupon the price is 1,467 BDT. Delivery is 60 BDT, so the total is 1,527 BDT.",
+                "expect": "<strong>KEEP</strong> with a reason. The draft is correct: 3 x 450 = 1,350, plus 280 = 1,630, minus 10% (163) = 1,467, plus 60 = 1,527.",
+                "example": "KEEP. The draft adds the items correctly (1,630 BDT), takes 10% off (1,467 BDT), and adds 60 BDT delivery after the discount, so 1,527 BDT is right."
+              }
+            ],
+            "learned": "A <strong>cascade</strong> means you try the cheap model first and use the expensive model only when needed. Here 6 of 10 requests used the cheap model, so the cost fell from 200 to 86 credits. The second prompt showed the other half: a check that decides if a cheap draft is good enough. A wrong KEEP sends a bad answer to a customer. A wrong ESCALATE wastes 20 credits.",
+            "done": "You have a router list, a cost of about 86 credits against 200, and one KEEP or ESCALATE decision.",
+            "check": {
+              "question": "Why does a cascade cost less than sending every request to the large model?",
+              "answer": "Most requests are easy, so the cheap model answers them at 1 credit each. Only the hard ones go to the large model at 20 credits, so the average cost per request falls."
             },
-            {
-              "label": "Prompt B",
-              "text": "A small model wrote a draft answer. Decide if the draft is good enough to send (KEEP) or if a large model must redo it (ESCALATE). Reply with KEEP or ESCALATE and one sentence of reason.\n\nQuestion: A customer bought 3 shirts at 450 BDT each and 1 cap at 280 BDT. A 10% coupon applies to the whole order. Delivery costs 60 BDT and is not discounted. What is the total?\n\nDraft answer: The shirts cost 1,350 BDT and the cap costs 280 BDT. The subtotal is 1,630 BDT. After the 10% coupon the price is 1,467 BDT. Delivery is 60 BDT, so the total is 1,527 BDT."
-            }
-          ],
-          "lookFor": [
-            "Most models send about 4 requests (the long, multi-step ones) to LARGE. That gives a cost near 90 credits instead of 200.",
-            "Prompt B: the draft is correct (1,630 - 163 = 1,467, plus 60 = 1,527). A good check says KEEP. If it says ESCALATE, you paid 20 credits for no gain.",
-            "Routing is a guess. A wrong EASY label on a hard request would give a bad cheap answer, so confidence and checks matter."
-          ],
-          "check": {
-            "question": "Why does a cascade cost less than sending every request to the large model?",
-            "answer": "Most requests are easy, so the cheap model answers them at low cost. Only low-confidence or hard requests escalate to the expensive model, so the average cost per request falls while quality stays high."
+            "challenge": "Change the draft to: <em>The subtotal with delivery is 1,690 BDT. After the 10% coupon the total is 1,521 BDT.</em> The delivery was discounted by mistake. Does the checker now say ESCALATE?"
           },
-          "challenge": "Change the draft in Prompt B so that the delivery fee is also discounted. Does the check now say ESCALATE? What does a wrong KEEP cost you?"
+          "bn": {
+            "title": "সহজ request সস্তা model-এ পাঠাও",
+            "why": "তুমি যখন একটা support chatbot বানাবে, তার বেশিরভাগ প্রশ্নই সহজ হবে। সবগুলোর উত্তর যদি বড় আর দামি model দেয়, তাহলে অনেক বেশি খরচ হয়। Router সহজ প্রশ্ন সস্তা model-এ আর কঠিন প্রশ্ন বড় model-এ পাঠায়।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। AI 10টা customer request-এর জন্য router-এর কাজ করবে।",
+                "prompt": "তুমি একটা customer-support system-এর router। প্রতিটা request যায় SMALL model-এ (cost 1 credit) অথবা LARGE model-এ (cost 20 credit)। সহজ request-এ SMALL ব্যবহার করো। যে request-এ লম্বা চিন্তা, code, বা অনেক ধাপ লাগে, তাতে LARGE ব্যবহার করো।\nপ্রতিটা request-এর জন্য লেখো: নম্বর, SMALL বা LARGE, আর সর্বোচ্চ ৬ শব্দের একটা কারণ।\n\nRequests:\n1. আপনাদের return করার সময়সীমা কত দিন?\n2. আমার order #4471 কোথায়?\n3. Bangla-তে \"thank you\" এর মানে কী?\n4. আমার দুটো order একটা parcel-এ এসেছে। একটা জিনিস নষ্ট। আমি একটা coupon ব্যবহার করেছি, যেটা দুই order-এ refund ভাগ করে দিয়েছে। আমি কত টাকা ফেরত পাব?\n5. Password reset করব কীভাবে?\n6. তিনটা দেশের customer-দের জন্য আমাদের refund policy বদলালে আইনি ঝুঁকিগুলো সংক্ষেপে লেখো।\n7. আপনাদের ফোন নম্বর কত?\n8. এমন একটা Python script লেখো, যেটা আমাদের payment file-এর সাথে bank statement মেলায় আর যেগুলো মেলে না সেগুলো চিহ্নিত করে।\n9. নীল শার্টটা কি M size-এ stock-এ আছে?\n10. Checkout redesign-এর পর আমাদের conversion rate 12% কমল কেন? ব্যাখ্যা করো আর তিনটা test প্রস্তাব করো।",
+                "expect": "10 লাইনের একটা list। প্রায় 4টা request (লম্বা, অনেক ধাপের গুলো) LARGE-এ যায়, বাকিগুলো SMALL-এ।",
+                "example": "1. SMALL - সহজ policy-র তথ্য\n2. SMALL - order status দেখা\n3. SMALL - ছোট অনুবাদ\n4. LARGE - অনেক ধাপের refund হিসাব\n5. SMALL - সাধারণ how-to\n6. LARGE - আইনি বিশ্লেষণ, তিনটা দেশ\n7. SMALL - নির্দিষ্ট তথ্য\n8. LARGE - code লিখতে হবে\n9. SMALL - সহজ stock check\n10. LARGE - বিশ্লেষণ আর test design"
+              },
+              {
+                "chat": "same",
+                "do": "LARGE লাইন কয়টা গোনো। তারপর cost হিসাব করো: SMALL-এর সংখ্যা x 1 + LARGE-এর সংখ্যা x 20। এটা 10 x 20 = 200 credit-এর সাথে তুলনা করো।",
+                "expect": "4টা LARGE আর 6টা SMALL হলে: 6 x 1 + 4 x 20 = <strong>86 credit</strong>, আর সবগুলো LARGE-এ গেলে 200 credit। মানে 114 credit বাঁচল, যা 57%।"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। এবার একটা checker small model-এর লেখা draft উত্তর দেখবে।",
+                "prompt": "একটা small model একটা draft উত্তর লিখেছে। ঠিক করো draft টা পাঠানোর মতো ভালো কিনা (KEEP), নাকি একটা large model-কে আবার করতে হবে (ESCALATE)। শুধু KEEP বা ESCALATE লেখো, সাথে এক বাক্যে কারণ।\n\nপ্রশ্ন: একজন customer 3টা শার্ট কিনেছে, প্রতিটা 450 BDT, আর 1টা টুপি 280 BDT। পুরো order-এ 10% coupon প্রযোজ্য। Delivery খরচ 60 BDT, এতে ছাড় নেই। মোট কত?\n\nDraft উত্তর: শার্টগুলোর দাম 1,350 BDT আর টুপির দাম 280 BDT। Subtotal 1,630 BDT। 10% coupon-এর পর দাম 1,467 BDT। Delivery 60 BDT, তাই মোট 1,527 BDT।",
+                "expect": "কারণসহ <strong>KEEP</strong>। Draft ঠিক: 3 x 450 = 1,350, সাথে 280 = 1,630, 10% (163) বাদ দিলে 1,467, সাথে 60 = 1,527।",
+                "example": "KEEP। Draft জিনিসগুলো ঠিকভাবে যোগ করেছে (1,630 BDT), 10% ছাড় দিয়েছে (1,467 BDT), আর ছাড়ের পরে 60 BDT delivery যোগ করেছে, তাই 1,527 BDT ঠিক।"
+              }
+            ],
+            "learned": "<strong>Cascade</strong> মানে আগে সস্তা model দিয়ে চেষ্টা করা, আর দরকার হলেই শুধু দামি model ব্যবহার করা। এখানে 10টার মধ্যে 6টা request সস্তা model-এ গেছে, তাই cost 200 থেকে 86 credit-এ নেমেছে। দ্বিতীয় prompt-এ অন্য অর্ধেকটা দেখলে: একটা check, যে ঠিক করে সস্তা model-এর draft যথেষ্ট ভালো কিনা। ভুল KEEP মানে customer-এর কাছে খারাপ উত্তর যায়। ভুল ESCALATE মানে 20 credit নষ্ট।",
+            "done": "তোমার কাছে একটা router list, প্রায় 86 credit-এর cost (200-এর বিপরীতে), আর একটা KEEP বা ESCALATE সিদ্ধান্ত আছে।",
+            "check": {
+              "question": "প্রতিটা request বড় model-এ পাঠানোর চেয়ে cascade-এ cost কম হয় কেন?",
+              "answer": "বেশিরভাগ request সহজ, তাই সস্তা model সেগুলো প্রতিটা 1 credit-এ উত্তর দেয়। শুধু কঠিনগুলো 20 credit-এর বড় model-এ যায়, তাই প্রতি request-এর গড় cost কমে যায়।"
+            },
+            "challenge": "Draft বদলে লেখো: <em>Delivery-সহ subtotal 1,690 BDT। 10% coupon-এর পর মোট 1,521 BDT।</em> এখানে ভুল করে delivery-তেও ছাড় দেওয়া হয়েছে। Checker কি এখন ESCALATE বলে?"
+          }
         },
         {
-          "title": "Find unsafe hits in a semantic cache",
-          "goal": "See how a semantic cache saves calls for similar questions, and how a loose similarity threshold returns a wrong cached answer.",
-          "steps": [
-            "Read the 6 question pairs in Prompt A. For each pair, guess: would the old answer be correct for the new question?",
-            "Send Prompt A in a <strong>new</strong> chat. Compare the similarity scores with your guesses.",
-            "Find pairs with a high score but a wrong cached answer.",
-            "Send Prompt B in a <strong>new</strong> chat. Compare its rules with the pairs you found."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "A semantic cache stores answers to old questions. For a new question, it returns the stored answer if the new question is very similar to the old one.\nFor each pair, give: a similarity score from 0 to 1, HIT or MISS (use HIT if the score is above 0.9), and whether the old answer would be CORRECT or WRONG for the new question.\n\nPairs (old question | new question):\n1. How do I reset my password? | How can I reset my password?\n2. What is the refund status of order 1001? | What is the refund status of order 1002?\n3. What is your return policy? | How long do I have to send an item back?\n4. What is the weather in Dhaka today? | What is the weather in Dhaka tomorrow?\n5. Please cancel my subscription. | Please do not cancel my subscription.\n6. What time do you close at night? | When do you shut in the evening?"
+          "en": {
+            "title": "Spot a wrong answer from a cache",
+            "why": "When you build a chatbot, many users ask the same question in different words. A cache can reuse the old answer and save money. But if it reuses an answer for a question that only looks the same, the user gets a wrong answer.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. It shows 6 pairs of questions. The AI guesses if the old answer still fits the new question.",
+                "prompt": "A semantic cache stores answers to old questions. For a new question, it returns the stored answer if the new question looks very similar to the old one.\nFor each pair, give: a similarity score from 0 to 1 (your best guess), HIT or MISS (HIT if the score is above 0.9), and whether the old answer would be CORRECT or WRONG for the new question.\nReply with one short line per pair.\n\nPairs (old question | new question):\n1. How do I reset my password? | How can I reset my password?\n2. What is the refund status of order 1001? | What is the refund status of order 1002?\n3. What is your return policy? | How long do I have to send an item back?\n4. What is the weather in Dhaka today? | What is the weather in Dhaka tomorrow?\n5. Please cancel my subscription. | Please do not cancel my subscription.\n6. What time do you close at night? | When do you shut in the evening?",
+                "expect": "6 short lines. Pairs 2, 4, and 5 usually get a high score (HIT) and are marked WRONG. Scores differ between chats.",
+                "example": "1. 0.97 HIT CORRECT\n2. 0.96 HIT WRONG (different order)\n3. 0.78 MISS CORRECT\n4. 0.94 HIT WRONG (today vs tomorrow)\n5. 0.93 HIT WRONG (opposite meaning)\n6. 0.80 MISS CORRECT"
+              },
+              {
+                "chat": "same",
+                "do": "Write down the pair numbers that are a HIT and also WRONG. Say in your own words what changed in each pair.",
+                "expect": "Usually pairs <strong>2, 4, and 5</strong>: a different order number, <em>today</em> vs <em>tomorrow</em>, and <em>cancel</em> vs <em>do not cancel</em>."
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. The AI writes rules that stop a wrong cache hit.",
+                "prompt": "I run a semantic cache for a support chatbot. Give me 4 short rules that decide when a cached answer must NOT be used, even if the similarity score is very high. Give one example question pair for each rule. Keep each rule to one sentence.",
+                "expect": "4 short rules, for example: do not use the cache for different IDs, time words, negations (<em>not</em>), or personal data.",
+                "example": "1. Do not reuse an answer if the IDs or numbers differ. Example: order 1001 vs order 1002.\n2. Do not reuse an answer if a time word differs. Example: today vs tomorrow.\n3. Do not reuse an answer if one question has a negation. Example: cancel vs do not cancel.\n4. Do not reuse an answer that holds personal data. Example: What is my balance?"
+              }
+            ],
+            "learned": "A <strong>semantic cache</strong> compares the meaning of questions, not the exact words. Pairs 1, 3, and 6 change only the words, so the old answer is right, and reusing it saves money. Pairs 2, 4, and 5 change one small thing, so the old answer is wrong. Here the AI only guessed the scores. A real cache measures them with an <strong>embedding</strong>, which turns text into numbers.",
+            "done": "You have a list of the HIT and WRONG pairs (usually 2, 4, and 5) and 4 rules that block them.",
+            "check": {
+              "question": "Why is a high similarity score not enough to return a cached answer?",
+              "answer": "A small change, such as an order number, a day, or the word <em>not</em>, can change the right answer. The words stay almost the same, so the score stays high. Extra rules and a strict threshold lower the risk of a wrong hit."
             },
-            {
-              "label": "Prompt B",
-              "text": "I run a semantic cache for a support chatbot. Give me 4 short rules that decide when a cached answer must NOT be used, even if the similarity score is very high. Give one example question pair for each rule. Keep each rule to one sentence."
-            }
-          ],
-          "lookFor": [
-            "Pairs 1, 3, and 6 are real hits: the words differ, but the meaning is the same. This is the saving a cache gives.",
-            "Pairs 2, 4, and 5 usually get a high score, because the words are almost the same. Yet the old answer is wrong. This is the danger.",
-            "Common rules in Prompt B: skip the cache for IDs, time words, negation, and personal data."
-          ],
-          "check": {
-            "question": "Why is a high similarity score not enough to return a cached answer?",
-            "answer": "A semantic cache compares embeddings, and a small change such as an order number, a date, or a word like not can change the right answer. A strict threshold (the section says cosine above 0.95) and extra rules lower the risk of a wrong hit."
+            "challenge": "Write two new pairs: one safe HIT with very different words, and one wrong HIT with almost the same words. Paste them into step 1 to test them."
           },
-          "challenge": "Write two new pairs: one that is a safe HIT with very different words, and one that is a wrong HIT with almost the same words. Ask Prompt A to score them."
+          "bn": {
+            "title": "Cache থেকে আসা ভুল উত্তর ধরো",
+            "why": "তুমি যখন একটা chatbot বানাবে, অনেক user একই প্রশ্ন আলাদা আলাদা কথায় করবে। Cache পুরোনো উত্তর আবার ব্যবহার করে খরচ বাঁচাতে পারে। কিন্তু প্রশ্নটা শুধু দেখতে একই হলে আর উত্তর আসলে আলাদা হলে, user ভুল উত্তর পায়।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। এতে 6 জোড়া প্রশ্ন আছে। AI অনুমান করবে পুরোনো উত্তর নতুন প্রশ্নে এখনও মানায় কিনা।",
+                "prompt": "Semantic cache পুরোনো প্রশ্নের উত্তর জমিয়ে রাখে। নতুন প্রশ্ন পুরোনো প্রশ্নের খুব কাছাকাছি দেখালে সে জমানো উত্তরটাই ফেরত দেয়।\nপ্রতিটা জোড়ার জন্য লেখো: 0 থেকে 1-এর মধ্যে একটা similarity score (তোমার সেরা অনুমান), HIT বা MISS (score 0.9-এর বেশি হলে HIT), আর পুরোনো উত্তরটা নতুন প্রশ্নের জন্য CORRECT হবে নাকি WRONG।\nপ্রতিটা জোড়ার জন্য ছোট এক লাইনে উত্তর দাও।\n\nজোড়া (পুরোনো প্রশ্ন | নতুন প্রশ্ন):\n1. আমি আমার password reset করব কীভাবে? | আমি কীভাবে আমার password reset করতে পারি?\n2. Order 1001-এর refund-এর অবস্থা কী? | Order 1002-এর refund-এর অবস্থা কী?\n3. আপনাদের return policy কী? | জিনিস ফেরত পাঠাতে আমার কত সময় আছে?\n4. আজ ঢাকার আবহাওয়া কেমন? | কাল ঢাকার আবহাওয়া কেমন?\n5. আমার subscription cancel করুন। | আমার subscription cancel করবেন না।\n6. রাতে আপনারা কয়টায় বন্ধ করেন? | সন্ধ্যায় আপনারা কখন দোকান বন্ধ করেন?",
+                "expect": "6টা ছোট লাইন। Pair 2, 4 আর 5 সাধারণত বেশি score (HIT) পায় আর WRONG চিহ্ন পায়। Score এক chat থেকে আরেক chat-এ আলাদা হয়।",
+                "example": "1. 0.97 HIT CORRECT\n2. 0.96 HIT WRONG (অন্য order)\n3. 0.78 MISS CORRECT\n4. 0.94 HIT WRONG (আজ আর কাল আলাদা)\n5. 0.93 HIT WRONG (উল্টো মানে)\n6. 0.80 MISS CORRECT"
+              },
+              {
+                "chat": "same",
+                "do": "কোন pair-গুলো HIT আর WRONG দুটোই, সেগুলোর নম্বর লিখে রাখো। প্রতিটা pair-এ কী বদলেছে, নিজের ভাষায় লেখো।",
+                "expect": "সাধারণত pair <strong>2, 4 আর 5</strong>: আলাদা order নম্বর, <em>আজ</em> বনাম <em>কাল</em>, আর <em>cancel করুন</em> বনাম <em>cancel করবেন না</em>।"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। AI এমন নিয়ম লিখবে, যা ভুল cache hit আটকায়।",
+                "prompt": "আমি একটা support chatbot-এর জন্য semantic cache চালাই। আমাকে 4টা ছোট নিয়ম দাও, যেগুলো ঠিক করে কখন cache-এর উত্তর ব্যবহার করা যাবে না, similarity score খুব বেশি হলেও। প্রতিটা নিয়মের জন্য একটা করে উদাহরণ প্রশ্ন-জোড়া দাও। প্রতিটা নিয়ম এক বাক্যে লেখো।",
+                "expect": "4টা ছোট নিয়ম, যেমন: আলাদা ID, সময়ের শব্দ, নেতিবাচক কথা (<em>না</em>), বা ব্যক্তিগত তথ্য থাকলে cache ব্যবহার করবে না।",
+                "example": "1. ID বা সংখ্যা আলাদা হলে উত্তর আবার ব্যবহার কোরো না। উদাহরণ: order 1001 | order 1002।\n2. সময়ের শব্দ আলাদা হলে উত্তর আবার ব্যবহার কোরো না। উদাহরণ: আজ | কাল।\n3. একটা প্রশ্নে নেতিবাচক কথা থাকলে উত্তর আবার ব্যবহার কোরো না। উদাহরণ: cancel করুন | cancel করবেন না।\n4. ব্যক্তিগত তথ্য থাকা উত্তর আবার ব্যবহার কোরো না। উদাহরণ: আমার balance কত?"
+              }
+            ],
+            "learned": "<strong>Semantic cache</strong> প্রশ্নের হুবহু শব্দ নয়, মানে তুলনা করে। Pair 1, 3 আর 6-এ শুধু শব্দ বদলেছে, তাই পুরোনো উত্তর ঠিক, আর সেটা আবার ব্যবহার করলে টাকা বাঁচে। Pair 2, 4 আর 5-এ ছোট একটা জিনিস বদলেছে, তাই পুরোনো উত্তর ভুল। এখানে AI শুধু score অনুমান করেছে। আসল cache সেটা মাপে <strong>embedding</strong> দিয়ে, যা লেখাকে সংখ্যায় বদলে দেয়।",
+            "done": "তোমার কাছে HIT আর WRONG pair-গুলোর list (সাধারণত 2, 4 আর 5) আছে, আর সেগুলো আটকানোর 4টা নিয়ম আছে।",
+            "check": {
+              "question": "Cache-এর উত্তর ফেরত দেওয়ার জন্য বেশি similarity score কেন যথেষ্ট নয়?",
+              "answer": "Order নম্বর, দিন, বা <em>না</em> শব্দের মতো ছোট বদলও ঠিক উত্তর বদলে দিতে পারে। শব্দ প্রায় একই থাকে, তাই score বেশি থাকে। বাড়তি নিয়ম আর কড়া threshold ভুল hit-এর ঝুঁকি কমায়।"
+            },
+            "challenge": "দুটো নতুন pair লেখো: একটা নিরাপদ HIT, যেখানে শব্দ একেবারে আলাদা, আর একটা ভুল HIT, যেখানে শব্দ প্রায় একই। পরীক্ষা করতে ধাপ ১-এর prompt-এ বসাও।"
+          }
         },
         {
-          "title": "Compress a long context and test it",
-          "goal": "See how prompt compression cuts length, and test whether the short text still answers the questions.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. Save the three answers as your baseline.",
-            "Send Prompt B in a <strong>new</strong> chat. Compare the length of the result with the original text.",
-            "Copy the compressed text. Put it in Prompt C where it says PASTE HERE. Send Prompt C in a <strong>new</strong> chat.",
-            "Compare the answers of Prompt C with Prompt A. Which fact was lost, if any?"
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "Answer the three questions using only the context.\n\nContext:\nThank you for choosing Padma Mart. We are very happy to tell you about our shipping policy. In general, orders that are placed before 2 PM on a working day are usually packed on the same day, and orders that are placed after 2 PM are usually packed on the next working day. Please note that we do not work on Fridays and public holidays. Delivery inside Dhaka normally takes one to two days, while delivery to other cities normally takes three to five days. Shipping inside Dhaka costs 60 BDT, and shipping to other cities costs 120 BDT. We are also glad to say that orders above 2,000 BDT get free shipping inside Dhaka only. If you are not at home, our courier will try to deliver your parcel two times, and after the second failed attempt the parcel returns to our warehouse. We hope you enjoy shopping with us!\n\nQuestions:\n1. How much is shipping to Chattogram for a 1,500 BDT order?\n2. When is a Saturday 3 PM order packed?\n3. How many delivery attempts does the courier make?"
+          "en": {
+            "title": "Shorten a long text and test it",
+            "why": "When you build a chatbot with long documents, you pay for every word you send to the AI. If you cut the filler words, you pay less. But you must check that the short text still gives the same answers.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Write down the 3 answers. They are your baseline.",
+                "prompt": "Answer the three questions using only the context.\n\nContext:\nThank you for choosing Padma Mart. We are very happy to tell you about our shipping policy. In general, orders that are placed before 2 PM on a working day are usually packed on the same day, and orders that are placed after 2 PM are usually packed on the next working day. Please note that we do not work on Fridays and public holidays. Delivery inside Dhaka normally takes one to two days, while delivery to other cities normally takes three to five days. Shipping inside Dhaka costs 60 BDT, and shipping to other cities costs 120 BDT. We are also glad to say that orders above 2,000 BDT get free shipping inside Dhaka only. If you are not at home, our courier will try to deliver your parcel two times, and after the second failed attempt the parcel returns to our warehouse. We hope you enjoy shopping with us!\n\nQuestions:\n1. How much is shipping to Chattogram for a 1,500 BDT order?\n2. When is a Thursday 3 PM order packed?\n3. How many delivery attempts does the courier make?",
+                "expect": "Three answers: shipping <strong>120 BDT</strong>, packed on <strong>Saturday</strong>, and <strong>2</strong> delivery attempts.",
+                "example": "1. 120 BDT. Shipping to other cities costs 120 BDT, and free shipping is only inside Dhaka for orders above 2,000 BDT.\n2. On Saturday. A Thursday order after 2 PM is packed on the next working day, and Friday is a non-working day.\n3. 2 attempts."
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. Then copy the short text that the AI gives you.",
+                "prompt": "Compress the text below to about one third of its length. Remove filler words and greetings. Keep every number, price, time, and rule. Use short note-style phrases. Reply with the compressed text only.\n\nText:\nThank you for choosing Padma Mart. We are very happy to tell you about our shipping policy. In general, orders that are placed before 2 PM on a working day are usually packed on the same day, and orders that are placed after 2 PM are usually packed on the next working day. Please note that we do not work on Fridays and public holidays. Delivery inside Dhaka normally takes one to two days, while delivery to other cities normally takes three to five days. Shipping inside Dhaka costs 60 BDT, and shipping to other cities costs 120 BDT. We are also glad to say that orders above 2,000 BDT get free shipping inside Dhaka only. If you are not at home, our courier will try to deliver your parcel two times, and after the second failed attempt the parcel returns to our warehouse. We hope you enjoy shopping with us!",
+                "expect": "A much shorter text in note style, about one third to one half of the original, with all the numbers still there.",
+                "example": "Padma Mart shipping. Order before 2 PM (working day): packed same day. After 2 PM: next working day. No work Fri, public holidays. Delivery: Dhaka 1-2 days, other cities 3-5 days. Shipping: Dhaka 60 BDT, other 120 BDT. Free shipping: Dhaka only, orders above 2,000 BDT. Courier tries 2 times, then parcel returns to warehouse."
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt and paste it. Replace the line PASTE YOUR COMPRESSED TEXT HERE with the short text from step 2. Press Enter.",
+                "prompt": "Answer the three questions using only the context.\n\nContext:\nPASTE YOUR COMPRESSED TEXT HERE\n\nQuestions:\n1. How much is shipping to Chattogram for a 1,500 BDT order?\n2. When is a Thursday 3 PM order packed?\n3. How many delivery attempts does the courier make?",
+                "expect": "Three answers again. They should match step 1: <strong>120 BDT</strong>, <strong>Saturday</strong>, and <strong>2</strong> attempts.",
+                "example": "1. 120 BDT. Shipping to other cities costs 120 BDT, and free shipping is only inside Dhaka for orders above 2,000 BDT.\n2. On Saturday. A Thursday order after 2 PM is packed on the next working day, and Friday is a non-working day.\n3. 2 attempts."
+              },
+              {
+                "chat": "same",
+                "do": "Compare the 3 answers with step 1. Write down any answer that is different.",
+                "expect": "Often all 3 answers are the same. If one is different, the short text lost a fact."
+              }
+            ],
+            "learned": "You pay for the <strong>tokens</strong> (small pieces of words) that you send to the AI. Greetings and filler words use tokens but add no facts. The short text kept all the numbers and rules, so the AI gave the same answers for less cost. Always run this test after you compress. If a fact is lost, the AI gives a wrong answer.",
+            "done": "You have two sets of 3 answers, and you know if they match.",
+            "check": {
+              "question": "Why does compressing a prompt save money, and what must you check afterwards?",
+              "answer": "The cost depends on the number of tokens you send. Filler text uses tokens but adds no facts, so removing it saves money. Afterwards, check that the AI still gives the same answers, because a lost fact makes a wrong answer."
             },
-            {
-              "label": "Prompt B",
-              "text": "Compress the text below to about one third of its length. Remove filler words and greetings. Keep every number, price, time, and rule. Use short note-style phrases. Reply with the compressed text only.\n\nText:\nThank you for choosing Padma Mart. We are very happy to tell you about our shipping policy. In general, orders that are placed before 2 PM on a working day are usually packed on the same day, and orders that are placed after 2 PM are usually packed on the next working day. Please note that we do not work on Fridays and public holidays. Delivery inside Dhaka normally takes one to two days, while delivery to other cities normally takes three to five days. Shipping inside Dhaka costs 60 BDT, and shipping to other cities costs 120 BDT. We are also glad to say that orders above 2,000 BDT get free shipping inside Dhaka only. If you are not at home, our courier will try to deliver your parcel two times, and after the second failed attempt the parcel returns to our warehouse. We hope you enjoy shopping with us!"
-            },
-            {
-              "label": "Prompt C",
-              "text": "Answer the three questions using only the context.\n\nContext:\nPASTE HERE the compressed text from Prompt B\n\nQuestions:\n1. How much is shipping to Chattogram for a 1,500 BDT order?\n2. When is a Saturday 3 PM order packed?\n3. How many delivery attempts does the courier make?"
-            }
-          ],
-          "lookFor": [
-            "The compressed text is often much shorter, because greetings and filler words carry little information.",
-            "Most answers in Prompt C match Prompt A: 120 BDT, the next working day (not Friday), and 2 attempts.",
-            "If a fact was lost, the compression cost quality. That is why you always test the compressed prompt."
-          ],
-          "check": {
-            "question": "Why does prompt compression save money, and what must you check after you use it?",
-            "answer": "Cost depends on the number of input tokens, and filler text uses tokens without adding information. Compression removes low-information tokens, but you must test that quality does not drop, because a lost fact gives a wrong answer."
+            "challenge": "Ask for compression to one sixth of the length. Run step 3 again. At what length does the first fact get lost?"
           },
-          "challenge": "Ask for compression to one sixth of the length. Run Prompt C again. At what length does the first fact get lost?"
+          "bn": {
+            "title": "লম্বা লেখা ছোট করো আর test করো",
+            "why": "তুমি যখন লম্বা document নিয়ে একটা chatbot বানাবে, AI-কে পাঠানো প্রতিটা শব্দের জন্য তোমাকে টাকা দিতে হবে। ফাঁকা শব্দ কেটে দিলে খরচ কমে। কিন্তু ছোট লেখাটা যে একই উত্তর দেয়, সেটা তোমাকে যাচাই করতে হবে।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। 3টা উত্তর লিখে রাখো। এটা তোমার baseline।",
+                "prompt": "শুধু context ব্যবহার করে তিনটা প্রশ্নের উত্তর দাও।\n\nContext:\nPadma Mart বেছে নেওয়ার জন্য ধন্যবাদ। আমাদের shipping policy নিয়ে জানাতে পেরে আমরা খুব খুশি। সাধারণভাবে, কাজের দিনে দুপুর 2টার আগে দেওয়া order সাধারণত সেদিনই packing হয়, আর দুপুর 2টার পরে দেওয়া order সাধারণত পরের কাজের দিনে packing হয়। দয়া করে মনে রাখবেন, আমরা শুক্রবার আর সরকারি ছুটির দিনে কাজ করি না। ঢাকার ভেতরে delivery সাধারণত এক থেকে দুই দিন লাগে, আর অন্য শহরে সাধারণত তিন থেকে পাঁচ দিন লাগে। ঢাকার ভেতরে shipping খরচ 60 BDT, আর অন্য শহরে shipping খরচ 120 BDT। আমরা আরও জানাতে পেরে খুশি যে 2,000 BDT-র বেশি order-এ শুধু ঢাকার ভেতরে shipping ফ্রি। আপনি বাসায় না থাকলে আমাদের courier parcel দুইবার পৌঁছে দেওয়ার চেষ্টা করবে, আর দ্বিতীয়বার ব্যর্থ হলে parcel আমাদের warehouse-এ ফিরে আসে। আমাদের সাথে কেনাকাটা উপভোগ করবেন, এই আশা করি!\n\nপ্রশ্ন:\n1. 1,500 BDT-র একটা order চট্টগ্রামে পাঠাতে shipping কত?\n2. বৃহস্পতিবার বিকেল 3টায় দেওয়া order কবে packing হয়?\n3. Courier কয়বার delivery-র চেষ্টা করে?",
+                "expect": "তিনটা উত্তর: shipping <strong>120 BDT</strong>, packing হবে <strong>শনিবার</strong>, আর <strong>2</strong> বার delivery চেষ্টা।",
+                "example": "1. 120 BDT। অন্য শহরে shipping 120 BDT, আর ফ্রি shipping শুধু ঢাকার ভেতরে 2,000 BDT-র বেশি order-এ।\n2. শনিবার। বৃহস্পতিবার 2টার পরে দেওয়া order পরের কাজের দিনে packing হয়, আর শুক্রবার কাজের দিন নয়।\n3. 2 বার।"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। তারপর AI-র দেওয়া ছোট লেখাটা copy করো।",
+                "prompt": "নিচের লেখাটা তার দৈর্ঘ্যের প্রায় এক-তৃতীয়াংশে ছোট করো। ফাঁকা শব্দ আর শুভেচ্ছা বাদ দাও। প্রতিটা সংখ্যা, দাম, সময় আর নিয়ম রাখো। ছোট note-এর মতো বাক্যাংশ ব্যবহার করো। শুধু ছোট করা লেখাটা পাঠাও।\n\nলেখা:\nPadma Mart বেছে নেওয়ার জন্য ধন্যবাদ। আমাদের shipping policy নিয়ে জানাতে পেরে আমরা খুব খুশি। সাধারণভাবে, কাজের দিনে দুপুর 2টার আগে দেওয়া order সাধারণত সেদিনই packing হয়, আর দুপুর 2টার পরে দেওয়া order সাধারণত পরের কাজের দিনে packing হয়। দয়া করে মনে রাখবেন, আমরা শুক্রবার আর সরকারি ছুটির দিনে কাজ করি না। ঢাকার ভেতরে delivery সাধারণত এক থেকে দুই দিন লাগে, আর অন্য শহরে সাধারণত তিন থেকে পাঁচ দিন লাগে। ঢাকার ভেতরে shipping খরচ 60 BDT, আর অন্য শহরে shipping খরচ 120 BDT। আমরা আরও জানাতে পেরে খুশি যে 2,000 BDT-র বেশি order-এ শুধু ঢাকার ভেতরে shipping ফ্রি। আপনি বাসায় না থাকলে আমাদের courier parcel দুইবার পৌঁছে দেওয়ার চেষ্টা করবে, আর দ্বিতীয়বার ব্যর্থ হলে parcel আমাদের warehouse-এ ফিরে আসে। আমাদের সাথে কেনাকাটা উপভোগ করবেন, এই আশা করি!",
+                "expect": "Note-এর মতো অনেক ছোট একটা লেখা, মূল লেখার প্রায় এক-তৃতীয়াংশ থেকে অর্ধেক, কিন্তু সব সংখ্যা আছে।",
+                "example": "Padma Mart shipping। কাজের দিনে দুপুর 2টার আগে order: একই দিনে packing। 2টার পরে: পরের কাজের দিনে। শুক্রবার, সরকারি ছুটিতে কাজ বন্ধ। Delivery: ঢাকা 1-2 দিন, অন্য শহর 3-5 দিন। Shipping: ঢাকা 60 BDT, অন্য শহর 120 BDT। ফ্রি shipping: শুধু ঢাকা, 2,000 BDT-র বেশি order। Courier 2 বার চেষ্টা করে, তারপর parcel warehouse-এ ফেরত।"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করে paste করো। \"এখানে তোমার ছোট করা লেখা paste করো\" লাইনটার জায়গায় ধাপ ২-এর ছোট লেখাটা বসাও। তারপর Enter চাপো।",
+                "prompt": "শুধু context ব্যবহার করে তিনটা প্রশ্নের উত্তর দাও।\n\nContext:\nএখানে তোমার ছোট করা লেখা paste করো\n\nপ্রশ্ন:\n1. 1,500 BDT-র একটা order চট্টগ্রামে পাঠাতে shipping কত?\n2. বৃহস্পতিবার বিকেল 3টায় দেওয়া order কবে packing হয়?\n3. Courier কয়বার delivery-র চেষ্টা করে?",
+                "expect": "আবার তিনটা উত্তর। ধাপ ১-এর সাথে মেলার কথা: <strong>120 BDT</strong>, <strong>শনিবার</strong>, আর <strong>2</strong> বার।",
+                "example": "1. 120 BDT। অন্য শহরে shipping 120 BDT, আর ফ্রি shipping শুধু ঢাকার ভেতরে 2,000 BDT-র বেশি order-এ।\n2. শনিবার। বৃহস্পতিবার 2টার পরে দেওয়া order পরের কাজের দিনে packing হয়, আর শুক্রবার কাজের দিন নয়।\n3. 2 বার।"
+              },
+              {
+                "chat": "same",
+                "do": "তিনটা উত্তর ধাপ ১-এর সাথে মেলাও। যে উত্তর আলাদা, সেটা লিখে রাখো।",
+                "expect": "প্রায়ই তিনটা উত্তরই এক হয়। একটা আলাদা হলে বুঝবে ছোট লেখায় একটা তথ্য হারিয়ে গেছে।"
+              }
+            ],
+            "learned": "AI-কে তুমি যে <strong>token</strong> (শব্দের ছোট টুকরো) পাঠাও, তার জন্যই টাকা দিতে হয়। শুভেচ্ছা আর ফাঁকা শব্দ token খরচ করে, কিন্তু কোনো তথ্য যোগ করে না। ছোট লেখায় সব সংখ্যা আর নিয়ম ছিল, তাই কম খরচে AI একই উত্তর দিয়েছে। ছোট করার পর সবসময় এই test চালাও। একটা তথ্য হারালে AI ভুল উত্তর দেবে।",
+            "done": "তোমার কাছে 3টা উত্তরের দুটো সেট আছে, আর তুমি জানো সেগুলো মিলেছে কিনা।",
+            "check": {
+              "question": "Prompt ছোট করলে টাকা বাঁচে কেন, আর এরপর কী যাচাই করতে হবে?",
+              "answer": "Cost নির্ভর করে তুমি কয়টা token পাঠাও তার ওপর। ফাঁকা লেখা token খরচ করে কিন্তু তথ্য যোগ করে না, তাই সেটা বাদ দিলে টাকা বাঁচে। এরপর যাচাই করো AI একই উত্তর দিচ্ছে কিনা, কারণ একটা তথ্য হারালে উত্তর ভুল হয়।"
+            },
+            "challenge": "দৈর্ঘ্যের এক-ষষ্ঠাংশে ছোট করতে বলো। ধাপ ৩ আবার চালাও। কত ছোট করলে প্রথম তথ্য হারিয়ে যায়?"
+          }
         },
         {
-          "title": "Plan a token budget for three features",
-          "goal": "Use per-feature token budgets with 80% alerts and 100% throttles to find which feature will exceed its budget, and when.",
-          "steps": [
-            "Read the table in Prompt A. By hand, compute the month-end forecast for the Search rewrite feature: usage per day x 30.",
-            "Send Prompt A in a <strong>new</strong> chat. Check each number the chat gives against your own calculation.",
-            "Find the day when each feature reaches the 80% alert and the 100% throttle.",
-            "Decide which feature you would throttle first, and compare your choice with the chat's choice."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "A company gives each LLM feature a monthly token budget. The rule: send an alert at 80% of the budget and throttle the feature at 100%.\nToday is day 12 of a 30-day month. Assume the daily use stays constant.\n\nFeature | Monthly budget | Used so far (12 days)\nChat support | 40,000,000 tokens | 20,000,000 tokens\nDocument summary | 20,000,000 tokens | 4,000,000 tokens\nSearch rewrite | 6,000,000 tokens | 3,600,000 tokens\n\nFor each feature, compute and show in a table:\n1) Forecast usage at the end of the month, as a percent of the budget.\n2) The day of the month when it reaches 80%.\n3) The day of the month when it reaches 100%.\nThen say which feature needs action first, and suggest two cheap ways to reduce its usage."
-            }
-          ],
-          "lookFor": [
-            "Search rewrite uses 0.3 million tokens per day. It forecasts 150% of budget, reaches 80% on day 16, and 100% on day 20.",
-            "Chat support forecasts 125%, reaches 80% on day 20, and 100% on day 24. Document summary forecasts 50% and never alerts.",
-            "If the chat made an arithmetic mistake, that is a good reminder to check numbers yourself. Also notice that the smallest budget is the first problem, not the biggest feature."
-          ],
-          "check": {
-            "question": "Why set a budget per feature and not one budget for the whole company?",
-            "answer": "A per-feature budget with an 80% alert and a 100% throttle stops one runaway feature from using the whole bill. You also see which feature causes the cost, and you can act on it early."
+          "en": {
+            "title": "Find which feature will break its budget",
+            "why": "When you build an AI product, every feature spends tokens, and tokens cost money. One feature that runs out of control can use up the whole month's bill. A budget per feature, with alerts, warns you early.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. The AI makes a budget table for 3 features.",
+                "prompt": "A company gives each LLM feature a monthly token budget. The rule: send an alert at 80% of the budget and throttle (slow down or stop) the feature at 100%.\nToday is the end of day 12 of a 30-day month. Assume the daily use stays the same.\n\nFeature | Monthly budget | Used so far (12 days)\nChat support | 40,000,000 tokens | 20,000,000 tokens\nDocument summary | 20,000,000 tokens | 4,000,000 tokens\nSearch rewrite | 6,000,000 tokens | 3,600,000 tokens\n\nMake a table. For each feature show:\n1) Tokens used per day.\n2) Forecast usage at the end of the month, as a percent of the budget.\n3) The day of the month when it reaches 80%.\n4) The day of the month when it reaches 100%.\nWrite \"never\" if the feature stays below the limit.",
+                "expect": "A table with 3 rows. The forecast for <strong>Search rewrite</strong> is the highest, at about 150%.",
+                "example": "Feature | Per day | Month end | 80% day | 100% day\nChat support | 1.67M | 125% | day 20 | day 24\nDocument summary | 0.33M | 50% | never | never\nSearch rewrite | 0.3M | 150% | day 16 | day 20"
+              },
+              {
+                "chat": "same",
+                "do": "Check one row by hand. For Search rewrite: 3,600,000 ÷ 12 = tokens per day. Then multiply by 30. Compare with the table.",
+                "expect": "300,000 tokens per day. 300,000 x 30 = 9,000,000 tokens. That is <strong>150%</strong> of the 6,000,000 budget. It reaches 80% (4,800,000) on day 16, and 100% on day 20."
+              },
+              {
+                "chat": "same",
+                "do": "Compare the other two rows with this key. If a number differs, ask the chat to calculate again. Key: Chat support 125%, day 20, day 24. Document summary 50%, never, never.",
+                "expect": "The same numbers. Chat support uses 20,000,000 ÷ 12 = about 1.67M per day, so 1.67M x 30 = 50M, which is 125% of 40M."
+              },
+              {
+                "chat": "same",
+                "do": "Copy this follow-up question, paste it, and press Enter.",
+                "prompt": "Which feature needs action first? Suggest two cheap ways to reduce its usage. Answer in 3 short lines.",
+                "expect": "<strong>Search rewrite</strong> first, because its alert comes first (day 16), and two ideas such as a cache or a shorter prompt.",
+                "example": "Search rewrite needs action first. It reaches 80% on day 16.\n1. Add a cache, so repeated questions do not call the AI.\n2. Shorten the prompt, so each call uses fewer tokens."
+              }
+            ],
+            "learned": "A forecast is the use per day multiplied by the days in the month. The <strong>budget</strong> gives each feature its own limit. An alert at 80% gives you time to act. A throttle at 100% stops the bill from growing. Notice that the smallest budget (Search rewrite) is the first problem, not the feature that uses the most tokens.",
+            "done": "You have a table with 3 forecasts, and you know that Search rewrite hits its 80% alert on day 16.",
+            "check": {
+              "question": "Why set a budget per feature, and not one budget for the whole company?",
+              "answer": "With one budget per feature, you see which feature costs the money, and one runaway feature cannot use the whole bill. The 80% alert gives you time to act before the 100% throttle."
+            },
+            "challenge": "Say a cache removes 40% of the calls for Search rewrite. Ask the chat for the new month-end forecast and the new alert day."
           },
-          "challenge": "Say that the Search rewrite feature uses a semantic cache that removes 40% of its calls. Ask the chat for the new forecast and the new alert day."
+          "bn": {
+            "title": "খুঁজে বের করো কোন feature budget ভাঙবে",
+            "why": "তুমি যখন একটা AI product বানাবে, প্রতিটা feature token খরচ করবে, আর token-এ টাকা লাগে। একটা feature বেহিসাবি চললে পুরো মাসের bill শেষ হয়ে যেতে পারে। প্রতি feature-এর আলাদা budget আর alert তোমাকে আগেই সতর্ক করে।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো, paste করে Enter চাপো। AI 3টা feature-এর জন্য একটা budget table বানাবে।",
+                "prompt": "একটা company প্রতিটা LLM feature-কে মাসিক token budget দেয়। নিয়ম: budget-এর 80% হলে alert পাঠানো হবে, আর 100% হলে feature-টা throttle করা হবে (ধীর বা বন্ধ করা হবে)।\nআজ 30 দিনের একটা মাসের 12 নম্বর দিনের শেষ। ধরে নাও প্রতিদিনের ব্যবহার একই থাকবে।\n\nFeature | মাসিক budget | এ পর্যন্ত ব্যবহার (12 দিন)\nChat support | 40,000,000 token | 20,000,000 token\nDocument summary | 20,000,000 token | 4,000,000 token\nSearch rewrite | 6,000,000 token | 3,600,000 token\n\nএকটা table বানাও। প্রতিটা feature-এর জন্য দেখাও:\n1) প্রতিদিন কত token ব্যবহার হয়।\n2) মাসের শেষে কত ব্যবহার হবে, budget-এর শতাংশে।\n3) মাসের কত তারিখে 80% হবে।\n4) মাসের কত তারিখে 100% হবে।\nFeature যদি limit-এর নিচেই থাকে, তাহলে \"never\" লেখো।",
+                "expect": "3 সারির একটা table। <strong>Search rewrite</strong>-এর forecast সবচেয়ে বেশি, প্রায় 150%।",
+                "example": "Feature | প্রতিদিন | মাসের শেষে | 80% দিন | 100% দিন\nChat support | 1.67M | 125% | 20 তারিখ | 24 তারিখ\nDocument summary | 0.33M | 50% | never | never\nSearch rewrite | 0.3M | 150% | 16 তারিখ | 20 তারিখ"
+              },
+              {
+                "chat": "same",
+                "do": "একটা সারি হাতে মেলাও। Search rewrite-এর জন্য: 3,600,000 ÷ 12 = প্রতিদিনের token। তারপর 30 দিয়ে গুণ করো। Table-এর সাথে মেলাও।",
+                "expect": "প্রতিদিন 300,000 token। 300,000 x 30 = 9,000,000 token। এটা 6,000,000 budget-এর <strong>150%</strong>। এটা 80% (4,800,000) ছোঁয় 16 তারিখে, আর 100% ছোঁয় 20 তারিখে।"
+              },
+              {
+                "chat": "same",
+                "do": "বাকি দুই সারি এই key-র সাথে মেলাও। কোনো সংখ্যা আলাদা হলে chat-কে আবার হিসাব করতে বলো। Key: Chat support 125%, 20 তারিখ, 24 তারিখ। Document summary 50%, never, never।",
+                "expect": "একই সংখ্যা। Chat support প্রতিদিন 20,000,000 ÷ 12 = প্রায় 1.67M ব্যবহার করে, তাই 1.67M x 30 = 50M, যা 40M-এর 125%।"
+              },
+              {
+                "chat": "same",
+                "do": "এই follow-up প্রশ্নটা copy করো, paste করে Enter চাপো।",
+                "prompt": "কোন feature-এ সবার আগে ব্যবস্থা নিতে হবে? তার ব্যবহার কমানোর দুটো সস্তা উপায় বলো। 3টা ছোট লাইনে উত্তর দাও।",
+                "expect": "সবার আগে <strong>Search rewrite</strong>, কারণ তার alert সবার আগে আসে (16 তারিখ)। সাথে দুটো আইডিয়া, যেমন cache বা ছোট prompt।",
+                "example": "Search rewrite-এ সবার আগে ব্যবস্থা নিতে হবে। এটা 16 তারিখে 80% ছোঁয়।\n1. Cache যোগ করো, যাতে একই প্রশ্নে বারবার AI call না হয়।\n2. Prompt ছোট করো, যাতে প্রতি call-এ কম token লাগে।"
+              }
+            ],
+            "learned": "Forecast মানে প্রতিদিনের ব্যবহার গুণ মাসের দিনসংখ্যা। <strong>Budget</strong> প্রতিটা feature-কে নিজের আলাদা limit দেয়। 80%-এ alert তোমাকে ব্যবস্থা নেওয়ার সময় দেয়। 100%-এ throttle bill-কে আর বাড়তে দেয় না। খেয়াল করো, সবচেয়ে ছোট budget (Search rewrite) আগে সমস্যায় পড়েছে, যে feature সবচেয়ে বেশি token ব্যবহার করে সেটা নয়।",
+            "done": "তোমার কাছে 3টা forecast-সহ একটা table আছে, আর তুমি জানো Search rewrite 16 তারিখে 80% alert ছোঁয়।",
+            "check": {
+              "question": "পুরো company-র জন্য একটা budget না রেখে প্রতি feature-এর আলাদা budget রাখা হয় কেন?",
+              "answer": "প্রতি feature-এর আলাদা budget থাকলে বোঝা যায় কোন feature টাকা খরচ করছে, আর একটা বেহিসাবি feature পুরো bill শেষ করতে পারে না। 80% alert তোমাকে 100% throttle-এর আগেই ব্যবস্থা নেওয়ার সময় দেয়।"
+            },
+            "challenge": "ধরো একটা cache Search rewrite-এর 40% call কমিয়ে দেয়। Chat-কে নতুন মাস-শেষের forecast আর নতুন alert-এর তারিখ জিজ্ঞেস করো।"
+          }
         }
       ]
     }

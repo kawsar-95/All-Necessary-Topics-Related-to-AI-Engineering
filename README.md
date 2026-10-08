@@ -144,36 +144,64 @@ The voice rule is `src/lib/videos.ts`.
 
 ## Practice
 
-Each section has a "Practice" panel with hands-on tasks. A reader does
-them in any free AI chat (ChatGPT, Claude, or Gemini). No install, code,
-or API key is necessary. In a part with several sections, each section has
-1 task. A part with only 1 big section has 3 or 4 tasks.
+Each section has a "Practice" panel with guided tasks. A reader does them
+in any free AI chat (ChatGPT, Claude, or Gemini). No install, code, or API
+key is necessary. In a part with several sections, each section has 1
+task. A part with only 1 big section has 4 tasks.
+
+Each task has an English and a Bangla version. The বাংলা voice shows the
+Bangla version. The other voices show the English version. The Bangla
+version keeps English technical words (prompt, token, model, and so on).
 
 A task is one entry in the section's `practice` list:
 
 ```json
 {
-  "title": "Watch sampling change the answer",
-  "goal": "See that the same prompt gives different answers.",
-  "steps": ["Send Prompt A in three new chats.", "Compare the answers."],
-  "prompts": [{ "label": "Prompt A", "text": "Invent one name for a coffee shop." }],
-  "lookFor": ["The name changes between chats."],
-  "check": { "question": "Why does it change?", "answer": "The model samples each token." },
-  "challenge": "Ask for the most common name. What changes?"
+  "en": {
+    "title": "See why the AI gives different answers",
+    "why": "A chatbot can give a different answer to the same question.",
+    "steps": [
+      {
+        "chat": "new",
+        "do": "Copy this prompt, paste it, and press Enter.",
+        "prompt": "Complete this sentence with one word only: Once upon a time, there was a little",
+        "expect": "One word, for example <em>girl</em>.",
+        "example": "girl"
+      },
+      { "chat": "new", "do": "Do step 1 two more times, each in a new chat.", "expect": "Often a different word." }
+    ],
+    "learned": "The AI picks each word partly by chance.",
+    "done": "You have 3 story words.",
+    "check": { "question": "Why does the word change?", "answer": "..." },
+    "challenge": "Ask for the most common word. What changes?"
+  },
+  "bn": { "...": "the same fields, in Bangla" }
 }
 ```
 
-- The panel adds the first step, "Open any free AI chat", with links. Do
-  not write it in `steps`.
-- `prompts[].text` and `title` are plain text. The other text fields
+| Field | Shown as |
+|---|---|
+| `why` | Why this matters |
+| `steps[].chat` | A NEW CHAT or SAME CHAT label. The first step is always `new`. |
+| `steps[].do` | What to do in this step |
+| `steps[].prompt` | A box with a Copy button, inside the step |
+| `steps[].expect` | You should see: |
+| `steps[].example` | Example answer, hidden until the reader opens it |
+| `learned` | What just happened |
+| `done` | You are done when |
+| `check` | Check yourself, with a hidden answer |
+| `challenge` | Try a harder version |
+
+- `title`, `prompt`, and `example` are plain text. The other text fields
   allow the inline tags.
-- A prompt must hold all the material that the task needs. A reader must
-  not have to find text somewhere else.
-- The panel shows in every voice, after the section text and before the
-  videos. Each prompt has a Copy button. The self-check answer stays
-  hidden until the reader opens it.
+- A prompt must hold all the material that the task needs.
+- The panel shows the chat links and a "How practice works" box one time,
+  above the tasks. Do not repeat that text in a task.
+- The schema checks that both versions exist and that the first step opens
+  a new chat.
 
 The panel is `src/components/content/PracticeList.tsx` and `CopyButton.tsx`.
+The voice-to-language rule is `src/lib/practice.ts`.
 
 ## Search
 
@@ -223,6 +251,7 @@ All citations resolve to:
 │       ├── topics.ts                   loads and validates content; order, outline, nav
 │       ├── search.ts                   search index helpers
 │       ├── videos.ts                   which videos each voice shows
+│       ├── practice.ts                 which practice language each voice shows
 │       └── theme.ts                    theme choice and the inline head script
 ├── tests/                              content-schema, search, video, practice, and theme tests
 ├── docs/                               design spec and plan

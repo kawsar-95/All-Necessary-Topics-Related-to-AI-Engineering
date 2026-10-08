@@ -256,140 +256,304 @@
       ],
       "practice": [
         {
-          "title": "Measure time to first word",
-          "goal": "See why streaming makes an AI app feel fast, and learn which transport fits which feature.",
-          "steps": [
-            "Start a stopwatch on your phone. Send Prompt A in a <strong>new</strong> chat. Stop at the first word. Note the time. Then note the time at the last word.",
-            "Imagine the app showed nothing until the end. Write what the user would feel during that wait.",
-            "Read the three features in Prompt B. Write your own transport for each feature.",
-            "Send Prompt B in a <strong>new</strong> chat. Compare its choices with yours."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "Write a story of about 400 words. A bus driver in Chattogram finds a lost bag on the last trip of the night. Start the story right away, with no introduction."
+          "en": {
+            "title": "Time the first word of a streamed answer",
+            "why": "When you build a chat feature, users leave if the screen stays empty for many seconds. Streaming shows the words as the model writes them, so the app feels fast.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt. Start a stopwatch when you press Enter. Write down the time of the first word and the time of the last word.",
+                "prompt": "Write a story of about 400 words. A bus driver in Chattogram finds a lost bag on the last trip of the night. Start the story right away, with no introduction.",
+                "expect": "The first word appears fast, for example after 1 or 2 seconds. The last word comes much later, for example after 15 to 30 seconds.",
+                "example": "The last bus of the night rolled into the Chattogram depot at 11:40. Rafiq switched off the engine and, as he did every night, walked down the aisle to check the seats. Under the back row, he found a small black bag..."
+              },
+              {
+                "chat": "same",
+                "do": "Imagine the chat showed nothing until the last word. Write how long the user would wait, and how that would feel.",
+                "expect": "The user would look at an empty screen for the full time you wrote down, for example 20 seconds. Most people would think the app is broken."
+              },
+              {
+                "chat": "new",
+                "do": "Before you send this prompt, read the three features. Then paste it and press Enter.",
+                "prompt": "Explain each of these in one simple sentence: SSE (Server-Sent Events), WebSockets, and HTTP chunked transfer.\nThen pick one for each feature and give one reason.\nFeature 1: An AI chat answer appears word by word. Data only goes from server to browser. The route is a normal HTTP proxy.\nFeature 2: A voice call where the user and the AI can talk at the same time.\nFeature 3: A fallback for an old company proxy that removes the SSE headers.\nThen list one cost of WebSockets compared to SSE.",
+                "expect": "SSE for feature 1, WebSockets for feature 2, and HTTP chunked for feature 3. WebSockets cost a heavier setup.",
+                "example": "SSE: the server pushes text to the browser over one normal HTTP connection. It is one-way.\nWebSockets: one open connection where both sides can send at any time.\nHTTP chunked: the server sends one response in many small pieces.\nFeature 1: SSE. Data only goes one way, and it works through a normal proxy.\nFeature 2: WebSockets. Both sides must send audio at the same time.\nFeature 3: HTTP chunked. It works when a proxy removes SSE headers.\nCost of WebSockets: a heavier handshake (setup) and more work to run."
+              }
+            ],
+            "learned": "A model writes <strong>tokens</strong> (small pieces of words) one by one. With streaming, the app shows each token at once. The total time does not change, but the user sees the first word after about a second and starts to read. <strong>SSE</strong> is the simplest way to stream, because the data only goes one way, from server to browser.",
+            "done": "You have two times for the story (first word and last word), and a transport for each of 3 features.",
+            "check": {
+              "question": "The total time to write the answer does not change with streaming. Why does the app still feel faster?",
+              "answer": "The user sees the first words after a short time and can start to read. Without streaming, the user would wait for the whole answer with an empty screen."
             },
-            {
-              "label": "Prompt B",
-              "text": "Pick one transport for each feature: SSE (Server-Sent Events), WebSockets, or HTTP chunked transfer. Give one reason for each.\nFeature 1: An AI chat answer appears word by word. Data only goes from server to browser. The route is a normal HTTP proxy.\nFeature 2: A voice call where the user and the AI can talk at the same time.\nFeature 3: A fallback for an old company proxy that removes the SSE headers.\nThen list one cost of WebSockets compared to SSE."
-            }
-          ],
-          "lookFor": [
-            "The first word usually appears in about a second, but the last word comes much later.",
-            "With no streaming, the wait for the first word would be the full time.",
-            "Most models choose SSE for Feature 1, WebSockets for Feature 2, and HTTP chunked for Feature 3.",
-            "WebSockets are two-way but heavier to set up."
-          ],
-          "check": {
-            "question": "The total time to make the answer does not change with streaming. Why does the app still feel faster?",
-            "answer": "Streaming shows tokens as the model writes them, so the user sees progress after the first token and starts to read at once. SSE is the simplest way to do this because the data only flows from server to client."
+            "challenge": "Ask for a 1,000-word story and measure again. Does the time of the first word change much? What does that tell you?"
           },
-          "challenge": "Ask for a 1,000-word story and measure again. Does the time to the first word change much? What does that tell you about time to first token?"
+          "bn": {
+            "title": "stream হওয়া উত্তরের প্রথম শব্দের সময় মাপো",
+            "why": "তুমি যখন chat feature বানাবে, স্ক্রিন অনেক সেকেন্ড খালি থাকলে user চলে যায়। streaming model যেমন যেমন লেখে, তেমন তেমন শব্দ দেখায়, তাই app দ্রুত মনে হয়।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করো। Enter চাপার সঙ্গে সঙ্গে stopwatch চালু করো। প্রথম শব্দ আর শেষ শব্দ আসার সময় লিখে রাখো।",
+                "prompt": "প্রায় ৪০০ শব্দের একটা গল্প লেখো। চট্টগ্রামের একজন বাস ড্রাইভার রাতের শেষ ট্রিপে একটা হারানো ব্যাগ খুঁজে পায়। কোনো ভূমিকা ছাড়া সঙ্গে সঙ্গে গল্প শুরু করো।",
+                "expect": "প্রথম শব্দ তাড়াতাড়ি আসে, যেমন ১ বা ২ সেকেন্ড পরে। শেষ শব্দ আসে অনেক পরে, যেমন ১৫ থেকে ৩০ সেকেন্ড পরে।",
+                "example": "রাতের শেষ বাসটা রাত ১১টা ৪০-এ চট্টগ্রামের ডিপোতে ঢুকল। রফিক ইঞ্জিন বন্ধ করে, রোজকার মতো, সিটগুলো দেখতে করিডর ধরে হাঁটল। পেছনের সারির নিচে সে একটা ছোট কালো ব্যাগ দেখতে পেল..."
+              },
+              {
+                "chat": "same",
+                "do": "ধরো chat শেষ শব্দ পর্যন্ত কিছুই দেখায়নি। user কত সময় অপেক্ষা করত আর তার কেমন লাগত, লিখে রাখো।",
+                "expect": "তোমার লেখা পুরো সময়টা, যেমন ২০ সেকেন্ড, user একটা খালি স্ক্রিন দেখত। বেশিরভাগ মানুষ ভাবত app নষ্ট।"
+              },
+              {
+                "chat": "new",
+                "do": "prompt পাঠানোর আগে তিনটা feature পড়ো। তারপর paste করে Enter চাপো।",
+                "prompt": "এই তিনটার প্রতিটা এক সহজ বাক্যে বুঝিয়ে বলো: SSE (Server-Sent Events), WebSockets, আর HTTP chunked transfer।\nতারপর প্রতিটা feature-এর জন্য একটা বেছে নাও আর একটা কারণ দাও।\nFeature ১: একটা AI chat-এর উত্তর শব্দ শব্দ করে আসে। data শুধু server থেকে browser-এ যায়। পথটা একটা সাধারণ HTTP proxy।\nFeature ২: একটা voice call, যেখানে user আর AI একসঙ্গে কথা বলতে পারে।\nFeature ৩: একটা পুরনো company proxy-র জন্য fallback, যে proxy SSE header মুছে ফেলে।\nশেষে SSE-র তুলনায় WebSockets-এর একটা খরচ বা অসুবিধা বলো।",
+                "expect": "Feature ১-এর জন্য SSE, Feature ২-এর জন্য WebSockets, আর Feature ৩-এর জন্য HTTP chunked। WebSockets-এর খরচ হলো ভারী setup।",
+                "example": "SSE: server একটা সাধারণ HTTP connection দিয়ে browser-এ text ঠেলে দেয়। এটা একমুখী।\nWebSockets: একটা খোলা connection, যেখানে দুই পক্ষই যেকোনো সময় পাঠাতে পারে।\nHTTP chunked: server একটা response অনেক ছোট টুকরোয় পাঠায়।\nFeature ১: SSE। data শুধু এক দিকে যায়, আর সাধারণ proxy দিয়েও চলে।\nFeature ২: WebSockets। দুই পক্ষকেই একসঙ্গে audio পাঠাতে হয়।\nFeature ৩: HTTP chunked। proxy SSE header মুছে ফেললেও এটা চলে।\nWebSockets-এর খরচ: ভারী handshake (শুরুর setup) আর চালাতে বেশি কাজ।"
+              }
+            ],
+            "learned": "model <strong>token</strong> (শব্দের ছোট টুকরো) একটা একটা করে লেখে। streaming থাকলে app প্রতিটা token সঙ্গে সঙ্গে দেখায়। মোট সময় বদলায় না, কিন্তু user প্রায় এক সেকেন্ড পরে প্রথম শব্দ দেখে আর পড়া শুরু করে। <strong>SSE</strong> stream করার সবচেয়ে সহজ উপায়, কারণ data শুধু এক দিকে যায়, server থেকে browser-এ।",
+            "done": "তোমার কাছে গল্পের দুটো সময় (প্রথম শব্দ আর শেষ শব্দ) আছে, আর ৩টা feature-এর প্রতিটার জন্য একটা transport আছে।",
+            "check": {
+              "question": "streaming-এ উত্তর লেখার মোট সময় বদলায় না। তবুও app কেন বেশি দ্রুত মনে হয়?",
+              "answer": "user অল্প সময় পরেই প্রথম শব্দ দেখে আর পড়া শুরু করতে পারে। streaming না থাকলে সে খালি স্ক্রিন নিয়ে পুরো উত্তরের জন্য অপেক্ষা করত।"
+            },
+            "challenge": "১,০০০ শব্দের গল্প চাও আর আবার মাপো। প্রথম শব্দের সময় কি বেশি বদলায়? এটা থেকে কী বোঝা যায়?"
+          }
         },
         {
-          "title": "Play a job queue server",
-          "goal": "See how a job_id and polling keep a long agent task from blocking a request.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. The model now plays an API server.",
-            "In the <strong>same</strong> chat, send Prompt B. Check that the reply comes fast and has a job_id.",
-            "In the same chat, send Prompt C. Then send it again with elapsed times of 120, 200, and 245 seconds.",
-            "Ask: <em>What would the user see if the server held the request for the full 4 minutes?</em>"
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "Act as the API server of a research agent. Reply only with an HTTP status line and a JSON body. No other text.\nRules:\n- POST /jobs starts a job. Reply at once with 202 and a JSON body with job_id and status \"queued\". The job itself takes about 245 seconds.\n- GET /jobs/{job_id} gives the status. Statuses are queued, running, done, and failed.\n- When running, show the current step and progress. The steps are: 1 search sources, 2 read 12 sources, 3 write the report.\n- When done, show a result field with a short fake report title.\n- I will tell you the elapsed time in seconds in each GET request. Use it to decide the status.\nSay READY if you understand."
+          "en": {
+            "title": "Play a server that runs a long job",
+            "why": "When you build an AI agent that works for 4 minutes, you cannot keep the web request open. Many servers cut a request that waits that long, and the user sees nothing.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. The AI now plays an API server.",
+                "prompt": "Act as the API server of a research agent. Reply only with an HTTP status line and a JSON body. No other text.\nRules:\n- POST /jobs starts a job. Reply at once with 202 and a JSON body with job_id and status \"queued\". The first job_id is job_001. The job takes 245 seconds.\n- GET /jobs/{job_id} gives the status. Statuses are queued, running, done, and failed.\n- I tell you the elapsed seconds in each GET request. Use this table:\n  0 to 59 seconds: running, step \"1 search sources\"\n  60 to 179 seconds: running, step \"2 read 12 sources\"\n  180 to 244 seconds: running, step \"3 write the report\"\n  245 seconds or more: done, with a result field that has a short fake report title\n- When running, also show progress as a percent: elapsed divided by 245, rounded to a whole number.\nSay READY if you understand.",
+                "expect": "The AI replies <strong>READY</strong>."
+              },
+              {
+                "chat": "same",
+                "do": "Copy this request, paste it, and press Enter. This starts the job.",
+                "prompt": "POST /jobs\n{\"topic\": \"Mobile payment use in rural Bangladesh\"}",
+                "expect": "A fast reply with status 202 and a <code>job_id</code>, for example <em>job_001</em>. It has no result yet.",
+                "example": "HTTP/1.1 202 Accepted\n{\"job_id\": \"job_001\", \"status\": \"queued\"}"
+              },
+              {
+                "chat": "same",
+                "do": "Copy this request, paste it, and press Enter. It asks for the status after 40 seconds.",
+                "prompt": "GET /jobs/job_001\nelapsed: 40 seconds",
+                "expect": "Status <em>running</em>, step 1, and progress of about 16%.",
+                "example": "HTTP/1.1 200 OK\n{\"job_id\": \"job_001\", \"status\": \"running\", \"step\": \"1 search sources\", \"progress\": \"16%\"}"
+              },
+              {
+                "chat": "same",
+                "do": "Copy this request, paste it, and press Enter. It asks for the status after 120 seconds.",
+                "prompt": "GET /jobs/job_001\nelapsed: 120 seconds",
+                "expect": "Status <em>running</em>, step 2, and progress of about 49%.",
+                "example": "HTTP/1.1 200 OK\n{\"job_id\": \"job_001\", \"status\": \"running\", \"step\": \"2 read 12 sources\", \"progress\": \"49%\"}"
+              },
+              {
+                "chat": "same",
+                "do": "Copy this request, paste it, and press Enter. It asks for the status after 245 seconds.",
+                "prompt": "GET /jobs/job_001\nelapsed: 245 seconds",
+                "expect": "Status <em>done</em>, and a result with a short report title.",
+                "example": "HTTP/1.1 200 OK\n{\"job_id\": \"job_001\", \"status\": \"done\", \"result\": \"Mobile Payments in Rural Bangladesh: A Short Report\"}"
+              }
+            ],
+            "learned": "A long task should not hold the web request open. The server replies at once with a <strong>job_id</strong>, which is like a ticket number, and does the work in the background. The client then asks again and again with the job_id. This is called <strong>polling</strong>. Here the first reply was instant, but the job takes 245 seconds, about 4 minutes.",
+            "done": "You have one fast reply with a job_id, and 3 polls that show running, running, and done.",
+            "check": {
+              "question": "Why should a task of more than about 10 seconds return a job_id instead of the result?",
+              "answer": "A long task can make the connection time out, and the user sees nothing. With a job_id, the work runs in the background, and the client can check the progress or come back later."
             },
-            {
-              "label": "Prompt B",
-              "text": "POST /jobs\n{\"topic\": \"Mobile payment use in rural Bangladesh\"}"
-            },
-            {
-              "label": "Prompt C",
-              "text": "GET /jobs/job_001\nelapsed: 40 seconds"
-            }
-          ],
-          "lookFor": [
-            "The reply to Prompt B comes at once and contains only a job_id and a status, not a result.",
-            "Each poll shows more progress: a step name, then the next step, then done.",
-            "The client can leave the page and come back later with the job_id.",
-            "A blocked request for 4 minutes would be cut by many proxies and would show the user nothing."
-          ],
-          "check": {
-            "question": "Why should a task of more than about 10 seconds return a job_id instead of the result?",
-            "answer": "A long task should not block an HTTP request, because connections time out and the user sees nothing. A queue runs the work in the background, and the client polls or subscribes for updates, which is a big UX win for long agent runs."
+            "challenge": "Add a rule: after 150 seconds, step 2 fails. Poll at 160 seconds. What status and message should the server return, and should the client retry?"
           },
-          "challenge": "Send a poll with <code>elapsed: 100 seconds</code> and a rule that step 2 failed. What status and message should the server return, and should the client retry?"
+          "bn": {
+            "title": "লম্বা job চালানো একটা server সাজো",
+            "why": "তুমি যখন ৪ মিনিট ধরে কাজ করা একটা AI agent বানাবে, তখন web request খুলে রাখা যাবে না। অনেক server এত লম্বা অপেক্ষার request কেটে দেয়, আর user কিছুই দেখে না।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করে paste করো, Enter চাপো। AI এখন একটা API server সাজবে। এই prompt-এ HTTP আর JSON-এর অংশ English-এ রাখা হয়েছে।",
+                "prompt": "তুমি একটা research agent-এর API server হিসেবে কাজ করো। শুধু একটা HTTP status line আর একটা JSON body দিয়ে উত্তর দেবে। আর কোনো লেখা নয়।\nনিয়ম:\n- POST /jobs একটা job শুরু করে। সঙ্গে সঙ্গে 202 আর একটা JSON body দিয়ে উত্তর দাও, যাতে job_id আর status \"queued\" থাকবে। প্রথম job_id হলো job_001। job টা শেষ হতে 245 সেকেন্ড লাগে।\n- GET /jobs/{job_id} status দেয়। status হতে পারে queued, running, done আর failed।\n- আমি প্রতিটা GET request-এ কত সেকেন্ড পার হয়েছে (elapsed) বলব। এই table ব্যবহার করো:\n  0 থেকে 59 সেকেন্ড: running, step \"1 search sources\"\n  60 থেকে 179 সেকেন্ড: running, step \"2 read 12 sources\"\n  180 থেকে 244 সেকেন্ড: running, step \"3 write the report\"\n  245 সেকেন্ড বা বেশি: done, আর একটা result field, যাতে একটা ছোট বানানো report title থাকবে\n- running হলে progress-ও percent-এ দেখাও: elapsed ভাগ 245, কাছের পূর্ণ সংখ্যায় গোল করে।\nবুঝলে READY বলো।",
+                "expect": "AI <strong>READY</strong> বলে উত্তর দেয়।"
+              },
+              {
+                "chat": "same",
+                "do": "এই request টা copy করে paste করো, Enter চাপো। এটা job শুরু করে। request টা English-এ থাকবে, কারণ এটা HTTP আর JSON।",
+                "prompt": "POST /jobs\n{\"topic\": \"Mobile payment use in rural Bangladesh\"}",
+                "expect": "status 202 আর একটা <code>job_id</code> দিয়ে তাড়াতাড়ি উত্তর, যেমন <em>job_001</em>। এখনো কোনো result নেই।",
+                "example": "HTTP/1.1 202 Accepted\n{\"job_id\": \"job_001\", \"status\": \"queued\"}"
+              },
+              {
+                "chat": "same",
+                "do": "এই request টা copy করে paste করো, Enter চাপো। এটা ৪০ সেকেন্ড পরের status চায়।",
+                "prompt": "GET /jobs/job_001\nelapsed: 40 seconds",
+                "expect": "status <em>running</em>, step 1, আর প্রায় 16% progress।",
+                "example": "HTTP/1.1 200 OK\n{\"job_id\": \"job_001\", \"status\": \"running\", \"step\": \"1 search sources\", \"progress\": \"16%\"}"
+              },
+              {
+                "chat": "same",
+                "do": "এই request টা copy করে paste করো, Enter চাপো। এটা ১২০ সেকেন্ড পরের status চায়।",
+                "prompt": "GET /jobs/job_001\nelapsed: 120 seconds",
+                "expect": "status <em>running</em>, step 2, আর প্রায় 49% progress।",
+                "example": "HTTP/1.1 200 OK\n{\"job_id\": \"job_001\", \"status\": \"running\", \"step\": \"2 read 12 sources\", \"progress\": \"49%\"}"
+              },
+              {
+                "chat": "same",
+                "do": "এই request টা copy করে paste করো, Enter চাপো। এটা ২৪৫ সেকেন্ড পরের status চায়।",
+                "prompt": "GET /jobs/job_001\nelapsed: 245 seconds",
+                "expect": "status <em>done</em>, আর একটা ছোট report title সহ result।",
+                "example": "HTTP/1.1 200 OK\n{\"job_id\": \"job_001\", \"status\": \"done\", \"result\": \"Mobile Payments in Rural Bangladesh: A Short Report\"}"
+              }
+            ],
+            "learned": "লম্বা কাজ web request খুলে রাখবে না। server সঙ্গে সঙ্গে একটা <strong>job_id</strong> দিয়ে উত্তর দেয়, যেটা অনেকটা টিকিট নম্বরের মতো, আর কাজটা background-এ করে। client তখন job_id দিয়ে বারবার জিজ্ঞেস করে। একে বলে <strong>polling</strong>। এখানে প্রথম উত্তর সঙ্গে সঙ্গে এসেছে, কিন্তু job টা শেষ হতে ২৪৫ সেকেন্ড লাগে, মানে প্রায় ৪ মিনিট।",
+            "done": "তোমার কাছে job_id সহ একটা দ্রুত উত্তর আছে, আর ৩টা poll, যেগুলোতে running, running আর done দেখা গেছে।",
+            "check": {
+              "question": "প্রায় ১০ সেকেন্ডের বেশি লাগা কাজে result-এর বদলে job_id ফেরত দেওয়া উচিত কেন?",
+              "answer": "লম্বা কাজে connection time out হতে পারে, আর user কিছুই দেখে না। job_id থাকলে কাজ background-এ চলে, আর client progress দেখতে পারে বা পরে ফিরে আসতে পারে।"
+            },
+            "challenge": "একটা নিয়ম যোগ করো: ১৫০ সেকেন্ড পরে step 2 fail করে। ১৬০ সেকেন্ডে poll করো। server কী status আর message দেবে, আর client কি আবার চেষ্টা করবে?"
+          }
         },
         {
-          "title": "Test idempotency and resume",
-          "goal": "See how an idempotency key stops double billing and how checkpoints save work after a failure.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. The model plays a billing API with idempotency keys.",
-            "In the <strong>same</strong> chat, send Prompt B. Check the total money charged after the three requests.",
-            "In the same chat, send Prompt C. Compare the cost with and without checkpoints.",
-            "Ask yourself: what would happen to a user who clicks Pay twice if the server had no key?"
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "Act as an API server for report generation. Each new run costs 0.40 USD. Reply only with JSON for each request I send.\nRules:\n- Every request has an idempotency_key and a body.\n- A new key makes a new run with a new run_id (run_1, run_2, ...). Reply with charged: 0.40 and replayed: false.\n- The same key with the same body returns the stored response again, with replayed: true and charged: 0. No new run.\n- The same key with a different body returns the error code 422 with a short message.\nSay READY if you understand."
+          "en": {
+            "title": "Stop double charges after a retry",
+            "why": "When your app charges money for each AI run, a user who clicks Pay twice or refreshes the page must not pay twice. A failed long run must also not start from zero.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. The AI now plays a billing API.",
+                "prompt": "Act as an API server for report generation. Each new run costs 0.40 USD. Reply only with JSON for each request I send.\nRules:\n- Every request has an idempotency_key and a body.\n- A new key makes a new run with a new run_id (run_1, run_2, ...). Reply with charged: 0.40 and replayed: false.\n- The same key with the same body returns the stored response again, with replayed: true and charged: 0. No new run.\n- The same key with a different body returns the error code 422 with a short message.\nSay READY if you understand.",
+                "expect": "The AI replies <strong>READY</strong>."
+              },
+              {
+                "chat": "same",
+                "do": "Copy this prompt, paste it, and press Enter. Write down the total money charged after the three requests.",
+                "prompt": "Handle these three requests in order. After the third, add a line with the total USD charged.\n1. idempotency_key: k-1001, body: {\"report\": \"monthly sales\"}\n2. idempotency_key: k-1001, body: {\"report\": \"monthly sales\"} (the user refreshed the page)\n3. idempotency_key: k-1001, body: {\"report\": \"yearly sales\"}",
+                "expect": "Three JSON replies. Request 1 charges 0.40. Request 2 is a replay with charge 0. Request 3 is an error 422. The total is <strong>0.40 USD</strong>.",
+                "example": "{\"run_id\": \"run_1\", \"charged\": 0.40, \"replayed\": false}\n{\"run_id\": \"run_1\", \"charged\": 0, \"replayed\": true}\n{\"error\": 422, \"message\": \"Key k-1001 was already used with a different body.\"}\nTotal charged: 0.40 USD"
+              },
+              {
+                "chat": "same",
+                "do": "Copy this prompt, paste it, and press Enter. Write down the cost with checkpoints and the cost without.",
+                "prompt": "Now a long run. Run run_77 has 5 steps. Each step costs 0.10 USD, and a failed step costs nothing. Steps 1, 2, and 3 finished and were already charged. The server saved a checkpoint after each one. Step 4 failed with a network error. The client retries with the same idempotency_key.\n1. Which steps do you run now, and what do you charge?\n2. What would the retry cost if there were no checkpoints?\n3. Name one thing the checkpoint must contain.",
+                "expect": "With checkpoints, only steps 4 and 5 run: <strong>0.20 USD</strong>. Without checkpoints, all 5 steps run: <strong>0.50 USD</strong>.",
+                "example": "1. Run only steps 4 and 5. Steps 1 to 3 are in the checkpoint. Charge: 2 × 0.10 = 0.20 USD.\n2. With no checkpoints, all 5 steps run again: 5 × 0.10 = 0.50 USD.\n3. The checkpoint must contain the saved results of steps 1 to 3, and the number of the last finished step."
+              }
+            ],
+            "learned": "An <strong>idempotency key</strong> is a unique label that a client puts on a request. If the same request comes again, the server returns the saved answer and does not charge again. A <strong>checkpoint</strong> is a saved copy of the work done so far. After a failure, the server runs only the steps that are left: 2 steps (0.20 USD) instead of all 5 (0.50 USD).",
+            "done": "You have a total of 0.40 USD for the three requests, and two costs for the retry: 0.20 USD and 0.50 USD.",
+            "check": {
+              "question": "A user refreshes the page, and the client sends the same request again. How does an idempotency key protect the user?",
+              "answer": "The server stores the response under the key. A second request with the same key gets the same response, with no new run and no new charge."
             },
-            {
-              "label": "Prompt B",
-              "text": "Handle these three requests in order. After the third, add a line with the total USD charged.\n1. idempotency_key: k-1001, body: {\"report\": \"monthly sales\"}\n2. idempotency_key: k-1001, body: {\"report\": \"monthly sales\"} (the user refreshed the page)\n3. idempotency_key: k-1001, body: {\"report\": \"yearly sales\"}"
-            },
-            {
-              "label": "Prompt C",
-              "text": "Now a long run. Run run_77 has 5 steps. Each step costs 0.10 USD. Steps 1, 2, and 3 finished and the server saved a checkpoint after each one. Step 4 failed with a network error. The client retries with the same idempotency_key.\n1. Which steps do you run now, and what do you charge?\n2. What would the retry cost if there were no checkpoints?\n3. Name one thing the checkpoint must contain."
-            }
-          ],
-          "lookFor": [
-            "Request 2 is a replay: same run_id, replayed true, no new charge.",
-            "Request 3 gives an error, so the key cannot be used for a different request.",
-            "With checkpoints a resume runs only steps 4 and 5.",
-            "Without checkpoints all 5 steps run again, so the cost is higher."
-          ],
-          "check": {
-            "question": "A user refreshes the page and the client sends the same request again. How does an idempotency key protect them?",
-            "answer": "The server stores the response under the key, and a retry with the same key returns the same response without a new run or a new charge. Checkpoints go one step further: a resume replays only the failed steps, not the whole agent run."
+            "challenge": "Ask the AI what should happen if two requests with the same key arrive at the same moment, before the first one finishes."
           },
-          "challenge": "Ask the model what should happen if two requests with the same key arrive at the same moment, before the first one finishes."
+          "bn": {
+            "title": "retry-র পর দুইবার charge বন্ধ করো",
+            "why": "তোমার app যখন প্রতিটা AI run-এর জন্য টাকা নেবে, তখন যে user দুইবার Pay চাপে বা পেজ refresh করে, তাকে দুইবার টাকা দিতে হবে না। একটা লম্বা run fail করলেও আবার শূন্য থেকে শুরু হবে না।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করে paste করো, Enter চাপো। AI এখন একটা billing API সাজবে।",
+                "prompt": "তুমি report তৈরির একটা API server হিসেবে কাজ করো। প্রতিটা নতুন run-এর খরচ 0.40 USD। আমি যে request পাঠাব, প্রতিটার জন্য শুধু JSON দিয়ে উত্তর দেবে।\nনিয়ম:\n- প্রতিটা request-এ একটা idempotency_key আর একটা body থাকে।\n- নতুন key হলে নতুন run_id সহ নতুন run হয় (run_1, run_2, ...)। charged: 0.40 আর replayed: false দিয়ে উত্তর দাও।\n- একই key আর একই body হলে আগের সংরক্ষিত response আবার দাও, replayed: true আর charged: 0 সহ। নতুন run নয়।\n- একই key কিন্তু আলাদা body হলে error code 422 আর একটা ছোট message দাও।\nবুঝলে READY বলো।",
+                "expect": "AI <strong>READY</strong> বলে উত্তর দেয়।"
+              },
+              {
+                "chat": "same",
+                "do": "এই prompt টা copy করে paste করো, Enter চাপো। তিনটা request-এর পর মোট কত টাকা charge হলো, লিখে রাখো।",
+                "prompt": "এই তিনটা request ক্রমানুসারে সামলাও। তৃতীয়টার পরে মোট কত USD charge হলো, তার একটা লাইন যোগ করো।\n1. idempotency_key: k-1001, body: {\"report\": \"monthly sales\"}\n2. idempotency_key: k-1001, body: {\"report\": \"monthly sales\"} (user পেজ refresh করেছে)\n3. idempotency_key: k-1001, body: {\"report\": \"yearly sales\"}",
+                "expect": "তিনটা JSON উত্তর। request 1-এ charge 0.40। request 2 একটা replay, charge 0। request 3 একটা error 422। মোট <strong>0.40 USD</strong>।",
+                "example": "{\"run_id\": \"run_1\", \"charged\": 0.40, \"replayed\": false}\n{\"run_id\": \"run_1\", \"charged\": 0, \"replayed\": true}\n{\"error\": 422, \"message\": \"Key k-1001 আগেই আলাদা body দিয়ে ব্যবহার হয়েছে।\"}\nমোট charge: 0.40 USD"
+              },
+              {
+                "chat": "same",
+                "do": "এই prompt টা copy করে paste করো, Enter চাপো। checkpoint থাকলে খরচ কত, আর না থাকলে কত, লিখে রাখো।",
+                "prompt": "এখন একটা লম্বা run। run_77-এ ৫টা step আছে। প্রতিটা step-এর খরচ 0.10 USD, আর যে step fail করে তার খরচ নেই। step 1, 2 আর 3 শেষ হয়েছে এবং আগেই charge হয়েছে। server প্রতিটার পর একটা checkpoint সংরক্ষণ করেছে। step 4 একটা network error-এ fail করেছে। client একই idempotency_key দিয়ে আবার চেষ্টা করছে।\n১. এখন তুমি কোন কোন step চালাবে, আর কত charge করবে?\n২. checkpoint না থাকলে retry-র খরচ কত হতো?\n৩. checkpoint-এ অন্তত কী থাকতে হবে, একটা জিনিসের নাম বলো।",
+                "expect": "checkpoint থাকলে শুধু step 4 আর 5 চলে: <strong>0.20 USD</strong>। checkpoint না থাকলে ৫টা step-ই চলে: <strong>0.50 USD</strong>।",
+                "example": "১. শুধু step 4 আর 5 চালাব। step 1 থেকে 3 checkpoint-এ আছে। charge: 2 × 0.10 = 0.20 USD।\n২. checkpoint না থাকলে ৫টা step-ই আবার চলত: 5 × 0.10 = 0.50 USD।\n৩. checkpoint-এ থাকতে হবে step 1 থেকে 3-এর সংরক্ষিত result, আর শেষ যে step শেষ হয়েছে তার নম্বর।"
+              }
+            ],
+            "learned": "<strong>idempotency key</strong> হলো একটা অনন্য label, যেটা client একটা request-এ লাগায়। একই request আবার এলে server সংরক্ষিত উত্তরটাই ফেরত দেয়, আর আবার charge করে না। <strong>checkpoint</strong> হলো এ পর্যন্ত করা কাজের একটা সংরক্ষিত copy। fail করার পর server শুধু বাকি step গুলো চালায়: ৫টার বদলে ২টা step (0.20 USD, 0.50 USD-এর বদলে)।",
+            "done": "তিনটা request-এর মোট 0.40 USD তোমার কাছে আছে, আর retry-র দুটো খরচ আছে: 0.20 USD আর 0.50 USD।",
+            "check": {
+              "question": "একজন user পেজ refresh করল, আর client একই request আবার পাঠাল। idempotency key কীভাবে user-কে বাঁচায়?",
+              "answer": "server key-র নামে response সংরক্ষণ করে রাখে। একই key দিয়ে দ্বিতীয় request এলে একই response যায়, নতুন run হয় না, আর নতুন charge হয় না।"
+            },
+            "challenge": "AI-কে জিজ্ঞেস করো, একই key দিয়ে দুটো request যদি ঠিক একই সময়ে আসে, প্রথমটা শেষ হওয়ার আগেই, তাহলে কী হওয়া উচিত।"
+          }
         },
         {
-          "title": "Simulate a provider fallback chain",
-          "goal": "See how a gateway routes around provider errors, and how a degraded prompt keeps the answer useful.",
-          "steps": [
-            "Send Prompt A in a <strong>new</strong> chat. This is the normal prompt for a provider that has tools.",
-            "Send Prompt B in another <strong>new</strong> chat. This is the degraded prompt for a provider with no tools. Compare the two answers.",
-            "Send Prompt C in a <strong>new</strong> chat. The model plays a gateway and handles a log of errors.",
-            "Check each route in the answer against the rules in Prompt C."
-          ],
-          "prompts": [
-            {
-              "label": "Prompt A",
-              "text": "You can use one tool: get_weather(city: string), which returns live weather.\nUser question: Do I need an umbrella in Sylhet today?\nReply ONLY with the tool call as JSON, in the form {\"tool\": ..., \"arguments\": {...}}. Do not answer the question yet."
+          "en": {
+            "title": "Simulate a gateway that tries backup providers",
+            "why": "When you build a product on an AI provider, that provider will sometimes fail. A gateway sends the request to a backup provider, so your users still get an answer.",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. It is the normal prompt, for a provider that has tools.",
+                "prompt": "You can use one tool: get_weather(city: string), which returns live weather.\nUser question: Do I need an umbrella in Sylhet today?\nReply ONLY with the tool call as JSON, in the form {\"tool\": ..., \"arguments\": {...}}. Do not answer the question yet.",
+                "expect": "Only a tool call as JSON, with no final answer. For example, <code>get_weather</code> with the city Sylhet.",
+                "example": "{\"tool\": \"get_weather\", \"arguments\": {\"city\": \"Sylhet\"}}"
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. It is the degraded prompt, for a provider with no tools.",
+                "prompt": "You have no tools and no live data. Answer from general knowledge only. Say clearly that you cannot check today's weather, and give the most useful advice you can.\nUser question: Do I need an umbrella in Sylhet today?",
+                "expect": "A plain answer that says the AI cannot check today's weather, and gives a useful tip.",
+                "example": "I cannot check today's weather, so I cannot be sure. Sylhet is one of the rainiest places in Bangladesh, especially in the monsoon, so carrying a small umbrella is a safe choice. Look at a weather app before you leave."
+              },
+              {
+                "chat": "new",
+                "do": "Copy this prompt, paste it, and press Enter. The AI now plays a gateway. Check each row of the table against the rules.",
+                "prompt": "Act as an LLM gateway. The fallback chain is: Provider 1 (has tools), then Provider 2 (has tools), then Provider 3 (no tools, so use a degraded prompt that says: you have no tools, answer from general knowledge).\nRules: on a 503 or 429 error, go to the next provider. On success, stop. Record the provider that answered, the number of attempts, and the cost.\nCosts per call: Provider 1 0.010 USD, Provider 2 0.006 USD, Provider 3 0.002 USD. Failed calls cost 0.\nThree requests came in:\nRequest X: Provider 1 returns 200.\nRequest Y: Provider 1 returns 503, Provider 2 returns 200.\nRequest Z: Provider 1 returns 503, Provider 2 returns 429, Provider 3 returns 200.\nGive a table with: request, provider used, attempts, prompt used (normal or degraded), cost. Then add the total cost.",
+                "expect": "A table where X uses Provider 1, Y uses Provider 2, and Z uses Provider 3 with the degraded prompt. The total cost is <strong>0.018 USD</strong>.",
+                "example": "| Request | Provider used | Attempts | Prompt | Cost (USD) |\n| X | Provider 1 | 1 | normal | 0.010 |\n| Y | Provider 2 | 2 | normal | 0.006 |\n| Z | Provider 3 | 3 | degraded | 0.002 |\nTotal cost: 0.010 + 0.006 + 0.002 = 0.018 USD"
+              }
+            ],
+            "learned": "A provider can fail with an error such as 503 (the server is not ready) or 429 (too many requests). A provider can also lack a feature, such as tools. A <strong>gateway</strong> tries the next provider in a fixed order. For a provider with no tools, it uses a degraded prompt, which is simpler but still useful. Failed calls cost nothing here, so each request pays only for the provider that answered.",
+            "done": "You have a tool call, an honest answer without tools, and a gateway table with a total of 0.018 USD.",
+            "check": {
+              "question": "Why does a fallback chain use a different prompt for a provider that has no tool use?",
+              "answer": "A provider that cannot use tools would fail on the normal prompt. A degraded prompt, such as <em>you have no tools, answer anyway</em>, keeps the answer useful."
             },
-            {
-              "label": "Prompt B",
-              "text": "You have no tools and no live data. Answer from general knowledge only. Say clearly that you cannot check today's weather, and give the most useful advice you can.\nUser question: Do I need an umbrella in Sylhet today?"
-            },
-            {
-              "label": "Prompt C",
-              "text": "Act as an LLM gateway. The fallback chain is: Provider 1 (has tools), then Provider 2 (has tools), then Provider 3 (no tools, so use a degraded prompt that says: you have no tools, answer from general knowledge).\nRules: on a 503 or 429 error, go to the next provider. On success, stop. Record the provider that answered, the number of attempts, and the cost.\nCosts per call: Provider 1 0.010 USD, Provider 2 0.006 USD, Provider 3 0.002 USD. Failed calls cost 0.\nThree requests came in:\nRequest X: Provider 1 returns 200.\nRequest Y: Provider 1 returns 503, Provider 2 returns 200.\nRequest Z: Provider 1 returns 503, Provider 2 returns 429, Provider 3 returns 200.\nGive a table with: request, provider used, attempts, prompt used (normal or degraded), cost. Then add the total cost."
-            }
-          ],
-          "lookFor": [
-            "Prompt A gives only a tool call, with no final answer.",
-            "Prompt B gives honest general advice and says it cannot see live weather.",
-            "In the table, X costs 0.010, Y costs 0.006, and Z costs 0.002, so the total is 0.018 USD.",
-            "A gateway is a fallback router plus cost tracking."
-          ],
-          "check": {
-            "question": "Why does a fallback chain use a different prompt for a provider that has no tool use?",
-            "answer": "Providers differ in what they support, so the same prompt can fail on a fallback provider. A degraded prompt, such as you have no tools, answer anyway, keeps the answer useful, while the gateway handles the routing and the cost tracking."
+            "challenge": "Add a rule: if the user is on a free plan, skip Provider 1. Then ask how a feature flag could turn this rule on for 10 percent of users first."
           },
-          "challenge": "Add a rule: if the user is on a free plan, skip Provider 1. Ask how a feature flag could turn this rule on for 10 percent of users first."
+          "bn": {
+            "title": "backup provider চেষ্টা করা একটা gateway সাজো",
+            "why": "তুমি যখন কোনো AI provider-এর ওপর product বানাবে, সেই provider মাঝে মাঝে fail করবে। gateway তখন request টা backup provider-এ পাঠায়, তাই তোমার user তবুও উত্তর পায়।",
+            "steps": [
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করে paste করো, Enter চাপো। এটা normal prompt, যে provider-এর tool আছে তার জন্য।",
+                "prompt": "তুমি একটা tool ব্যবহার করতে পারো: get_weather(city: string), যেটা live আবহাওয়া দেয়।\nUser-এর প্রশ্ন: আজ সিলেটে কি ছাতা লাগবে?\nশুধু JSON আকারে tool call দিয়ে উত্তর দাও, এই form-এ: {\"tool\": ..., \"arguments\": {...}}। এখনই প্রশ্নের উত্তর দিয়ো না।",
+                "expect": "শুধু JSON আকারে একটা tool call, কোনো চূড়ান্ত উত্তর নেই। যেমন শহর Sylhet দিয়ে <code>get_weather</code>।",
+                "example": "{\"tool\": \"get_weather\", \"arguments\": {\"city\": \"Sylhet\"}}"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করে paste করো, Enter চাপো। এটা degraded prompt, যে provider-এর কোনো tool নেই তার জন্য।",
+                "prompt": "তোমার কোনো tool নেই, আর কোনো live data নেই। শুধু সাধারণ জ্ঞান থেকে উত্তর দাও। পরিষ্কার বলো যে তুমি আজকের আবহাওয়া দেখতে পারছ না, আর যতটা কাজের পরামর্শ দেওয়া যায় দাও।\nUser-এর প্রশ্ন: আজ সিলেটে কি ছাতা লাগবে?",
+                "expect": "একটা সাধারণ উত্তর, যেখানে AI বলে যে সে আজকের আবহাওয়া দেখতে পারছে না, আর একটা কাজের পরামর্শ দেয়।",
+                "example": "আমি আজকের আবহাওয়া দেখতে পারছি না, তাই নিশ্চিত করে বলতে পারব না। সিলেট বাংলাদেশের সবচেয়ে বেশি বৃষ্টির জায়গাগুলোর একটা, বিশেষ করে বর্ষায়, তাই একটা ছোট ছাতা সঙ্গে রাখা নিরাপদ। বের হওয়ার আগে একটা আবহাওয়ার app দেখে নিয়ো।"
+              },
+              {
+                "chat": "new",
+                "do": "এই prompt টা copy করে paste করো, Enter চাপো। AI এখন একটা gateway সাজবে। table-এর প্রতিটা row নিয়মের সঙ্গে মিলিয়ে দেখো।",
+                "prompt": "তুমি একটা LLM gateway হিসেবে কাজ করো। fallback chain হলো: Provider 1 (tool আছে), তারপর Provider 2 (tool আছে), তারপর Provider 3 (tool নেই, তাই একটা degraded prompt ব্যবহার করো, যেটা বলে: তোমার কোনো tool নেই, সাধারণ জ্ঞান থেকে উত্তর দাও)।\nনিয়ম: 503 বা 429 error এলে পরের provider-এ যাও। সফল হলে থামো। কোন provider উত্তর দিল, কতবার চেষ্টা হলো, আর খরচ কত, লিখে রাখো।\nপ্রতি call-এর খরচ: Provider 1 0.010 USD, Provider 2 0.006 USD, Provider 3 0.002 USD। fail হওয়া call-এর খরচ 0।\nতিনটা request এসেছে:\nRequest X: Provider 1 দেয় 200।\nRequest Y: Provider 1 দেয় 503, Provider 2 দেয় 200।\nRequest Z: Provider 1 দেয় 503, Provider 2 দেয় 429, Provider 3 দেয় 200।\nএকটা table দাও, যাতে থাকবে: request, ব্যবহার হওয়া provider, attempts, ব্যবহার হওয়া prompt (normal বা degraded), খরচ। তারপর মোট খরচ যোগ করো।",
+                "expect": "একটা table, যেখানে X Provider 1 ব্যবহার করে, Y Provider 2, আর Z degraded prompt সহ Provider 3। মোট খরচ <strong>0.018 USD</strong>।",
+                "example": "| Request | Provider | Attempts | Prompt | খরচ (USD) |\n| X | Provider 1 | 1 | normal | 0.010 |\n| Y | Provider 2 | 2 | normal | 0.006 |\n| Z | Provider 3 | 3 | degraded | 0.002 |\nমোট খরচ: 0.010 + 0.006 + 0.002 = 0.018 USD"
+              }
+            ],
+            "learned": "একটা provider নানা error দিয়ে fail করতে পারে, যেমন 503 (server তৈরি নেই) বা 429 (অনেক বেশি request)। আবার কোনো provider-এ একটা feature নাও থাকতে পারে, যেমন tool। <strong>gateway</strong> ঠিক করা ক্রমে পরের provider চেষ্টা করে। tool নেই এমন provider-এর জন্য সে একটা degraded prompt ব্যবহার করে, যেটা সহজ, কিন্তু তবুও কাজের। এখানে fail হওয়া call-এর খরচ নেই, তাই প্রতিটা request শুধু যে provider উত্তর দিয়েছে তার খরচ দেয়।",
+            "done": "তোমার কাছে একটা tool call, tool ছাড়া একটা সৎ উত্তর, আর মোট 0.018 USD সহ একটা gateway table আছে।",
+            "check": {
+              "question": "যে provider-এ tool use নেই, fallback chain তার জন্য আলাদা prompt ব্যবহার করে কেন?",
+              "answer": "tool ব্যবহার করতে না পারা provider normal prompt-এ fail করত। <em>তোমার tool নেই, তবুও উত্তর দাও</em> ধরনের degraded prompt উত্তরটাকে কাজের রাখে।"
+            },
+            "challenge": "একটা নিয়ম যোগ করো: user free plan-এ থাকলে Provider 1 বাদ দাও। তারপর জিজ্ঞেস করো, একটা feature flag দিয়ে কীভাবে প্রথমে ১০ শতাংশ user-এর জন্য এই নিয়ম চালু করা যায়।"
+          }
         }
       ]
     }
