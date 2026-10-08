@@ -3,8 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import type { Block, Section } from "@/lib/content-schema";
+import { videosForVoice } from "@/lib/videos";
 import { Inline } from "./Inline";
 import { ProseBlocks } from "./ProseBlocks";
+import { VideoList } from "./VideoList";
 import { VOICE_COLOR, VoiceSwitcher } from "./VoiceSwitcher";
 import type { Voice } from "./VoiceSwitcher";
 
@@ -205,6 +207,7 @@ export function SectionView({ section }: { section: Section }) {
             blocks={section.bangla}
           />
         )}
+        <VideoList sectionId={section.id} videos={videosForVoice(section.videos, voice)} />
       </div>
     </section>
   );

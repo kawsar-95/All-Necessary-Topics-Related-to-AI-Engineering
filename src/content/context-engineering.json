@@ -128,6 +128,20 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "_IlTcWciEC4",
+          "title": "Context Engineering for Agents - Lance Martin, LangChain",
+          "channel": "Latent Space",
+          "lang": "en"
+        },
+        {
+          "id": "lqBCn1FoK_E",
+          "title": "What is Context Engineering?",
+          "channel": "Standarity",
+          "lang": "en"
+        }
       ]
     },
     {
@@ -282,6 +296,26 @@
               "html": "<strong>ক্লাসের খাতার উদাহরণ:</strong> পরীক্ষার আগে আপনি পুরো বছরের লেকচার আবার পড়েন না; আপনার হাতে থাকে নিজের গোছানো নোট — সূত্র, সিদ্ধান্ত আর গুরুত্বপূর্ণ উদাহরণ। কিন্তু কোনো সংজ্ঞা নিয়ে সন্দেহ হলে আপনি মূল বইয়ে ফিরে যান। এখানেও সারাংশ হলো নোট, আর মূল transcript হলো বই — নোট দিয়ে কাজ চলে, আর নির্ভুলতা দরকার হলে মূল উৎসে যাওয়া যায়।"
             }
           ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "eW3oTyfeWZ0",
+          "title": "Context Management in Claude Code",
+          "channel": "Claude",
+          "lang": "en"
+        },
+        {
+          "id": "asZQ8Ktqmt8",
+          "title": "Conversation Summary Memory (4.4)",
+          "channel": "Jeff Heaton",
+          "lang": "en"
+        },
+        {
+          "id": "70lqvTFh_Yg",
+          "title": "Memory in LangChain | Deep dive (python)",
+          "channel": "Eden Marco",
+          "lang": "en"
         }
       ]
     },
@@ -498,6 +532,26 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "tECAkJAI_Vk",
+          "title": "Build Hour: Prompt Caching",
+          "channel": "OpenAI",
+          "lang": "en"
+        },
+        {
+          "id": "apn76LjuG28",
+          "title": "Prompt Caching: A Complete Technical Guide",
+          "channel": "Kartik Nighania",
+          "lang": "en"
+        },
+        {
+          "id": "jQw3_6meUF8",
+          "title": "Cutting Claude API cost 80% in minutes using Anthropic Prompt Caching",
+          "channel": "Coev",
+          "lang": "en"
+        }
       ]
     },
     {
@@ -659,6 +713,20 @@
               "html": "<strong>অফিসের ফাইল-ব্যবস্থার উদাহরণ:</strong> আপনার টেবিলে যে কাগজটা খোলা, সেটা working memory। ড্রয়ারে রাখা এই সপ্তাহের ফাইল হলো short-term। আলমারির স্থায়ী রেকর্ড long-term, আর পুরোনো প্রজেক্টের শিক্ষা-নোট episodic। বাকি সবকিছু আছে কেন্দ্রীয় আর্কাইভে (external)। ভালো কর্মী জানে কোন তথ্য কোথায় খুঁজতে হবে — টেবিল ঠেসে না রেখে দরকারমতো আর্কাইভ থেকে আনে।"
             }
           ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "1WTidibVdIA",
+          "title": "The AI Operating System: Stateful Agents with Letta | Cameron Pfiffer, AI By the Bay25",
+          "channel": "FunctionalTV",
+          "lang": "en"
+        },
+        {
+          "id": "3E4DYQaUyVg",
+          "title": "MemGPT (Memory GPT) - Towards LLMs as Operating Systems",
+          "channel": "Shweta Lodha",
+          "lang": "en"
         }
       ]
     },
@@ -854,6 +922,20 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "bNhbULlSW7g",
+          "title": "Revolutionizing LLM Inference: LLMLingua's Breakthrough in Prompt Compression 🚀",
+          "channel": "Tokenetic AI",
+          "lang": "en"
+        },
+        {
+          "id": "6_BcCthVvb8",
+          "title": "Context Engineering for AI Agents with LangChain and Manus",
+          "channel": "LangChain",
+          "lang": "en"
+        }
       ]
     },
     {
@@ -1038,6 +1120,20 @@
               "html": "<strong>রেস্টুরেন্টের মেনু-কার্ডের উদাহরণ:</strong> ওয়েটার যদি আপনার সামনে রান্নাঘরের সব পদ একসাথে এনে টেবিলে ঠেসে দেয়, জায়গাই থাকবে না। ভালো ওয়েটার প্রথমে মেনু দেখায়, সেরা কয়েকটি পদ সুপারিশ করে, বলে \"আরও আছে, চাইলে বলবেন\" — আর আপনি চাইলে তবেই আনে। Tool result-ও ঠিক তেমন: দরকারি অংশ আগে দাও, বাকিটা চাইলে দেবে।"
             }
           ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "-q_u6nrVdgo",
+          "title": "Quit Tokenmaxxing: 4 Context Engineering Techniques for AI Agents",
+          "channel": "AWS Developers",
+          "lang": "en"
+        },
+        {
+          "id": "6_BcCthVvb8",
+          "title": "Context Engineering for AI Agents with LangChain and Manus",
+          "channel": "LangChain",
+          "lang": "en"
         }
       ]
     },
@@ -1246,6 +1342,26 @@
               "html": "<strong>দীর্ঘ বিয়ের অনুষ্ঠানের ঘোষণার উদাহরণ:</strong> তিন ঘণ্টার অনুষ্ঠানে অতিথিরা শুরুর স্বাগত বক্তৃতা আর শেষের খাবারের ঘোষণা ঠিকই মনে রাখে, কিন্তু মাঝখানে বলা \"গাড়ি পার্কিং ওই গেটে\" কথাটা অনেকেই মিস করে। তাই জরুরি ঘোষণা শুরুতে ও শেষে দুবার করুন, মাঝের সময়টা হালকা কথার জন্য রাখুন।"
             }
           ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "Kf3LeaUGwlg",
+          "title": "Lost in the Middle: How Language Models use Long Context - Explained!",
+          "channel": "Weaviate vector database",
+          "lang": "en"
+        },
+        {
+          "id": "hBgzpw11-AQ",
+          "title": "Lost in the Middle: How Language Models Use Long Contexts Paper Reading",
+          "channel": "Arize AI",
+          "lang": "en"
+        },
+        {
+          "id": "3s_N60u0jEY",
+          "title": "Context Rot: When Long Context Fails",
+          "channel": "Hamel Husain",
+          "lang": "en"
         }
       ]
     }

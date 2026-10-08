@@ -265,6 +265,56 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "NaCjm8rdxqk",
+          "title": "Build Your First Eval: Creating a Custom LLM Evaluator with a Golden Dataset",
+          "channel": "Arize AI",
+          "lang": "en"
+        },
+        {
+          "id": "Qj3u_kzfJVo",
+          "title": "LLM-as-a-judge: evaluating LLMs with LLMs",
+          "channel": "Evidently AI",
+          "lang": "en"
+        },
+        {
+          "id": "7_LTU0LA374",
+          "title": "RAG Evaluation: Precision, Recall, Faithfulness, RAGAS Explained Clearly",
+          "channel": "Logical Lenses",
+          "lang": "en"
+        },
+        {
+          "id": "ZJsOTOV9yvg",
+          "title": "Introduction to Advanced Agent Evaluation Techniques",
+          "channel": "Data Science Dojo",
+          "lang": "en"
+        },
+        {
+          "id": "fOkkmbwdS7Y",
+          "title": "Synthetic Data Generation for LLM Evaluators and Agents",
+          "channel": "Arize AI",
+          "lang": "en"
+        },
+        {
+          "id": "bk0TmxoZlUY",
+          "title": "Evals 101 — Doug Guthrie, Braintrust",
+          "channel": "AI Engineer",
+          "lang": "en"
+        },
+        {
+          "id": "GLlrNdUIXdQ",
+          "title": "How to Run LLM Evals on Live Production Traffic with your Agents | Ep. 11",
+          "channel": "Arize AI",
+          "lang": "en"
+        },
+        {
+          "id": "RHdiRUIkhRw",
+          "title": "AI Red Teaming — Why & How to Jailbreak LLM Agents | Alex Combessie, Giskard l The Next Wave of AI",
+          "channel": "Toronto Machine Learning Society (TMLS)",
+          "lang": "en"
+        }
       ]
     }
   ],

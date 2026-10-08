@@ -175,6 +175,56 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "-0C35d8ZtwA",
+          "title": "RouteLLM: Exploring how to reduce token spend via LLM Query Routing",
+          "channel": "Probably Private",
+          "lang": "en"
+        },
+        {
+          "id": "tE9RC2IudbA",
+          "title": "AI Dev 25 x NYC | Nitin Kanukolanu: Semantic Caching for LLM Applications",
+          "channel": "DeepLearningAI",
+          "lang": "en"
+        },
+        {
+          "id": "tECAkJAI_Vk",
+          "title": "Build Hour: Prompt Caching",
+          "channel": "OpenAI",
+          "lang": "en"
+        },
+        {
+          "id": "elcyfyrbmz4",
+          "title": "How to Reduce Claude API Costs with Batch Processing",
+          "channel": "Big Data Landscape",
+          "lang": "en"
+        },
+        {
+          "id": "1RvdM-q6kDQ",
+          "title": "Knowledge Distillation in Large Language Models",
+          "channel": "John Olafenwa",
+          "lang": "en"
+        },
+        {
+          "id": "2y01rGSIO_U",
+          "title": "How LLMLingua can help cut your AI bill by 20x",
+          "channel": "Dan Cleary",
+          "lang": "en"
+        },
+        {
+          "id": "zZGYnZ3HBOY",
+          "title": "Reducing the cost of LLMs in production",
+          "channel": "LATENT AI",
+          "lang": "en"
+        },
+        {
+          "id": "9t-W51EHgzY",
+          "title": "LiteLLM Proxy Tutorial: Track Costs, Budgets, and Multi-Provider LLM Usage",
+          "channel": "Ready Tensor",
+          "lang": "en"
+        }
       ]
     }
   ],

@@ -230,6 +230,56 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "FgxwCaL6UTA",
+          "title": "Prompt Injection, explained",
+          "channel": "Simon Willison",
+          "lang": "en"
+        },
+        {
+          "id": "sKEZChVe6AQ",
+          "title": "Jailbroken: How Does LLM Safety Training Fail? - Paper Explained",
+          "channel": "DataMListic",
+          "lang": "en"
+        },
+        {
+          "id": "L_1plTXF-FE",
+          "title": "Data Exfiltration Vulnerabilities in LLM Applications and Chatbots: Bing Chat, ChatGPT and Claude",
+          "channel": "Embrace The Red",
+          "lang": "en"
+        },
+        {
+          "id": "KIQxTLd6qik",
+          "title": "LLama Guard for Content Moderation",
+          "channel": "Rajistics - data science, AI, and machine learning",
+          "lang": "en"
+        },
+        {
+          "id": "Hg2KibOvnLM",
+          "title": "Building Safe and Secure LLM Applications Using NVIDIA NeMo Guardrails",
+          "channel": "NVIDIA Developer",
+          "lang": "en"
+        },
+        {
+          "id": "4GuK9sPUvus",
+          "title": "Data Anonymization With Microsoft Presidio - Full Step By Step Tutorial",
+          "channel": "M&M Tech",
+          "lang": "en"
+        },
+        {
+          "id": "jOc8klqDLmE",
+          "title": "How to Rate Limit Users in Your AI Application",
+          "channel": "Shweta Lodha",
+          "lang": "en"
+        },
+        {
+          "id": "r3JdQxtxVuM",
+          "title": "Validate & Standardize LLM Output with Guardrails-AI",
+          "channel": "Apply AI like a Pro",
+          "lang": "en"
+        }
       ]
     }
   ],

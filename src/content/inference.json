@@ -413,6 +413,56 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "56gj1JT9sic",
+          "title": "Hosted LLM APIs vs. Self-Hosting: The Ultimate LLM Ops Decision Guide",
+          "channel": "Analytics Vidhya",
+          "lang": "en"
+        },
+        {
+          "id": "McLdlg5Gc9s",
+          "title": "What is vLLM? Efficient AI Inference for Large Language Models",
+          "channel": "IBM Technology",
+          "lang": "en"
+        },
+        {
+          "id": "mNE_d-C82lI",
+          "title": "Which Quantization Method is Right for You? (GPTQ vs. GGUF vs. AWQ)",
+          "channel": "Maarten Grootendorst",
+          "lang": "en"
+        },
+        {
+          "id": "7OrMFn86PlM",
+          "title": "KV Cache in LLMs Explained Visually | How LLMs Generate Tokens Faster",
+          "channel": "ExplainingAI",
+          "lang": "en"
+        },
+        {
+          "id": "E4pY0x9yOfo",
+          "title": "Accelerating LLM inference with speculative decoding: From Zero to Hero, By Eldar Kurtić",
+          "channel": "ARGO Vision",
+          "lang": "en"
+        },
+        {
+          "id": "SAqktpwcE4M",
+          "title": "An Intermediate Guide to Inference Using vLLM",
+          "channel": "Red Hat Open",
+          "lang": "en"
+        },
+        {
+          "id": "oLu-KGJ_x0E",
+          "title": "LLM’s INFERENCE: Cost vs. Latency vs. Throughput",
+          "channel": "César Soto Valero",
+          "lang": "en"
+        },
+        {
+          "id": "BKWpYIWvAo4",
+          "title": "TLMs: Tiny LLMs and Agents on Edge Devices with LiteRT-LM — Cormac Brick, Google",
+          "channel": "AI Engineer",
+          "lang": "en"
+        }
       ]
     }
   ],

@@ -116,6 +116,32 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "D7_ipDqhtwk",
+          "title": "How We Build Effective Agents: Barry Zhang, Anthropic",
+          "channel": "AI Engineer",
+          "lang": "en"
+        },
+        {
+          "id": "uhJJgc-0iTQ",
+          "title": "Building more effective AI agents",
+          "channel": "Anthropic",
+          "lang": "en"
+        },
+        {
+          "id": "UwfjzyLnvMg",
+          "title": "CMU AI Agents 2026: 1. What are Agents and How Do They Work?",
+          "channel": "Graham Neubig",
+          "lang": "en"
+        },
+        {
+          "id": "w0Eh9c6ROYo",
+          "title": "AI Agent কী? কী থাকে AI Agent এর ভেতরে? সহজ বাংলায় শিখুন AI Automation | Ostad App",
+          "channel": "Ostad",
+          "lang": "bn"
+        }
       ]
     },
     {
@@ -274,6 +300,26 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "aHCDrAbH_go",
+          "title": "Building Effective Agents with LangGraph",
+          "channel": "LangChain",
+          "lang": "en"
+        },
+        {
+          "id": "uRya4zRrRx4",
+          "title": "LangGraph: Planning Agents",
+          "channel": "LangChain",
+          "lang": "en"
+        },
+        {
+          "id": "8t65bss7U74",
+          "title": "Language Agents: From Reasoning to Acting — with Shunyu Yao of OpenAI, Harrison Chase of LangGraph",
+          "channel": "Latent Space",
+          "lang": "en"
+        }
       ]
     },
     {
@@ -414,6 +460,26 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "dh-u1nn7cCs",
+          "title": "Why Devin (Cognition) does not use multi agents",
+          "channel": "Jason Liu",
+          "lang": "en"
+        },
+        {
+          "id": "B_0TNuYi56w",
+          "title": "Hierarchical multi-agent systems with LangGraph",
+          "channel": "LangChain",
+          "lang": "en"
+        },
+        {
+          "id": "sWH0T4Zez6I",
+          "title": "Multi Agent Systems Explained: How AI Agents & LLMs Work Together",
+          "channel": "IBM Technology",
+          "lang": "en"
+        }
       ]
     },
     {
@@ -546,6 +612,26 @@
               "html": "<strong>ফ্লোচার্ট বনাম অনুচ্ছেদের উপমা:</strong> agent-কে loop হিসেবে লেখা হলো দিকনির্দেশনা একটি অনুচ্ছেদ হিসেবে লেখার মতো। Graph হিসেবে আঁকা হলো মানচিত্র দেওয়ার মতো।"
             }
           ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "cUfLrn3TM3M",
+          "title": "LangGraph Explained for Beginners",
+          "channel": "KodeKloud",
+          "lang": "en"
+        },
+        {
+          "id": "jGg_1h0qzaM",
+          "title": "LangGraph Complete Course for Beginners – Complex AI Agents with Python",
+          "channel": "freeCodeCamp.org",
+          "lang": "en"
+        },
+        {
+          "id": "0whYhg_rG3o",
+          "title": "LangGraph 001 -  Introduction and Programming your First Agentic Graph Application (Bangla/বাংলা)",
+          "channel": "Ahsan Iqbal",
+          "lang": "bn"
         }
       ]
     },
@@ -687,6 +773,26 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "R0OdB-p-ns4",
+          "title": "AI Dev 25 | Harrison Chase: Long Term Memory with LangGraph",
+          "channel": "DeepLearningAI",
+          "lang": "en"
+        },
+        {
+          "id": "BacJ6sEhqMo",
+          "title": "The Four Types of Memory Every AI Agent Needs",
+          "channel": "IBM Technology",
+          "lang": "en"
+        },
+        {
+          "id": "JTL0yp85FsE",
+          "title": "Memory for agents (conceptual video)",
+          "channel": "LangChain",
+          "lang": "en"
+        }
       ]
     },
     {
@@ -807,6 +913,20 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "6t7YJcEFUIY",
+          "title": "LangGraph interrupt: Making it easier to build human-in-the-loop agents",
+          "channel": "LangChain",
+          "lang": "en"
+        },
+        {
+          "id": "YmAaKKlDy7k",
+          "title": "LangGraph Agents - Human-In-The-Loop - User Feedback",
+          "channel": "LangChain",
+          "lang": "en"
+        }
       ]
     },
     {
@@ -917,6 +1037,20 @@
               "html": "<strong>ঠিকাদারের উপমা:</strong> একজন CEO ব্যক্তিগতভাবে market research করেন না। তারা একটি research firm নিয়োগ করেন।"
             }
           ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "mWvtOHlZM-I",
+          "title": "Tool, skill, or subagent? Decomposing an agent that outgrew its prompt",
+          "channel": "Claude",
+          "lang": "en"
+        },
+        {
+          "id": "lzX9FxvkPXY",
+          "title": "Subagents Explained: Isolated Context Delegation in Claude Agent SDK",
+          "channel": "Yash Jain",
+          "lang": "en"
         }
       ]
     },
@@ -1037,6 +1171,20 @@
               "html": "<strong>কাস্টমার সার্ভিসের উপমা:</strong> যখন একজন গ্রাহকের কল ড্রপ হয়, আপনি তাদের কল করেন। এটি তৃতীয়বার ড্রপ হলে, আপনি পরিবর্তে একটি ইমেল পাঠান।"
             }
           ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "MvNdgmM7uyc",
+          "title": "Building a self-corrective coding assistant from scratch",
+          "channel": "LangChain",
+          "lang": "en"
+        },
+        {
+          "id": "ZJlfF1ESXVw",
+          "title": "Breaking Down & Testing FIVE LLM Agent Architectures - (Reflexion, LATs, P&E, ReWOO, LLMCompiler)",
+          "channel": "Adam Lucek",
+          "lang": "en"
         }
       ]
     },
@@ -1174,6 +1322,26 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "k8cnVCMYmNc",
+          "title": "OpenAI + @Temporalio : Building Durable, Production Ready Agents - Cornelia Davis, Temporal",
+          "channel": "AI Engineer",
+          "lang": "en"
+        },
+        {
+          "id": "cI7zfqusmFU",
+          "title": "Every step you take, every call you make: the reliable agent stack — Giselle van Dongen, Restate",
+          "channel": "AI Engineer",
+          "lang": "en"
+        },
+        {
+          "id": "-3gloS12eoE",
+          "title": "What is Durable Execution?",
+          "channel": "Restate",
+          "lang": "en"
+        }
       ]
     },
     {
@@ -1307,6 +1475,26 @@
               "html": "<strong>দূরবর্তী ইন্টার্নের উপমা:</strong> একজন দূরবর্তী ইন্টার্ন যিনি শুধু আপনার screen দেখতে এবং mouse ব্যবহার করতে পারেন।"
             }
           ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "VDmU0jjklBo",
+          "title": "Anthropic’s Claude Computer Use Is A Game Changer | YC Decoded",
+          "channel": "Y Combinator",
+          "lang": "en"
+        },
+        {
+          "id": "CSE77wAdDLg",
+          "title": "Introduction to Operator & Agents",
+          "channel": "OpenAI",
+          "lang": "en"
+        },
+        {
+          "id": "jwGluLrrqjQ",
+          "title": "CMU AI Agents 2026: 7. Computer Use Agents",
+          "channel": "Graham Neubig",
+          "lang": "en"
         }
       ]
     }

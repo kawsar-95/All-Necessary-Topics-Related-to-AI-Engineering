@@ -89,8 +89,9 @@ A file has this shape:
 { slug, title, tagline?, lede, sections: [...], sources: [...] }
 ```
 
-Each section has `id`, `num`, `title`, `sub`, and three lists of blocks:
-`body` (Technical), `layman`, and `bangla`.
+Each section has `id`, `num`, `title`, `sub`, three lists of blocks
+(`body` for Technical, `layman`, and `bangla`), and an optional `videos`
+list.
 
 A block has a `type`. These are the block types:
 
@@ -120,6 +121,26 @@ props.
 
 Only these components render raw HTML: `Inline.tsx`, `CodeBlock.tsx`,
 `Diagram.tsx`, and `RawHtml.tsx`.
+
+## Videos
+
+Each section can list YouTube videos in `videos`:
+
+```json
+{ "id": "zduSFxRajkE", "title": "Let's build the GPT Tokenizer", "channel": "Andrej Karpathy", "lang": "en" }
+```
+
+- `id` is the 11-character YouTube video ID. `lang` is `en` or `bn`.
+- Copy `title` and `channel` from YouTube's oEmbed answer:
+  `https://www.youtube.com/oembed?format=json&url=https://www.youtube.com/watch?v=<id>`.
+  A 200 answer also confirms that the video is public and allows embedding.
+- Technical and Layman's show the English videos. বাংলা shows the Bangla
+  videos first, then the English ones. All three shows all of them.
+- A card loads nothing from YouTube until the reader clicks it. Then it
+  plays in place through `youtube-nocookie.com`.
+
+The cards are `src/components/content/VideoList.tsx` and `VideoCard.tsx`.
+The voice rule is `src/lib/videos.ts`.
 
 ## Search
 

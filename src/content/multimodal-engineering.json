@@ -223,6 +223,44 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "lPlJR1xVF8c",
+          "title": "Qwen2-VL: The Best Open Source Vision Model for OCR & VQA",
+          "channel": "AI Anytime",
+          "lang": "en"
+        },
+        {
+          "id": "fHz6s0YmNFo",
+          "title": "AI Dev 25 | Justin Uberti: Introduction to the OpenAI Realtime API",
+          "channel": "DeepLearningAI",
+          "lang": "en"
+        },
+        {
+          "id": "-mXZmypu9Qw",
+          "title": "Build a Real-Time Voice Agent with LiveKit + Speechmatics (Step-by-Step)",
+          "channel": "Speechmatics",
+          "lang": "en"
+        },
+        {
+          "id": "1CIpzeNxIhU",
+          "title": "How AI Image Generators Work (Stable Diffusion / Dall-E) - Computerphile",
+          "channel": "Computerphile",
+          "lang": "en"
+        },
+        {
+          "id": "fG3IE9dkyKY",
+          "title": "How does OpenAI's Sora work?",
+          "channel": "Jia-Bin Huang",
+          "lang": "en"
+        },
+        {
+          "id": "49cKO1r3dnE",
+          "title": "ComfyUI Tutorial: How to Build and Experiment with AI pipelines – No Coding Needed",
+          "channel": "Super Data Science",
+          "lang": "en"
+        }
       ]
     }
   ],

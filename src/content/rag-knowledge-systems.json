@@ -253,6 +253,26 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "8OJC21T2SL4",
+          "title": "The 5 Levels Of Text Splitting For Retrieval",
+          "channel": "Greg Kamradt",
+          "lang": "en"
+        },
+        {
+          "id": "7JS0pqXvha8",
+          "title": "Semantic Chunking - 3 Methods for Better RAG",
+          "channel": "James Briggs",
+          "lang": "en"
+        },
+        {
+          "id": "buzWGXOydD8",
+          "title": "Late chunking improves context recall in RAG pipelines",
+          "channel": "Weaviate vector database",
+          "lang": "en"
+        }
       ]
     },
     {
@@ -534,6 +554,26 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "klTvEwg3oJ4",
+          "title": "Vector databases are so hot right now. WTF are they?",
+          "channel": "Fireship",
+          "lang": "en"
+        },
+        {
+          "id": "-q-pLgGDYr4",
+          "title": "Qdrant Essentials | Fast Vector Search with Qdrant HNSW Indexing",
+          "channel": "Qdrant Vector Search",
+          "lang": "en"
+        },
+        {
+          "id": "pHB-m-ZITw4",
+          "title": "The Weaviate Vector Database — Bring AI-native applications to life.",
+          "channel": "CMU Database Group",
+          "lang": "en"
+        }
       ]
     },
     {
@@ -713,6 +753,26 @@
               "html": "<strong>দৈনন্দিন উপমা:</strong> ক্রিকেটে দুজন বিশ্লেষক সেরা ব্যাটসম্যানের তালিকা করলেন, একজন রান দিয়ে, অন্যজন স্ট্রাইক রেট দিয়ে। দুই মাপের সংখ্যা যোগ করা অর্থহীন। বরং কে কার তালিকায় কত নম্বরে আছে সেটা ধরে পয়েন্ট দিন; যে খেলোয়াড় দুই তালিকাতেই ওপরে, সে-ই সামগ্রিক সেরা।"
             }
           ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "WwYhjGYlFpQ",
+          "title": "Hybrid Search Finds What Vectors Miss (RAG)",
+          "channel": "Shane | LLM Implementation",
+          "lang": "en"
+        },
+        {
+          "id": "6dDvfGrxFns",
+          "title": "Understanding Reciprocal Rank Fusion in Hybrid Search [Advanced RAG]",
+          "channel": "TechViz - The Data Science Guy",
+          "lang": "en"
+        },
+        {
+          "id": "BXvCxG_H31M",
+          "title": "Build your own Hybrid Search",
+          "channel": "Abhishek Thakur",
+          "lang": "en"
         }
       ]
     },
@@ -899,6 +959,26 @@
               "html": "<strong>দৈনন্দিন উপমা:</strong> চায়ের দোকানে কেউ বলল \"ওই যে লম্বা মতো লোকটা, যে গতকাল এসেছিল।\" দোকানদার নিজে একটু ঘুরিয়ে ভাবে: কার কথা হতে পারে, নাম কী, কোন পাড়ার। কয়েকজন পরিচিতকে একই কথা আলাদাভাবে জিজ্ঞেস করে, তারপর সবার উত্তর মিলিয়ে সঠিক মানুষটিকে খুঁজে পায়।"
             }
           ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "SaDzIVkYqyY",
+          "title": "RAG from scratch: Part 9 (Query Translation -- HyDE)",
+          "channel": "LangChain",
+          "lang": "en"
+        },
+        {
+          "id": "JChPi0CRnDY",
+          "title": "RAG from scratch: Part 5 (Query Translation -- Multi Query)",
+          "channel": "LangChain",
+          "lang": "en"
+        },
+        {
+          "id": "h0OPWlEOank",
+          "title": "RAG from scratch: Part 7 (Query Translation -- Decomposition)",
+          "channel": "LangChain",
+          "lang": "en"
         }
       ]
     },
@@ -1089,6 +1169,26 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "PhCrlpUwEhU",
+          "title": "Agentic RAG: An End-to-End Open Source Framework",
+          "channel": "Weaviate vector database",
+          "lang": "en"
+        },
+        {
+          "id": "MYPDsV_825U",
+          "title": "Agentic RAG Explained",
+          "channel": "DataStax Developers",
+          "lang": "en"
+        },
+        {
+          "id": "uZoz3T3Z6-w",
+          "title": "Self-Corrective RAG with LangGraph - Agentic RAG Tutorial",
+          "channel": "Coding Crash Courses",
+          "lang": "en"
+        }
       ]
     },
     {
@@ -1268,6 +1368,26 @@
               "html": "<strong>দৈনন্দিন উপমা:</strong> চায়ের দোকানে বা বইমেলায় আপনি প্রথমে স্টলের নাম দেখে দ্রুত বিশটি স্টল বেছে নিলেন। তারপর সেই বিশটিতে ঢুকে প্রতিটি বই হাতে নিয়ে মিলিয়ে দেখলেন কোনটি সত্যিই আপনার দরকারের। প্রথম বাছাই ছিল দ্রুত, দ্বিতীয়টি ধীর কিন্তু নিখুঁত; আর যে স্টল প্রথমেই বাদ পড়েছে, সেখানে আর ফেরা হয় না।"
             }
           ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "Uh9bYiVrW_s",
+          "title": "RAG But Better: Rerankers with Cohere AI",
+          "channel": "James Briggs",
+          "lang": "en"
+        },
+        {
+          "id": "eU1x6_YG2sU",
+          "title": "Reranking Models vs. Embedding Models | Voyage AI and Vector Search for Beginners",
+          "channel": "MongoDB for Developers",
+          "lang": "en"
+        },
+        {
+          "id": "e7x1wJlmDjs",
+          "title": "Semantic search and reranking with Cohere and Pinecone",
+          "channel": "Pinecone",
+          "lang": "en"
         }
       ]
     },
@@ -1479,6 +1599,20 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "VJVHU47IAik",
+          "title": "Qdrant Essentials | Combine Search & Filtering with Qdrant Filterable HNSW",
+          "channel": "Qdrant Vector Search",
+          "lang": "en"
+        },
+        {
+          "id": "_FHJZqt_xJA",
+          "title": "Qdrant Payload Filtering in Python: Search Vectors with Metadata Conditions",
+          "channel": "Professor Py: AI Foundations",
+          "lang": "en"
+        }
       ]
     },
     {
@@ -1651,6 +1785,20 @@
               "html": "<strong>দৈনন্দিন উপমা:</strong> একটি বাজারে কোন দোকান কোথায় তা জানতে সূচিপত্র যথেষ্ট। কিন্তু \"এই বাজারে কোন পাড়ায় কী বিখ্যাত?\" জানতে চাইলে পাড়াভিত্তিক মানচিত্র আর প্রতিটি পাড়ার সংক্ষিপ্ত পরিচয় লাগে। মানচিত্র আঁকতে অনেক ঘোরাঘুরি করতে হয়, তাই ছোট এলাকা দিয়ে শুরু করাই ভালো।"
             }
           ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "Y-s-k0pqAO8",
+          "title": "From Local to Global: A Graph RAG Approach to Query-Focused Summarization",
+          "channel": "Natural Language Processing Interest Group",
+          "lang": "en"
+        },
+        {
+          "id": "ftlZ0oeXYRE",
+          "title": "RAG with a Neo4j Knowledge Graph: How it Works and How to Set It Up",
+          "channel": "Neo4j",
+          "lang": "en"
         }
       ]
     },
@@ -1837,6 +1985,26 @@
               "html": "<strong>দৈনন্দিন উপমা:</strong> পুরোনো খাতার হিসাব কম্পিউটারে তুলতে দোকানের কর্মচারীকে দিলেন। সে যদি দুই কলামের পাতা লাইন ধরে আড়াআড়ি টুকে ফেলে, তাহলে হিসাব গুলিয়ে যাবে। তাই কাজ শুরুর আগে দেখে নিতে হয় সে কলাম ঠিকমতো আলাদা করছে কি না।"
             }
           ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "dTVjx1kEJrc",
+          "title": "LlamaParse: super-charging parsing of complex documents",
+          "channel": "LlamaIndex",
+          "lang": "en"
+        },
+        {
+          "id": "hw5P6xCoChw",
+          "title": "Ingesting Unstructured Data with Docling | OpenRAG Summit",
+          "channel": "OpenRAG",
+          "lang": "en"
+        },
+        {
+          "id": "iPiYVCl002o",
+          "title": "How to convert PDF DOCX to Structured TXT Formats for RAG! (UNSTRUCTURED Tutorial)",
+          "channel": "1littlecoder",
+          "lang": "en"
         }
       ]
     },
@@ -2045,6 +2213,26 @@
               "html": "<strong>দৈনন্দিন উপমা:</strong> পাড়ার লাইব্রেরিতে বইয়ের তালিকায় শুধু নাম লেখা থাকলে ভেতরের নকশা খোঁজা যায় না। লাইব্রেরিয়ান যদি প্রতিটি বইয়ের ছবির পাতা নিজে উল্টে দেখে বলেন, তবেই নকশাওয়ালা বইটি ঠিক মেলে।"
             }
           ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "uLrReyH5cu0",
+          "title": "Multimodal RAG: Chat with PDFs (Images & Tables) [2025]",
+          "channel": "Alejandro AO",
+          "lang": "en"
+        },
+        {
+          "id": "IluARWPYAUc",
+          "title": "How to Build Multimodal Document RAG with Llama 3.2 Vision and ColQwen2",
+          "channel": "Together AI",
+          "lang": "en"
+        },
+        {
+          "id": "_A90A-grwIc",
+          "title": "Optimizing Document Retrieval with ColPali and Qdrant's Binary Quantization",
+          "channel": "Qdrant Vector Search",
+          "lang": "en"
         }
       ]
     }

@@ -177,6 +177,32 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "zduSFxRajkE",
+          "title": "Let's build the GPT Tokenizer",
+          "channel": "Andrej Karpathy",
+          "lang": "en"
+        },
+        {
+          "id": "nKSk_TiR8YA",
+          "title": "Most devs don't understand how LLM tokens work",
+          "channel": "Matt Pocock",
+          "lang": "en"
+        },
+        {
+          "id": "-0HRzXk8vlk",
+          "title": "Why AI Tokens are so Expensive - Computerphile",
+          "channel": "Computerphile",
+          "lang": "en"
+        },
+        {
+          "id": "3utMugJX1gg",
+          "title": "AI Token, Context Window and Token Optimization Bangla Tutorial",
+          "channel": "Bangla Coding Tutor",
+          "lang": "bn"
+        }
       ]
     },
     {
@@ -347,6 +373,26 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "pYax2rupKEY",
+          "title": "How to Choose Large Language Models: A Developer’s Guide to LLMs",
+          "channel": "IBM Technology",
+          "lang": "en"
+        },
+        {
+          "id": "n4NokjyAklg",
+          "title": "How to Choose the Right LLM for Your Project",
+          "channel": "Marina Wyss - AI & Machine Learning",
+          "lang": "en"
+        },
+        {
+          "id": "0Wwn5IEqFcg",
+          "title": "Small vs. Large AI Models: Trade-offs & Use Cases Explained",
+          "channel": "IBM Technology",
+          "lang": "en"
+        }
       ]
     },
     {
@@ -472,6 +518,26 @@
               "html": "<strong>বাসা ভাড়া বনাম নিজের বাড়ির উপমা:</strong> Closed মডেল ভাড়া বাসার মতো: মালিক সব দেখভাল করে, কিন্তু ভাড়া বাড়ালে আপনার কিছু করার নেই, আর দেয়াল ভাঙার অনুমতি নেই। Open-weight হলো নিজের বাড়ি: ইচ্ছেমতো সাজাতে পারেন, কিন্তু মেরামত ও পাহারার ঝামেলা আপনার। আর Open-source হলো বাড়ির নকশা, ইট-সিমেন্টের হিসাব ও কারিগর সবকিছু পাওয়া, যা LLM-এর ক্ষেত্রে প্রায় দেখাই যায় না।"
             }
           ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "KL_hBC3XcrY",
+          "title": "Open Source vs Open Weight AI Models Explained",
+          "channel": "KodeKloud",
+          "lang": "en"
+        },
+        {
+          "id": "_QfxGZGITGw",
+          "title": "Open Source vs Closed AI: LLMs, Agents & the AI Stack Explained",
+          "channel": "IBM Technology",
+          "lang": "en"
+        },
+        {
+          "id": "y9k-U9AuDeM",
+          "title": "Should You Use Open Source Large Language Models?",
+          "channel": "IBM Technology",
+          "lang": "en"
         }
       ]
     },
@@ -611,6 +677,32 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "MkaazQttbpc",
+          "title": "The Secret Controls for your LLM: Temperature, Top-K, Top-P, etc",
+          "channel": "Gary Explains",
+          "lang": "en"
+        },
+        {
+          "id": "-BBulGM6xF0",
+          "title": "LLM Prompt Engineering with Random Sampling: Temperature, Top-k, Top-p",
+          "channel": "DataMListic",
+          "lang": "en"
+        },
+        {
+          "id": "-KEUQEoyje8",
+          "title": "Temperature? Top-p? Top-k? A practical guide to AI parameters",
+          "channel": "Probably Private",
+          "lang": "en"
+        },
+        {
+          "id": "f_NYCEMSfrA",
+          "title": "E-6: Temperature, Top-p, Top-k, Penalties, Stop Sequence, Seed | Prompt Engineering Course in Bangla",
+          "channel": "Afran Sarkar",
+          "lang": "bn"
+        }
       ]
     },
     {
@@ -728,6 +820,26 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "xTTtqwGWemw",
+          "title": "Streaming LLM Responses with FastAPI",
+          "channel": "Irtiza Hafiz",
+          "lang": "en"
+        },
+        {
+          "id": "vEmiZ8u7KfA",
+          "title": "SSE Deep Dive: How Server-Sent Events Stream LLM Responses #realtimecommunication",
+          "channel": "Free World Coder",
+          "lang": "en"
+        },
+        {
+          "id": "4HlNv1qpZFY",
+          "title": "Server-Sent Events Crash Course",
+          "channel": "Hussein Nasser",
+          "lang": "en"
+        }
       ]
     },
     {
@@ -831,6 +943,32 @@
               "html": "<strong>সরকারি ফর্মের উপমা:</strong> কাউকে মুখে বললে সে নিজের মতো করে লম্বা গল্প শোনাবে। কিন্তু ব্যাংকের ফর্ম দিলে নাম, তারিখ, টাকার অঙ্ক নির্দিষ্ট ঘরেই লিখতে হয়। কেরানি তখন ঠিক জানে কোন তথ্য কোথায় পাবে। দশ হাজার ফর্ম প্রসেস করতে হলে কোনটা বেছে নেবেন?"
             }
           ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "kE4BkATIl9c",
+          "title": "OpenAI DevDay 2024 | Structured outputs for reliable applications",
+          "channel": "OpenAI",
+          "lang": "en"
+        },
+        {
+          "id": "aNmfvN6S_n4",
+          "title": "No more bad outputs with structured generation: Remi Louf",
+          "channel": "AI Engineer",
+          "lang": "en"
+        },
+        {
+          "id": "fuMKrKlaku4",
+          "title": "OpenAI Structured Output - All You Need to Know",
+          "channel": "Dave Ebbelaar",
+          "lang": "en"
+        },
+        {
+          "id": "YuoyNgYhHI4",
+          "title": "1. Structured Output Generation with Llama 3.2 using Ollama (Bangla Tutorial) | NLP Series",
+          "channel": "Tasnim Ahmed",
+          "lang": "bn"
         }
       ]
     },
@@ -955,6 +1093,32 @@
               "html": "<strong>ম্যানেজার ও অফিস সহকারীর উপমা:</strong> ম্যানেজার (মডেল) নিজে ফাইল আনতে বা ফোন করতে যায় না। সে লিখে দেয়, \"রহিমকে ফোন করে আজকের বিক্রি জানাও।\" সহকারী (আপনার কোড) কাজটি করে ফলাফল ফেরত দেয়, তারপর ম্যানেজার সিদ্ধান্ত নেয়। সহকারীর হাতে কাজের তালিকা যত স্পষ্ট, ভুল তত কম।"
             }
           ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "KUEmEb71vzQ",
+          "title": "Function Calling is All You Need — Full Workshop, with Ilan Bigio of OpenAI",
+          "channel": "AI Engineer",
+          "lang": "en"
+        },
+        {
+          "id": "h8gMhXYAv1k",
+          "title": "What is Tool Calling? Connecting LLMs to Your Data",
+          "channel": "IBM Technology",
+          "lang": "en"
+        },
+        {
+          "id": "Qor2VZoBib0",
+          "title": "How does OpenAI Function Calling work?",
+          "channel": "Learn Data with Mark",
+          "lang": "en"
+        },
+        {
+          "id": "WUiKbaVgJAE",
+          "title": "Function Calls in OpenAI: How They Work and the Opportunities They Open (Bangla)",
+          "channel": "AI Defusion",
+          "lang": "bn"
         }
       ]
     },
@@ -1126,6 +1290,26 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "J51oZYcNvP8",
+          "title": "What is Multimodal AI? How LLMs Process Text, Images, and More",
+          "channel": "IBM Technology",
+          "lang": "en"
+        },
+        {
+          "id": "lOD_EE96jhM",
+          "title": "What Are Vision Language Models? How AI Sees & Understands Images",
+          "channel": "IBM Technology",
+          "lang": "en"
+        },
+        {
+          "id": "GIRpQEfYf3U",
+          "title": "Any-to-Any: Building Native Multimodal Agents - Patrick Löber, Google DeepMind",
+          "channel": "AI Engineer",
+          "lang": "en"
+        }
       ]
     },
     {
@@ -1281,6 +1465,32 @@
               "html": "<strong>চাকরির নিয়োগের উপমা:</strong> হাজার হাজার সিভি এলে প্রথমে একটি কম্পিউটার কিওয়ার্ড মিলিয়ে ঝটপট একশোটি বেছে নেয় (embedding)। তারপর অভিজ্ঞ HR ম্যানেজার সেই একশোটি মন দিয়ে পড়ে সেরা কয়েকজনকে ইন্টারভিউয়ের জন্য ডাকেন (reranker)। শেষে সিদ্ধান্ত নেন বস (LLM)।"
             }
           ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "A8HEPBdKVMA",
+          "title": "What Are Word and Sentence Embeddings?",
+          "channel": "Cohere",
+          "lang": "en"
+        },
+        {
+          "id": "eU1x6_YG2sU",
+          "title": "Reranking Models vs. Embedding Models | Voyage AI and Vector Search for Beginners",
+          "channel": "MongoDB for Developers",
+          "lang": "en"
+        },
+        {
+          "id": "tA85v3aGBIU",
+          "title": "RAG Reranking Explained: Bi-Encoder vs Cross-Encoder (with benchmarking code)",
+          "channel": "Abid Saudagar",
+          "lang": "en"
+        },
+        {
+          "id": "N2BJwtSFP7s",
+          "title": "What Are Embeddings? The Foundation of RAG & AI Search (Bangla)",
+          "channel": "Jack Pritom Soren",
+          "lang": "bn"
         }
       ]
     },
@@ -1515,6 +1725,26 @@
               "html": "<strong>গণিত পরীক্ষার উপমা:</strong> সহজ অঙ্ক পরীক্ষার হলে অনেকে মুখে মুখে করে ফেলে। কিন্তু কঠিন জ্যামিতি বা বীজগণিতে ভালো ছাত্র খাতায় ধাপে ধাপে লেখে, নিজের উত্তর মিলিয়ে দেখে। এতে সময় বেশি লাগে, কিন্তু উত্তর ঠিক হওয়ার সম্ভাবনা বাড়ে। সব প্রশ্নে এত সময় দেওয়াও বোকামি।"
             }
           ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "xCRvOUykOX0",
+          "title": "How do thinking and reasoning models work?",
+          "channel": "Google for Developers",
+          "lang": "en"
+        },
+        {
+          "id": "enLbj0igyx4",
+          "title": "What Are Large Reasoning Models (LRMs)? Smarter AI Beyond LLMs",
+          "channel": "IBM Technology",
+          "lang": "en"
+        },
+        {
+          "id": "7xTGNNLPyMI",
+          "title": "Deep Dive into LLMs like ChatGPT",
+          "channel": "Andrej Karpathy",
+          "lang": "en"
         }
       ]
     }

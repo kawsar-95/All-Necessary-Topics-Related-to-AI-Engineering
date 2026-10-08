@@ -196,6 +196,50 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "pTneXS_m1rk",
+          "title": "Langfuse Intro - Observability & Tracing Deep Dive",
+          "channel": "Langfuse",
+          "lang": "en"
+        },
+        {
+          "id": "mv_a0pPzSVI",
+          "title": "LLM Observability: Dashboards, Alerts & SLOs That Work | Module 4.2",
+          "channel": "KryptoMindz Technologies",
+          "lang": "en"
+        },
+        {
+          "id": "Opi8YFypptM",
+          "title": "How to Version Prompts Without Breaking Production - Latitude",
+          "channel": "Latitude",
+          "lang": "en"
+        },
+        {
+          "id": "DhL0icJ6-O4",
+          "title": "Improving LLM systems with A/B testing",
+          "channel": "Flow AI",
+          "lang": "en"
+        },
+        {
+          "id": "I2HhkwlXw8c",
+          "title": "LLM Observability with Langfuse: Debugging a Broken RAG Agent",
+          "channel": "Langfuse",
+          "lang": "en"
+        },
+        {
+          "id": "cz90ggj4bbk",
+          "title": "Tracking Drift to Monitor LLM Performance",
+          "channel": "Fiddler AI",
+          "lang": "en"
+        },
+        {
+          "id": "SbcQYbrvAfI",
+          "title": "Build a Prompt Learning Loop - SallyAnn DeLucia & Fuad Ali, Arize",
+          "channel": "AI Engineer",
+          "lang": "en"
+        }
       ]
     }
   ],

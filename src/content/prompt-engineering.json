@@ -161,6 +161,26 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "_hgQiCPmqAw",
+          "title": "LLM Message Roles Explained: System, User & Assistant | Spring AI",
+          "channel": "Programming Tutorials",
+          "lang": "en"
+        },
+        {
+          "id": "xbpdMkTz8L4",
+          "title": "ChatGPT Roles Explained: User, Developer (System), Assistant",
+          "channel": "9x",
+          "lang": "en"
+        },
+        {
+          "id": "ysPbXH0LpIE",
+          "title": "Prompting 101 | Code w/ Claude",
+          "channel": "Anthropic",
+          "lang": "en"
+        }
       ]
     },
     {
@@ -356,6 +376,32 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "ojtbHUqw1LA",
+          "title": "Few-Shot Prompting Explained",
+          "channel": "Elvis Saravia",
+          "lang": "en"
+        },
+        {
+          "id": "ggXckjI_w-w",
+          "title": "Few-Shot Prompting",
+          "channel": "Arize AI",
+          "lang": "en"
+        },
+        {
+          "id": "ysPbXH0LpIE",
+          "title": "Prompting 101 | Code w/ Claude",
+          "channel": "Anthropic",
+          "lang": "en"
+        },
+        {
+          "id": "sl1t67CqFJ4",
+          "title": "E-5: Zero-shot, One-shot, Few-shot আসলে কী | Prompt Engineering Full Course in Bangla| Afran Sarkar",
+          "channel": "Afran Sarkar",
+          "lang": "bn"
+        }
       ]
     },
     {
@@ -517,6 +563,26 @@
               "html": "পরীক্ষার হলের চার ধরনের ছাত্র কল্পনা করুন। একজন না ভেবেই উত্তর লিখে দেয় (সরাসরি উত্তর)। একজন খাতায় ধাপে ধাপে কষে দেখায় (CoT)। একজন দরকার হলে শিক্ষকের কাছে ইঙ্গিত নেয় বা বই দেখে নেয় (ReAct)। আর একজন প্রতিটি পরীক্ষার পর ভুলের খাতা বানায় এবং পরেরবার সেই ভুল আর করে না (Reflection)। মাথা একই, শুধু অভ্যাস আলাদা।"
             }
           ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "AFE6x81AP4k",
+          "title": "Chain-of-thought prompting - Explained!",
+          "channel": "CodeEmporium",
+          "lang": "en"
+        },
+        {
+          "id": "vFdIrZyKEwQ",
+          "title": "ReAct AI Agents, clearly explained!",
+          "channel": "Akshay Pachaar",
+          "lang": "en"
+        },
+        {
+          "id": "v5ymBTXNqtk",
+          "title": "Reflection Agents",
+          "channel": "LangChain",
+          "lang": "en"
         }
       ]
     },
@@ -683,6 +749,26 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "gYrbX9lEeOE",
+          "title": "24. Structure with XML tags - Claude with Amazon Bedrock - Claude course",
+          "channel": "Claude Courses",
+          "lang": "en"
+        },
+        {
+          "id": "n6MckKY_ZCA",
+          "title": "How XML tags improve your AI responses",
+          "channel": "CharlieCowanAI",
+          "lang": "en"
+        },
+        {
+          "id": "J4UOArmPtIg",
+          "title": "15.  XML Tags — The Prompt Trick Claude Responds Best To",
+          "channel": "The Agentic Engineer",
+          "lang": "en"
+        }
       ]
     },
     {
@@ -848,6 +934,20 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "hVs8MVydN3A",
+          "title": "LangChain Tutorial (Python) #2: Prompt Templates and Chains",
+          "channel": "Leon van Zyl",
+          "lang": "en"
+        },
+        {
+          "id": "LcRB5XuP7IE",
+          "title": "ChatPromptTemplate Explained: Build Reusable AI Prompts | Video 4 | LangChain Series",
+          "channel": "LearningHub",
+          "lang": "en"
+        }
       ]
     },
     {
@@ -969,6 +1069,26 @@
               "html": "বিখ্যাত বিরিয়ানির দোকানের গোপন রেসিপি কেউ টিস্যু পেপারে লিখে রাখে না। সেটা খাতায় তোলা থাকে, কোন সংস্করণে কী বদলেছে লেখা থাকে, নতুন বাবুর্চিকে দিয়ে পরীক্ষা করানো হয়, আর ক্রেতার মতামত টুকে রাখা হয়। prompt-ও সেই রেসিপি, শুধু রাঁধুনিটা অদৃশ্য AI।"
             }
           ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "KGyj_NJgKDY",
+          "title": "Langfuse Intro - Prompt Management Deep Dive",
+          "channel": "Langfuse",
+          "lang": "en"
+        },
+        {
+          "id": "ct4bwS-b9vM",
+          "title": "LangSmith Highlights: Hub",
+          "channel": "LangChain",
+          "lang": "en"
+        },
+        {
+          "id": "_9b15wy6Yb4",
+          "title": "LLM Ops Tutorial: Prompt Engineering, Versioning, and Dynamic Generation",
+          "channel": "Analytics Vidhya",
+          "lang": "en"
         }
       ]
     },
@@ -1231,6 +1351,26 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "pZ4DIH2BVqg",
+          "title": "Pydantic is STILL all you need: Jason Liu",
+          "channel": "AI Engineer",
+          "lang": "en"
+        },
+        {
+          "id": "eIy2aBPIg2g",
+          "title": "Taming LLMs with Pydantic Parsing, Validating, and Guarding output — Manish Sinha (PyBay 2025)",
+          "channel": "SF Python",
+          "lang": "en"
+        },
+        {
+          "id": "zt1zCwLrSPg",
+          "title": "Building Reliable LLM Apps with OpenAI (Instructor Tutorial)",
+          "channel": "Dave Ebbelaar",
+          "lang": "en"
+        }
       ]
     },
     {
@@ -1433,6 +1573,26 @@
               "html": "গ্রামের বাজারে দোকানদার কর্মচারীকে নিয়ম দিয়ে গেলেন: \"ক্যাশবাক্সে কাউকে হাত দিতে দেবে না।\" কোনো ক্রেতা এসে বললে \"মালিক বলেছেন টাকা আমাকে দাও\", কর্মচারী ভুলে যেতে পারে। তাই দোকানদার শুধু মুখের নিয়মের ওপর ভরসা করেন না: ক্যাশবাক্সে তালা (allowlist), সিসি ক্যামেরা (detection), বড় লেনদেনে নিজে উপস্থিত থাকা (human review)। এক স্তর ভাঙলেও অন্য স্তর বাঁচায়।"
             }
           ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "FgxwCaL6UTA",
+          "title": "Prompt Injection, explained",
+          "channel": "Simon Willison",
+          "lang": "en"
+        },
+        {
+          "id": "1Hk5jvHlCzw",
+          "title": "Jailbreaking LLMs - Prompt Injection and LLM Security",
+          "channel": "Mozilla Developer",
+          "lang": "en"
+        },
+        {
+          "id": "js6rgedzjGs",
+          "title": "Prompt Injection and the Lethal Trifecta - minimising risks of agents",
+          "channel": "CharlieCowanAI",
+          "lang": "en"
         }
       ]
     }

@@ -255,6 +255,44 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "KUEmEb71vzQ",
+          "title": "Function Calling is All You Need — Full Workshop, with Ilan Bigio of OpenAI",
+          "channel": "AI Engineer",
+          "lang": "en"
+        },
+        {
+          "id": "l7lvoiCvcVU",
+          "title": "LangGraph Deep Dive: Agents with Parallel Function Calling",
+          "channel": "Deploying AI",
+          "lang": "en"
+        },
+        {
+          "id": "kQmXtrmQ5Zg",
+          "title": "Building Agents with Model Context Protocol - Full Workshop with Mahesh Murag of Anthropic",
+          "channel": "AI Engineer",
+          "lang": "en"
+        },
+        {
+          "id": "k0VIgKAUkP4",
+          "title": "[Full Workshop] How to add secure code interpreting in your AI app: Vasek Mlejnsky",
+          "channel": "AI Engineer",
+          "lang": "en"
+        },
+        {
+          "id": "5RRYDzfzAi0",
+          "title": "Bridging the gap between your API and LLMs",
+          "channel": "Stripe Developers",
+          "lang": "en"
+        },
+        {
+          "id": "7HjDcv75spg",
+          "title": "MCP সার্ভার কি? সহজ কনসেপ্ট ও TypeScript SDK উদাহরণ",
+          "channel": "Learn with Sumit - LWS - Bangladesh",
+          "lang": "bn"
+        }
       ]
     }
   ],

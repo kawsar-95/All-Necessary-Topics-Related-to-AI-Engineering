@@ -215,6 +215,44 @@
             }
           ]
         }
+      ],
+      "videos": [
+        {
+          "id": "hOAAg1WaZh8",
+          "title": "Streaming in React the Simple Way: Server-Sent Events (with FastAPI)",
+          "channel": "Techno Pain",
+          "lang": "en"
+        },
+        {
+          "id": "1pHEwnUovls",
+          "title": "WebSockets vs Server-Sent Events (SSE) | Real-Time API Design",
+          "channel": "AI TL;DR",
+          "lang": "en"
+        },
+        {
+          "id": "GEXllEH2XiQ",
+          "title": "Build an AI Agent with Temporal",
+          "channel": "Temporal",
+          "lang": "en"
+        },
+        {
+          "id": "Te5izVgZyvQ",
+          "title": "Durable Agents: long running AI workflows in a flakey world | Samuel Colvin, AI By the Bay25",
+          "channel": "FunctionalTV",
+          "lang": "en"
+        },
+        {
+          "id": "5_DyX3PnKxg",
+          "title": "Why External APIs Break Idempotency",
+          "channel": "CodeOpinion",
+          "lang": "en"
+        },
+        {
+          "id": "3ZkGsGrz774",
+          "title": "Rate Limiting and Model Failover With Agentgateway",
+          "channel": "solo.io",
+          "lang": "en"
+        }
       ]
     }
   ],

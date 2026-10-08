@@ -17,6 +17,13 @@ export type Block =
   | { type: "divider" }
   | { type: "html"; html: string };
 
+export type Video = {
+  id: string;
+  title: string;
+  channel: string;
+  lang: "en" | "bn";
+};
+
 export type Section = {
   id: string;
   num: string;
@@ -25,6 +32,7 @@ export type Section = {
   body: Block[];
   layman: Block[];
   bangla: Block[];
+  videos?: Video[];
 };
 
 export type Source = { n: number; url: string; text: string };
@@ -111,6 +119,13 @@ export const BlockSchema: z.ZodType<Block> = z.lazy(() =>
   ]),
 );
 
+const VideoSchema = z.strictObject({
+  id: z.string().regex(/^[A-Za-z0-9_-]{11}$/, "Expected an 11-character YouTube video id"),
+  title: z.string().min(1),
+  channel: z.string().min(1),
+  lang: z.enum(["en", "bn"]),
+});
+
 export const SectionSchema: z.ZodType<Section> = z.strictObject({
   id: z.string(),
   num: z.string(),
@@ -119,6 +134,7 @@ export const SectionSchema: z.ZodType<Section> = z.strictObject({
   body: z.array(BlockSchema),
   layman: z.array(BlockSchema),
   bangla: z.array(BlockSchema),
+  videos: z.array(VideoSchema).optional(),
 });
 
 const SourceSchema = z.strictObject({
