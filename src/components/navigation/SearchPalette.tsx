@@ -36,7 +36,8 @@ export function SearchPalette() {
     statusRef.current = "loading";
     setStatus("loading");
     try {
-      const response = await fetch("/search-index.json");
+      // fetch() does not add basePath the way next/link does.
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/search-index.json`);
       if (!response.ok) throw new Error(`Search index: HTTP ${response.status}`);
       const docs = (await response.json()) as SearchDoc[];
       setIndex(createIndex(docs));

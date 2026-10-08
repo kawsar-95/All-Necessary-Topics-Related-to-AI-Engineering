@@ -9,9 +9,7 @@ import { SectionNav } from "@/components/navigation/SectionNav";
 
 type Params = { slug: string };
 
-// The whole route is static. An unknown slug then waits for the full render
-// instead of getting the 200 App Shell, so notFound() sends a real 404.
-export const ensureStatic = "navigation";
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   return TOPIC_ORDER.map((slug) => ({ slug }));

@@ -1,22 +1,15 @@
 import type { NextConfig } from "next";
 
-// Old chapter URLs were /topics/0N-<slug>; the topic now lives at /topics/<slug>.
-const OLD_CHAPTER_SLUGS = [
-  "01-agents-and-agentic-systems",
-  "02-tool-use-and-integrations",
-  "03-inference",
-  "04-llmops-and-observability",
-  "05-evaluation-engineering",
-  "06-cost-and-performance-optimization",
-  "07-safety-security-and-guardrails",
-  "08-multimodal-engineering",
-  "09-ai-application-architecture",
-];
+// The GitHub Pages workflow sets this to "/<repo-name>"; local builds serve from "/".
+const basePath = process.env.PAGES_BASE_PATH ?? "";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  output: "export",
+  trailingSlash: true,
+  basePath,
+  env: {
+    NEXT_PUBLIC_BASE_PATH: basePath,
+  },
   turbopack: {
     rules: {
       "*.css": {
@@ -24,16 +17,6 @@ const nextConfig: NextConfig = {
         as: "*.css",
       },
     },
-  },
-  async redirects() {
-    return [
-      { source: "/guides/:slug", destination: "/topics/:slug", permanent: true },
-      ...OLD_CHAPTER_SLUGS.map((old) => ({
-        source: `/topics/${old}`,
-        destination: `/topics/${old.slice(3)}`,
-        permanent: true,
-      })),
-    ];
   },
 };
 

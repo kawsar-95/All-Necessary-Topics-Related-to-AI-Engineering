@@ -6,9 +6,11 @@ architecture. Each topic has three voices: Technical (diagrams, code, cited
 sources), Layman's (plain English with analogies), and বাংলা (Bangla
 explanation).
 
+Live site: https://kawsar-95.github.io/All-Necessary-Topics-Related-to-AI-Engineering/
+
 ## Stack
 
-- **Next.js 16.4** (App Router, statically generated)
+- **Next.js 16.4** (App Router, static export)
 - **React 19**
 - **TypeScript 5**
 - **Tailwind CSS 4** (CSS-first config in `globals.css`)
@@ -20,11 +22,29 @@ explanation).
 ```bash
 npm install
 npm run dev      # http://localhost:3000
-npm run build    # validates content, then prerenders every route
-npm run start    # serves the production build
+npm run build    # validates content, then writes the static site to out/
 npm test         # runs the tests in tests/
 npm run lint
+npx serve out    # previews the static build at http://localhost:3000
 ```
+
+`npm run start` does not work. The site is a static export, so `next start`
+has no server build to serve.
+
+## Hosting
+
+The site runs on GitHub Pages. `.github/workflows/deploy-pages.yml` runs on
+every push to `main`, and you can also start it from the Actions tab. It:
+
+1. Installs dependencies and runs the tests.
+2. Builds the static site with `PAGES_BASE_PATH` set to
+   `/All-Necessary-Topics-Related-to-AI-Engineering`.
+3. Publishes `out/` to GitHub Pages.
+
+`next.config.ts` reads `PAGES_BASE_PATH` as the `basePath`. Local builds do
+not set it, so the site serves from `/`. Code that builds a URL by hand
+(not through `next/link` or the router) must add
+`process.env.NEXT_PUBLIC_BASE_PATH`, as the search palette does.
 
 ## Routes
 
@@ -54,17 +74,7 @@ The 13 parts, in order:
 
 The order is set in one place: `TOPIC_ORDER` in `src/lib/topics.ts`.
 
-### Redirects
-
-`next.config.ts` redirects the old URLs with a permanent redirect (308).
-
-| Old URL                       | New URL                  |
-| ----------------------------- | ------------------------ |
-| `/guides/<slug>`              | `/topics/<slug>`         |
-| `/topics/0N-<slug>`           | `/topics/<slug>`         |
-
-`0N-<slug>` is one of the nine old chapter URLs, for example
-`/topics/03-inference`. An unknown slug returns 404.
+Only these 13 slugs exist. Any other URL gets the 404 page.
 
 ## Content
 
@@ -117,7 +127,8 @@ Press Ctrl+K (Cmd+K on macOS) to open the search palette.
 
 1. At build time, `src/app/search-index.json/route.ts` makes one search
    document for each section. The text comes from the Technical voice.
-2. On the first open, the palette fetches `/search-index.json`.
+2. On the first open, the palette fetches `search-index.json` under the
+   base path.
 3. The palette builds a MiniSearch index in the browser and searches as you
    type.
 4. A result links to the section, for example `/topics/inference#<id>`.
@@ -146,7 +157,7 @@ All citations resolve to:
 │   │   ├── not-found.tsx               404
 │   │   ├── globals.css                 design tokens and prose styles
 │   │   ├── search-index.json/route.ts  search index (static)
-│   │   └── topics/[slug]/page.tsx      topic page (dynamic + SSG)
+│   │   └── topics/[slug]/page.tsx      topic page (one per slug, prerendered)
 │   ├── components/
 │   │   ├── content/                    topic header, sections, voice switcher,
 │   │   │   └── blocks/                 sources, prev/next, one file per block type
@@ -159,7 +170,8 @@ All citations resolve to:
 │       └── search.ts                   search index helpers
 ├── tests/                              content-schema and search tests
 ├── docs/                               design spec and plan
-├── next.config.ts                      redirects
+├── .github/workflows/deploy-pages.yml  GitHub Pages deploy
+├── next.config.ts                      static export and base path
 └── LICENSE
 ```
 
@@ -178,7 +190,7 @@ All citations resolve to:
 - Topic pages show an outline (TOC) on wide screens. It uses
   `IntersectionObserver` to mark the section in view. Heading links in the
   outline work in every voice.
-- Content is static. `next build` prerenders every route.
+- Content is static. `next build` writes every route to `out/` as HTML.
 
 ## License
 
