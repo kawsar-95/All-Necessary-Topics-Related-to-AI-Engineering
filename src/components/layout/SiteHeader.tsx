@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import type { NavItem } from "@/lib/topics";
 import { MobileNav } from "./MobileNav";
+import { ThemeToggle } from "./ThemeToggle";
 
 /** The menu button without behavior, shown until MobileNav can render. */
 function MenuButtonPlaceholder() {
@@ -18,8 +19,8 @@ function MenuButtonPlaceholder() {
 }
 
 /**
- * The sticky top bar: the menu button (below `lg`), the logo, and a slot on
- * the right for the search trigger.
+ * The sticky top bar: the menu button (below `lg`), the logo, and on the
+ * right the search trigger slot and the theme switch.
  */
 export function SiteHeader({
   items,
@@ -48,7 +49,10 @@ export function SiteHeader({
             AI Engineering
           </span>
         </Link>
-        <div className="ml-auto flex items-center gap-2">{searchSlot}</div>
+        <div className="ml-auto flex items-center gap-2">
+          {searchSlot}
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );

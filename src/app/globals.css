@@ -1,11 +1,17 @@
 @import "tailwindcss";
 
+/* `light:` applies a utility only in the light theme. */
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
+
 /* ─────────────────────────────────────────────────────────────────────────
-   Design tokens. Editorial dark theme: warm off-white text on a near-black
-   ground, one cyan accent, and one color for each extra voice.
-   The site has a dark theme only.
+   Design tokens. Two themes on <html data-theme>: dark (the default) and
+   light. src/lib/theme.ts sets data-theme before the first paint.
+   Dark: warm off-white text on a near-black ground. Light: near-black text
+   on a warm paper ground. Each theme has one cyan accent and one color for
+   each extra voice. Every text color has 4.5:1 contrast or more on --bg.
    ───────────────────────────────────────────────────────────────────────── */
-:root {
+:root,
+:root[data-theme="dark"] {
   color-scheme: dark;
 
   --bg: #0f1013;
@@ -24,6 +30,27 @@
   --danger: #ef7f86;
   --pink: #f09ac8;
   --code-bg: #121317;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #fbfaf7;
+  --bg-raised: #f3f1ec;
+  --bg-raised-2: #ebe8e1;
+  --border: #e2ded5;
+  --border-strong: #cfc9bd;
+  --text: #1d1c1a;
+  --text-dim: #4f4c46;
+  --text-faint: #6a665e;
+  --accent: #0e6f86;
+  --voice-layman: #6a4bc0;
+  --voice-bangla: #1b7a4c;
+  --good: #1b7a4c;
+  --warn: #8f5a00;
+  --danger: #b4303a;
+  --pink: #a8326f;
+  --code-bg: #ffffff;
 }
 
 /* The font variables (--font-fraunces, --font-inter, --font-mono-jb,
@@ -141,12 +168,14 @@ body {
 }
 .prose-inline a.cite:hover { background: var(--accent); color: var(--bg); }
 
-/* Code blocks: Shiki emits <pre class="shiki ..."> with its own background. */
+/* Code blocks: Shiki emits <pre class="shiki ..."> with its own background
+   and the github-dark-dimmed colors inline. Code blocks stay dark in both
+   themes, so their colors here are fixed and do not use the theme tokens. */
 .code-block {
   position: relative;
   overflow-x: auto;
   margin: 16px 0 22px;
-  background: var(--code-bg);
+  background: #22272e;
   border: 1px solid var(--border);
   border-radius: 10px;
 }
@@ -176,6 +205,40 @@ body {
   font-size: 10px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--text-faint);
+  color: #8a867f;
   pointer-events: none;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Diagrams in the light theme (src/components/content/blocks/Diagram.tsx).
+   The SVGs in src/content use fixed colors made for a dark ground. In the
+   light theme, CSS maps each solid color to a light-theme color: CSS wins
+   over SVG presentation attributes. The low-alpha rgba() tints stay as
+   they are; they work on a light ground too.
+   ───────────────────────────────────────────────────────────────────────── */
+/* Box fills: dark → white. */
+[data-theme="light"] .diagram-svg [fill="#0b0f17" i],
+[data-theme="light"] .diagram-svg [fill="#0f172a" i],
+[data-theme="light"] .diagram-svg [fill="#111827" i] { fill: #ffffff; }
+/* Main and secondary text. */
+[data-theme="light"] .diagram-svg [fill="#cfd8e6" i],
+[data-theme="light"] .diagram-svg [fill="#e2e8f0" i] { fill: #1e293b; }
+[data-theme="light"] .diagram-svg [fill="#a8b5c8" i],
+[data-theme="light"] .diagram-svg [fill="#94a3b8" i] { fill: #475569; }
+/* Box borders and arrows. */
+[data-theme="light"] .diagram-svg [stroke="#334155" i] { stroke: #cbd5e1; }
+[data-theme="light"] .diagram-svg [stroke="#1f2937" i] { stroke: #e2e8f0; }
+[data-theme="light"] .diagram-svg [stroke="#94a3b8" i] { stroke: #64748b; }
+/* Accent colors: the same hue, dark enough for a light ground. */
+[data-theme="light"] .diagram-svg [fill="#22d3ee" i] { fill: #0e7490; }
+[data-theme="light"] .diagram-svg [stroke="#22d3ee" i] { stroke: #0e7490; }
+[data-theme="light"] .diagram-svg [fill="#34d399" i] { fill: #047857; }
+[data-theme="light"] .diagram-svg [stroke="#34d399" i] { stroke: #047857; }
+[data-theme="light"] .diagram-svg [fill="#a78bfa" i] { fill: #6d28d9; }
+[data-theme="light"] .diagram-svg [stroke="#a78bfa" i] { stroke: #6d28d9; }
+[data-theme="light"] .diagram-svg [fill="#fbbf24" i] { fill: #b45309; }
+[data-theme="light"] .diagram-svg [stroke="#fbbf24" i] { stroke: #b45309; }
+[data-theme="light"] .diagram-svg [fill="#fb7185" i] { fill: #be123c; }
+[data-theme="light"] .diagram-svg [stroke="#fb7185" i] { stroke: #be123c; }
+[data-theme="light"] .diagram-svg [fill="#f472b6" i] { fill: #be185d; }
+[data-theme="light"] .diagram-svg [stroke="#f472b6" i] { stroke: #be185d; }

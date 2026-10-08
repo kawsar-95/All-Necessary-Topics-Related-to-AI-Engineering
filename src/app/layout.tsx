@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Fraunces, Inter, JetBrains_Mono, Noto_Sans_Bengali } from "next/font/google";
 import "./globals.css";
 import { getNavItems } from "@/lib/topics";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SearchPalette } from "@/components/navigation/SearchPalette";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -48,10 +49,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   const items = getNavItems();
 
   return (
+    // The inline script changes data-theme before React hydrates, so React
+    // must accept the DOM value (suppressHydrationWarning).
     <html
       lang="en"
+      data-theme="dark"
+      suppressHydrationWarning
       className={`${fraunces.variable} ${inter.variable} ${jetbrainsMono.variable} ${notoBengali.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="min-h-full bg-bg text-text">
         <a
           href="#content"

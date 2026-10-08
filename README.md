@@ -215,14 +215,16 @@ All citations resolve to:
 │   ├── components/
 │   │   ├── content/                    topic header, sections, voice switcher,
 │   │   │   └── blocks/                 sources, prev/next, one file per block type
-│   │   ├── layout/                     site header, sidebar, mobile nav
+│   │   ├── layout/                     site header, sidebar, mobile nav, theme switch
 │   │   └── navigation/                 search palette, outline (TOC)
 │   ├── content/                        13 topic JSON files (source of truth)
 │   └── lib/
 │       ├── content-schema.ts           block types and Zod schema
 │       ├── topics.ts                   loads and validates content; order, outline, nav
-│       └── search.ts                   search index helpers
-├── tests/                              content-schema, search, video, and practice tests
+│       ├── search.ts                   search index helpers
+│       ├── videos.ts                   which videos each voice shows
+│       └── theme.ts                    theme choice and the inline head script
+├── tests/                              content-schema, search, video, practice, and theme tests
 ├── docs/                               design spec and plan
 ├── .github/workflows/deploy-pages.yml  GitHub Pages deploy
 ├── next.config.ts                      static export and base path
@@ -231,9 +233,21 @@ All citations resolve to:
 
 ## Design notes
 
-- The site has a dark theme only. Design tokens are CSS variables in
-  `globals.css`. Each extra voice has its own color: Layman's is violet,
-  বাংলা is green.
+- The site has a light and a dark theme. Design tokens are CSS variables in
+  `globals.css`, one set for each theme. Each extra voice has its own color:
+  Layman's is violet, বাংলা is green. Every text color has 4.5:1 contrast
+  or more on the page and card backgrounds.
+- The sun/moon button in the header switches the theme. On the first visit
+  the site follows the device setting. After a click, `localStorage`
+  (key `theme`) keeps the choice. An inline script in `<head>`
+  (`THEME_INIT_SCRIPT` in `src/lib/theme.ts`) sets `data-theme` on `<html>`
+  before the first paint, so the page does not flash. Without JavaScript
+  the site shows the dark theme.
+- Code blocks stay dark in both themes. Their Shiki colors are inline in
+  the content HTML.
+- Diagram SVGs use fixed colors made for a dark ground. In the light
+  theme, `globals.css` maps each solid diagram color to a darker or lighter
+  one. If you add a diagram with a new solid color, add it to that map.
 - Fraunces (headings), Inter, JetBrains Mono, and Noto Sans Bengali load
   through `next/font/google` with `display: swap`.
 - The sidebar lists the 13 parts. Below the `lg` breakpoint, a menu button

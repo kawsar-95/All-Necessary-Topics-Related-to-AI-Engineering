@@ -5,7 +5,7 @@ export function Diagram(block: Extract<Block, { type: "diagram" }>) {
   return (
     <figure className="my-5 rounded-xl border border-[var(--border)] bg-[var(--bg-raised)] p-4">
       <div
-        className="overflow-x-auto [&>svg]:block [&>svg]:h-auto [&>svg]:w-full [&>svg]:min-w-[640px]"
+        className="diagram-svg overflow-x-auto [&>svg]:block [&>svg]:h-auto [&>svg]:w-full [&>svg]:min-w-[640px]"
         dangerouslySetInnerHTML={{ __html: block.svg }}
       />
       {block.caption && (
