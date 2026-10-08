@@ -1,7 +1,7 @@
 {
   "slug": "evaluation-engineering",
   "title": "Evaluation Engineering",
-  "lede": "Offline evals on golden datasets, LLM-as-judge (pairwise + rubric), RAG metrics (faithfulness, answer relevance, context precision/recall via Ragas), agent evals (task success, trajectory, tool-call accuracy), synthetic data generation, frameworks (Promptfoo, DeepEval, Inspect, Braintrust, OpenAI Evals), online evals on production traffic, and red-teaming. This is chapter <strong>05</strong> of a 9-part series; every chapter is a single self-contained HTML file. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
+  "lede": "Offline evals on golden datasets, LLM-as-judge (pairwise + rubric), RAG metrics (faithfulness, answer relevance, context precision/recall via Ragas), agent evals (task success, trajectory, tool-call accuracy), synthetic data generation, frameworks (Promptfoo, DeepEval, Inspect, Braintrust, OpenAI Evals), online evals on production traffic, and red-teaming. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
   "sections": [
     {
       "id": "s5",

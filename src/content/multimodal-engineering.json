@@ -1,7 +1,7 @@
 {
   "slug": "multimodal-engineering",
   "title": "Multimodal Engineering",
-  "lede": "Vision (OCR-via-LLM, document AI), voice (STT/TTS, realtime APIs from OpenAI / LiveKit / Vapi), image generation (Flux, SDXL, Imagen, DALL-E; ControlNet, LoRA, ComfyUI), and video generation (Sora, Veo, Runway, Kling). This is chapter <strong>08</strong> of a 9-part series; every chapter is a single self-contained HTML file. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
+  "lede": "Vision (OCR-via-LLM, document AI), voice (STT/TTS, realtime APIs from OpenAI / LiveKit / Vapi), image generation (Flux, SDXL, Imagen, DALL-E; ControlNet, LoRA, ComfyUI), and video generation (Sora, Veo, Runway, Kling). <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
   "sections": [
     {
       "id": "s8",

@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     template: "%s — AI Engineering",
   },
   description:
-    "Five reference guides covering every topic an applied AI engineer needs: LLM fundamentals, prompt engineering, context engineering, RAG & knowledge systems, and agentic systems. Each topic in three voices: technical, layman, and বাংলা.",
+    "Thirteen reference parts covering every topic an applied AI engineer needs, from LLM fundamentals and prompt engineering to agents, inference, evaluation, safety, and AI application architecture. Each topic in three voices: technical, layman, and বাংলা.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -64,9 +64,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <main className="flex-1">{children}</main>
             <footer className="mt-24 border-t border-border px-6 py-8 text-xs leading-relaxed text-text-faint">
               <p className="mx-auto max-w-3xl">
-                Built as a Next.js port of the single-file AI Engineering
-                reference guides. Citations verified against each
-                publisher&apos;s metadata.
+                13 parts · citations verified against each publisher&apos;s
+                metadata.
               </p>
             </footer>
           </div>

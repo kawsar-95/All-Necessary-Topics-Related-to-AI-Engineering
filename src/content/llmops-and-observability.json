@@ -1,7 +1,7 @@
 {
   "slug": "llmops-and-observability",
   "title": "LLMOps and Observability",
-  "lede": "Tracing with Langfuse / LangSmith / Helicone / Arize Phoenix / Braintrust; per-request token, cost, and latency tracking; prompt and agent versioning; A/B testing; replay and debugging; drift detection when model upgrades silently change behaviour; feedback loops that grow your eval dataset. This is chapter <strong>04</strong> of a 9-part series; every chapter is a single self-contained HTML file. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
+  "lede": "Tracing with Langfuse / LangSmith / Helicone / Arize Phoenix / Braintrust; per-request token, cost, and latency tracking; prompt and agent versioning; A/B testing; replay and debugging; drift detection when model upgrades silently change behaviour; feedback loops that grow your eval dataset. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
   "sections": [
     {
       "id": "s4",

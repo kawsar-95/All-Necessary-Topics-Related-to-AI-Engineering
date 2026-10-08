@@ -1,7 +1,7 @@
 {
   "slug": "inference",
   "title": "Inference",
-  "lede": "API-based vs self-hosted inference; vLLM, TGI, SGLang, Ollama, llama.cpp; GGUF/AWQ/GPTQ/INT4-INT8 quantisation; KV cache, prefix caching, speculative decoding; continuous batching; TTFT vs TPS; GPU economics, edge inference, and the major hosted providers (Together, Fireworks, Groq, Cerebras, Replicate, AWS Bedrock). This is chapter <strong>03</strong> of a 9-part series; every chapter is a single self-contained HTML file. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
+  "lede": "API-based vs self-hosted inference; vLLM, TGI, SGLang, Ollama, llama.cpp; GGUF/AWQ/GPTQ/INT4-INT8 quantisation; KV cache, prefix caching, speculative decoding; continuous batching; TTFT vs TPS; GPU economics, edge inference, and the major hosted providers (Together, Fireworks, Groq, Cerebras, Replicate, AWS Bedrock). <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
   "sections": [
     {
       "id": "s3",

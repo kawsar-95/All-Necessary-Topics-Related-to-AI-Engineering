@@ -1,7 +1,7 @@
 {
   "slug": "cost-and-performance-optimization",
   "title": "Cost and Performance Optimization",
-  "lede": "Model cascading, semantic / output / prompt caching, batch APIs, distillation, LLMLingua-style prompt compression, per-feature token budgets, and model gateways (LiteLLM, Portkey, OpenRouter) — a five-tier stack that can cut LLM spend by 5–50× without losing quality. This is chapter <strong>06</strong> of a 9-part series; every chapter is a single self-contained HTML file. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
+  "lede": "Model cascading, semantic / output / prompt caching, batch APIs, distillation, LLMLingua-style prompt compression, per-feature token budgets, and model gateways (LiteLLM, Portkey, OpenRouter) — a five-tier stack that can cut LLM spend by 5–50× without losing quality. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
   "sections": [
     {
       "id": "s6",

@@ -1,7 +1,7 @@
 {
   "slug": "safety-security-and-guardrails",
   "title": "Safety, Security, and Guardrails",
-  "lede": "Direct and indirect prompt injection, jailbreak resistance, data exfiltration via tool calls and rendered links, content moderation (OpenAI, Azure, Llama Guard), guardrail frameworks (NeMo Guardrails, Guardrails AI), PII redaction, rate limiting, output validation, and audit logging for compliance. This is chapter <strong>07</strong> of a 9-part series; every chapter is a single self-contained HTML file. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
+  "lede": "Direct and indirect prompt injection, jailbreak resistance, data exfiltration via tool calls and rendered links, content moderation (OpenAI, Azure, Llama Guard), guardrail frameworks (NeMo Guardrails, Guardrails AI), PII redaction, rate limiting, output validation, and audit logging for compliance. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
   "sections": [
     {
       "id": "s7",

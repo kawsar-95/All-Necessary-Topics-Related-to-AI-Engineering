@@ -42,7 +42,7 @@ export default function Home() {
       <section aria-labelledby="contents-heading" className="mt-16 sm:mt-24">
         <h2
           id="contents-heading"
-          className="border-b border-border-strong pb-3 font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-text-faint"
+          className="border-b border-border-strong pb-3 font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-text-dim"
         >
           Contents
         </h2>
@@ -72,7 +72,7 @@ export default function Home() {
                     {topic.tagline}
                   </p>
                 )}
-                <p className="mt-3 line-clamp-3 text-[14px] leading-relaxed text-pretty text-text-faint sm:line-clamp-none sm:text-[15px]">
+                <p className="mt-3 line-clamp-3 text-[14px] leading-relaxed text-pretty text-text-dim sm:line-clamp-none sm:text-[15px]">
                   {outlineTitles(topic).join(", ")}
                 </p>
               </div>

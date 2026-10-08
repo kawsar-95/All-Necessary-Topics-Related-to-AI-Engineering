@@ -1,7 +1,7 @@
 {
   "slug": "tool-use-and-integrations",
   "title": "Tool Use and Integrations",
-  "lede": "How an LLM becomes an actor: tool/function schema design, parallel tool calling, Model Context Protocol (MCP) servers/clients/resources/prompts, sandboxed code execution (E2B, Modal, Daytona, Cloudflare), API wrappers, and tool-result formatting for LLM consumption. This is chapter <strong>02</strong> of a 9-part series; every chapter is a single self-contained HTML file. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
+  "lede": "How an LLM becomes an actor: tool/function schema design, parallel tool calling, Model Context Protocol (MCP) servers/clients/resources/prompts, sandboxed code execution (E2B, Modal, Daytona, Cloudflare), API wrappers, and tool-result formatting for LLM consumption. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
   "sections": [
     {
       "id": "s2",

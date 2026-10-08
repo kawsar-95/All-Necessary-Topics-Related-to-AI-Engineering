@@ -1,7 +1,7 @@
 {
   "slug": "ai-application-architecture",
   "title": "AI Application Architecture",
-  "lede": "Streaming over SSE / WebSockets / chunked HTTP, background jobs and queues for long agent runs, idempotency and resumability, multi-tenant prompt and key management, fallback chains across providers, feature flags for prompts and models, and API design patterns for AI features (cancel, retry, partial results). This is chapter <strong>09</strong> of a 9-part series; every chapter is a single self-contained HTML file. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
+  "lede": "Streaming over SSE / WebSockets / chunked HTTP, background jobs and queues for long agent runs, idempotency and resumability, multi-tenant prompt and key management, fallback chains across providers, feature flags for prompts and models, and API design patterns for AI features (cancel, retry, partial results). <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
   "sections": [
     {
       "id": "s9",
