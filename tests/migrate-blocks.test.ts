@@ -244,6 +244,19 @@ test("unknown div becomes an html block with a warning", () => {
   assert.equal(c.warnings[0], "test: fallback div.mystery");
 });
 
+test("inline warnings carry the location prefix", () => {
+  const c = ctx();
+  parseBlocks("<table><tr><td><p>x</p></td></tr></table>", c);
+  assert.deepEqual(c.warnings, ["test: unknown inline tag <p>"]);
+});
+
+test("inline warnings from a bare run carry the location prefix", () => {
+  const c = ctx();
+  parseBlocks("<span><p>x</p></span>", c);
+  assert.ok(c.warnings.length > 0);
+  assert.ok(c.warnings.every((w) => w.startsWith("test: ")));
+});
+
 test("extractCode keeps pseudo-tags and strips highlight spans", () => {
   assert.equal(extractCode('<span class="kw">def</span> f(): return <span class="str">"&lt;document&gt;"</span>'), 'def f(): return "<document>"');
 });

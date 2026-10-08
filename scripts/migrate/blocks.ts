@@ -38,8 +38,15 @@ function headingId(text: string, ctx: ParseContext): string {
   return id;
 }
 
+function inlineNodes(nodes: Node[], ctx: ParseContext): string {
+  const local: string[] = [];
+  const html = serializeInline(nodes, local).trim();
+  for (const w of local) ctx.warnings.push(`${ctx.where}: ${w}`);
+  return html;
+}
+
 function inline(el: HTMLElement | null | undefined, ctx: ParseContext): string {
-  return el ? serializeInline(el.childNodes, ctx.warnings).trim() : "";
+  return el ? inlineNodes(el.childNodes, ctx) : "";
 }
 
 function fallback(el: HTMLElement, ctx: ParseContext): Block {
@@ -156,7 +163,7 @@ export function parseNodes(nodes: Node[], ctx: ParseContext): Block[] {
   const blocks: Block[] = [];
   let run: Node[] = [];
   const flush = () => {
-    const html = serializeInline(run, ctx.warnings).trim();
+    const html = inlineNodes(run, ctx);
     if (html) blocks.push({ type: "paragraph", html });
     run = [];
   };
