@@ -2,21 +2,24 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="max-w-2xl mx-auto px-6 py-24 text-center">
-      <div className="font-mono text-[11px] uppercase tracking-wider text-accent mb-3">
-        404
-      </div>
-      <h1 className="text-4xl font-extrabold mb-3">Guide not found</h1>
-      <p className="text-text-dim mb-8">
-        That guide doesn&apos;t exist. All five published guides are
-        linked from the home page.
+    <div className="mx-auto max-w-2xl px-5 pt-20 pb-8 sm:px-8 sm:pt-28">
+      <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-accent">
+        Error 404
       </p>
-      <Link
-        href="/"
-        className="inline-block px-4 py-2 rounded-md bg-accent text-bg font-mono text-sm no-underline"
-      >
-        ← Back to all guides
-      </Link>
+      <h1 className="mt-5 font-display text-[clamp(2.5rem,8vw,4rem)] font-medium leading-[1.03] tracking-[-0.03em] text-text">
+        Page not found
+      </h1>
+      <p className="mt-6 text-lg leading-relaxed text-pretty text-text-dim">
+        That page does not exist. All 13 parts are listed on the home page.
+      </p>
+      <p className="mt-10 border-t border-border pt-6">
+        <Link
+          href="/"
+          className="font-mono text-sm text-accent no-underline transition-colors hover:text-text"
+        >
+          ← Back to all parts
+        </Link>
+      </p>
     </div>
   );
 }
