@@ -55,14 +55,6 @@ export default async function GuidePage({
             {guide.sections.length} topics · {guide.sources.length} sources ·
             three voices per section
           </span>
-          <a
-            href={`/guides-html/${guide.slug}.html`}
-            className="text-accent hover:underline"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            View original single-file HTML →
-          </a>
         </div>
       </header>
 

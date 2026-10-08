@@ -87,51 +87,9 @@ export default function Home() {
       </div>
 
       <p className="mt-12 text-xs text-text-faint leading-relaxed">
-        Each guide and chapter is a static rendering of the original
-        single-file HTML reference. The content is unchanged; the wrapping
-        is a real Next.js app with sidebar navigation, sticky table of
-        contents, and per-section voice picker.
-      </p>
-
-      <p className="mt-4 text-xs text-text-faint leading-relaxed">
-        Prefer the original browser-only files?{" "}
-        <a
-          href="/index.html"
-          className="text-accent hover:underline"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Open the standalone landing page
-        </a>
-        , or jump to any guide&apos;s original HTML:{" "}
-        {GUIDES.map((g, i) => (
-          <span key={g.slug}>
-            {i > 0 && " · "}
-            <a
-              href={`/guides-html/${g.slug}.html`}
-              className="text-accent hover:underline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {g.title}
-            </a>
-          </span>
-        ))}
-        , or the chapter files:{" "}
-        {CHAPTERS.map((c, i) => (
-          <span key={c.slug}>
-            {i > 0 && " · "}
-            <a
-              href={`/guides-html/${c.slug}.html`}
-              className="text-accent hover:underline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {c.title.replace(/&amp;/g, "&")}
-            </a>
-          </span>
-        ))}
-        .
+        Each guide and chapter ships in three voices: the engineer&apos;s
+        version (with code and diagrams), the layman&apos;s version (plain
+        English with analogies), and বাংলা ব্যাখ্যা.
       </p>
     </div>
   );

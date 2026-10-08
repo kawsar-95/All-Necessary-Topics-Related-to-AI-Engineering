@@ -69,14 +69,6 @@ export default async function ChapterPage({
           <span>
             1 topic · {chapter.sources.length} sources · three voices
           </span>
-          <a
-            href={`/guides-html/${chapter.slug}.html`}
-            className="text-accent hover:underline"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            View original single-file HTML →
-          </a>
         </div>
       </header>
 

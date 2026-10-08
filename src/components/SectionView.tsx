@@ -21,10 +21,10 @@ const VOICE_COLOR: Record<Voice, string> = {
 
 /**
  * Renders a section of a guide. The body / layman / bangla strings are HTML
- * produced by `scripts/extract-content.mjs` — they preserve the inline SVGs,
- * citation anchors, syntax-coloured code, callouts, and tables from the
- * original guide. We render them verbatim via dangerouslySetInnerHTML and
- * style them with the `.prose-guide` rules in globals.css.
+ * stored in src/content/*.json — they preserve the inline SVGs, citation
+ * anchors, syntax-coloured code, callouts, and tables. We render them
+ * verbatim via dangerouslySetInnerHTML and style them with the
+ * `.prose-guide` rules in globals.css.
  *
  * A small voice-picker lets the reader focus on the technical version, the
  * layman's analogy, the Bangla explanation, or all three side-by-side. The

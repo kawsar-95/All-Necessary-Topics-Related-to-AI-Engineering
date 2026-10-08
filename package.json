@@ -6,10 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "extract": "node scripts/extract-content.mjs",
-    "sync-originals": "node scripts/sync-originals.mjs",
-    "sync-originals:watch": "node scripts/sync-originals.mjs --watch"
+    "lint": "eslint"
   },
   "dependencies": {
     "next": "16.4.0",
