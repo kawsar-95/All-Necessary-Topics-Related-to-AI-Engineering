@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import type { Video } from "@/lib/content-schema";
+import { UI } from "@/lib/i18n";
+import type { Lang } from "@/lib/i18n";
 
 /**
  * A YouTube video as a thumbnail card. Nothing loads from YouTube until the
  * reader clicks: then the card swaps in the youtube-nocookie player.
  */
-export function VideoCard({ video }: { video: Video }) {
+export function VideoCard({ video, lang }: { video: Video; lang: Lang }) {
   const [playing, setPlaying] = useState(false);
   const watchUrl = `https://www.youtube.com/watch?v=${video.id}`;
 
@@ -27,7 +29,7 @@ export function VideoCard({ video }: { video: Video }) {
           <button
             type="button"
             onClick={() => setPlaying(true)}
-            aria-label={`Play video: ${video.title}`}
+            aria-label={UI[lang].playVideo(video.title)}
             className="group absolute inset-0 block h-full w-full cursor-pointer p-0"
           >
             {/* eslint-disable-next-line @next/next/no-img-element -- static export has no image optimizer */}

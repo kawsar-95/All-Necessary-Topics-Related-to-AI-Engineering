@@ -1,27 +1,26 @@
 import type { Source } from "@/lib/content-schema";
+import { UI } from "@/lib/i18n";
+import type { Lang } from "@/lib/i18n";
 
 /**
  * The numbered citation list at the end of a topic. Each `li` has the id
  * `src<n>`: the `<a class="cite" href="#src<n>">` links in the body jump to it.
  */
-export function Sources({ sources }: { sources: Source[] }) {
+export function Sources({ sources, lang }: { sources: Source[]; lang: Lang }) {
   if (!sources.length) return null;
+  const ui = UI[lang];
   return (
     <section aria-labelledby="sources-title" className="border-t border-border pt-12">
       <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-faint">
-        References
+        {ui.references}
       </p>
       <h2
         id="sources-title"
         className="mt-3 font-display text-3xl font-medium tracking-[-0.01em] text-text"
       >
-        Sources
+        {ui.sources}
       </h2>
-      <p className="mt-3 text-sm leading-relaxed text-text-faint">
-        All citations resolve to primary papers (arXiv), vendor docs (OpenAI,
-        Anthropic, Google), or official team blogs. IDs were verified by
-        fetching each page and extracting the citation metadata.
-      </p>
+      <p className="mt-3 text-sm leading-relaxed text-text-faint">{ui.sourcesNote}</p>
       <ol className="mt-8 list-none divide-y divide-border p-0">
         {sources.map((s) => (
           <li

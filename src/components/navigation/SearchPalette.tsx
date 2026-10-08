@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import type MiniSearch from "minisearch";
 import { createIndex, runSearch } from "@/lib/search";
 import type { SearchDoc } from "@/lib/search";
+import { UI, fmtNum } from "@/lib/i18n";
+import type { Lang } from "@/lib/i18n";
 
 const FOCUSABLE = 'input, button:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -14,10 +16,12 @@ type Status = "idle" | "loading" | "ready" | "error";
 
 /**
  * The search button for the header and the Ctrl/Cmd+K dialog.
- * The page loads /search-index.json on the first open and builds the
- * index in the browser one time.
+ * The page loads the search index of its language (/search-index.json or
+ * /bn/search-index.json) on the first open and builds the index in the
+ * browser one time.
  */
-export function SearchPalette() {
+export function SearchPalette({ lang }: { lang: Lang }) {
+  const ui = UI[lang];
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -37,7 +41,7 @@ export function SearchPalette() {
     setStatus("loading");
     try {
       // fetch() does not add basePath the way next/link does.
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/search-index.json`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}${lang === "bn" ? "/bn" : ""}/search-index.json`);
       if (!response.ok) throw new Error(`Search index: HTTP ${response.status}`);
       const docs = (await response.json()) as SearchDoc[];
       setIndex(createIndex(docs));
@@ -47,7 +51,7 @@ export function SearchPalette() {
       statusRef.current = "error";
       setStatus("error");
     }
-  }, []);
+  }, [lang]);
 
   const openPalette = useCallback(() => {
     setQuery("");
@@ -140,17 +144,17 @@ export function SearchPalette() {
   }
 
   let message: string | null = null;
-  if (status === "error") message = "Search is unavailable.";
-  else if (query.trim() === "") message = "Type to search 13 parts.";
-  else if (status !== "ready") message = "Loading…";
-  else if (hits.length === 0) message = "No results.";
+  if (status === "error") message = ui.searchUnavailable;
+  else if (query.trim() === "") message = ui.searchType;
+  else if (status !== "ready") message = ui.searchLoading;
+  else if (hits.length === 0) message = ui.searchNone;
 
   return (
     <>
       <button
         ref={buttonRef}
         type="button"
-        aria-label="Search"
+        aria-label={ui.search}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-keyshortcuts="Control+K Meta+K"
@@ -162,7 +166,7 @@ export function SearchPalette() {
           <path d="M13.2 13.2L17 17" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
         </svg>
         <span aria-hidden="true" className="hidden flex-1 text-left sm:inline">
-          Search
+          {ui.search}
         </span>
         <kbd
           aria-hidden="true"
@@ -188,7 +192,7 @@ export function SearchPalette() {
             className="relative flex max-h-[min(34rem,80vh)] w-full max-w-xl flex-col overflow-hidden rounded-xl border border-border-strong bg-bg-raised shadow-2xl shadow-black/60"
           >
             <h2 id={titleId} className="sr-only">
-              Search all 13 parts
+              {ui.searchAll}
             </h2>
             <div className="flex shrink-0 items-center gap-3 border-b border-border px-4 focus-within:border-accent focus-within:shadow-[inset_0_-2px_0_var(--accent)]">
               <svg aria-hidden="true" viewBox="0 0 20 20" className="size-4 shrink-0 text-text-faint" fill="none">
@@ -199,7 +203,7 @@ export function SearchPalette() {
                 ref={inputRef}
                 type="text"
                 role="combobox"
-                aria-label="Search all 13 parts"
+                aria-label={ui.searchAll}
                 aria-expanded={hits.length > 0}
                 aria-controls={listId}
                 aria-activedescendant={hits.length > 0 ? optionId(active) : undefined}
@@ -208,7 +212,7 @@ export function SearchPalette() {
                 autoCapitalize="off"
                 autoCorrect="off"
                 spellCheck={false}
-                placeholder="Search all 13 parts"
+                placeholder={ui.searchAll}
                 value={query}
                 onChange={(event) => {
                   setQuery(event.target.value);
@@ -225,14 +229,14 @@ export function SearchPalette() {
                 className="rounded border border-border-strong px-1.5 py-1 font-mono text-[11px] leading-none text-text-faint transition-colors hover:text-text"
               >
                 <span aria-hidden="true">Esc</span>
-                <span className="sr-only">Close search</span>
+                <span className="sr-only">{ui.searchClose}</span>
               </button>
             </div>
 
             <div
               id={listId}
               role="listbox"
-              aria-label="Search results"
+              aria-label={ui.searchResults}
               hidden={hits.length === 0}
               className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2"
             >
@@ -253,7 +257,7 @@ export function SearchPalette() {
                   }
                 >
                   <div className="font-mono text-[11px] uppercase tracking-wide text-text-faint">
-                    Part {hit.part} · {hit.topic}
+                    {ui.part(fmtNum(lang, hit.part))} · {hit.topic}
                   </div>
                   <div className={"mt-0.5 text-[15px] " + (i === active ? "text-text" : "text-text-dim")}>
                     {hit.title}

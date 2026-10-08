@@ -2,12 +2,20 @@
   "slug": "ai-application-architecture",
   "title": "AI Application Architecture",
   "lede": "Streaming over SSE / WebSockets / chunked HTTP, background jobs and queues for long agent runs, idempotency and resumability, multi-tenant prompt and key management, fallback chains across providers, feature flags for prompts and models, and API design patterns for AI features (cancel, retry, partial results). <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
+  "bn": {
+    "title": "AI Application-এর Architecture",
+    "lede": "SSE / WebSocket / chunked HTTP-তে streaming, লম্বা agent run-এর জন্য background job আর queue, idempotency আর resumability, multi-tenant prompt আর key management, বিভিন্ন provider জুড়ে fallback chain, prompt আর model-এর জন্য feature flag, আর AI feature-এর API design pattern (cancel, retry, partial result)। <strong>প্রতিটি section দুই ভাবে লেখা:</strong> engineer-এর জন্য technical version (code আর diagram সহ), আর সাধারণ পাঠকের জন্য সহজ ভাষায় ব্যাখ্যা (উপমা সহ)। প্রতিটি topic-এর শেষে বাংলা ব্যাখ্যাও আছে।"
+  },
   "sections": [
     {
       "id": "s9",
       "num": "01",
       "title": "AI application architecture",
       "sub": "An LLM call is just one HTTP request. Building a <em>product</em> around it requires the same plumbing any modern app needs, plus a few new primitives: streaming, resumability, multi-tenancy, fallbacks, feature flags, and an API surface designed for partial results.",
+      "bn": {
+        "title": "AI application-এর architecture",
+        "sub": "একটা LLM call আসলে শুধু একটা HTTP request। এর চারপাশে একটা <em>product</em> বানাতে আধুনিক যেকোনো app-এর মতো একই কাঠামো লাগে, সঙ্গে কয়েকটা নতুন জিনিস: streaming, resumability, multi-tenancy, fallback, feature flag, আর partial result-এর জন্য বানানো API।"
+      },
       "body": [
         {
           "type": "heading",

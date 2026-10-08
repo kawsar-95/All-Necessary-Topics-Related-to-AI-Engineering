@@ -3,6 +3,8 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { SidebarList, activeSlugFromPath, type NavItem } from "./SidebarList";
+import { UI } from "@/lib/i18n";
+import type { Lang } from "@/lib/i18n";
 
 const FOCUSABLE = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -11,7 +13,8 @@ const FOCUSABLE = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1
  * The drawer closes on navigation, on Escape, and on a backdrop click.
  * While it is open, the page does not scroll and Tab stays in the drawer.
  */
-export function MobileNav({ items }: { items: NavItem[] }) {
+export function MobileNav({ items, lang }: { items: NavItem[]; lang: Lang }) {
+  const ui = UI[lang];
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
@@ -82,7 +85,7 @@ export function MobileNav({ items }: { items: NavItem[] }) {
         onClick={() => setOpen(true)}
         className="-ml-2 grid size-9 place-items-center rounded-md text-text-dim transition-colors hover:bg-bg-raised hover:text-text"
       >
-        <span className="sr-only">Open the list of parts</span>
+        <span className="sr-only">{ui.openParts}</span>
         <svg aria-hidden="true" viewBox="0 0 20 20" className="size-5" fill="none">
           <path d="M3 5.5h14M3 10h14M3 14.5h9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
         </svg>
@@ -119,7 +122,7 @@ export function MobileNav({ items }: { items: NavItem[] }) {
         >
           <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
             <span id={titleId} className="font-display text-[17px] font-semibold tracking-tight text-text">
-              AI Engineering
+              {ui.siteName}
             </span>
             <button
               ref={closeRef}
@@ -127,7 +130,7 @@ export function MobileNav({ items }: { items: NavItem[] }) {
               onClick={() => setOpen(false)}
               className="-mr-2 grid size-9 place-items-center rounded-md text-text-dim transition-colors hover:bg-bg-raised hover:text-text"
             >
-              <span className="sr-only">Close the list of parts</span>
+              <span className="sr-only">{ui.closeParts}</span>
               <svg aria-hidden="true" viewBox="0 0 20 20" className="size-5" fill="none">
                 <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
               </svg>
@@ -136,6 +139,7 @@ export function MobileNav({ items }: { items: NavItem[] }) {
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
             <SidebarList
               items={items}
+              lang={lang}
               activeSlug={activeSlugFromPath(pathname)}
               onNavigate={() => setOpen(false)}
             />

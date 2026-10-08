@@ -2,12 +2,20 @@
   "slug": "safety-security-and-guardrails",
   "title": "Safety, Security, and Guardrails",
   "lede": "Direct and indirect prompt injection, jailbreak resistance, data exfiltration via tool calls and rendered links, content moderation (OpenAI, Azure, Llama Guard), guardrail frameworks (NeMo Guardrails, Guardrails AI), PII redaction, rate limiting, output validation, and audit logging for compliance. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
+  "bn": {
+    "title": "Safety, Security আর Guardrail",
+    "lede": "Direct ও indirect prompt injection, jailbreak ঠেকানো, tool call আর rendered link দিয়ে data বের করে নেওয়া (exfiltration), content moderation (OpenAI, Azure, Llama Guard), guardrail framework (NeMo Guardrails, Guardrails AI), PII redaction, rate limiting, output validation, আর compliance-এর জন্য audit logging। <strong>প্রতিটি section দুই ভাবে লেখা:</strong> engineer-এর জন্য technical version (code আর diagram সহ), আর সাধারণ পাঠকের জন্য সহজ ভাষায় ব্যাখ্যা (উপমা সহ)। প্রতিটি topic-এর শেষে বাংলা ব্যাখ্যাও আছে।"
+  },
   "sections": [
     {
       "id": "s7",
       "num": "01",
       "title": "Safety, security & guardrails",
       "sub": "LLM apps are software with a new attack surface: the prompt is now user-influenced input, the tool calls are now an exfiltration channel, and the rendered output is now a script-execution context. <strong>Safety</strong> is the discipline of bounding that surface.",
+      "bn": {
+        "title": "Safety, security আর guardrail",
+        "sub": "LLM app হলো এমন software, যার আক্রমণের একটা নতুন জায়গা তৈরি হয়েছে: prompt এখন ব্যবহারকারীর প্রভাবে বদলায়, tool call এখন data বের করে নেওয়ার পথ, আর rendered output এখন script চলার জায়গা। <strong>Safety</strong> হলো সেই জায়গাটাকে সীমার মধ্যে বেঁধে রাখার কাজ।"
+      },
       "body": [
         {
           "type": "heading",

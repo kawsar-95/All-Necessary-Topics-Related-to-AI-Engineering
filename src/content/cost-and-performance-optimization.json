@@ -2,12 +2,20 @@
   "slug": "cost-and-performance-optimization",
   "title": "Cost and Performance Optimization",
   "lede": "Model cascading, semantic / output / prompt caching, batch APIs, distillation, LLMLingua-style prompt compression, per-feature token budgets, and model gateways (LiteLLM, Portkey, OpenRouter) — a five-tier stack that can cut LLM spend by 5–50× without losing quality. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
+  "bn": {
+    "title": "খরচ আর Performance Optimization",
+    "lede": "Model cascading, semantic / output / prompt caching, batch API, distillation, LLMLingua-ধরনের prompt compression, প্রতিটা feature-এর জন্য token budget, আর model gateway (LiteLLM, Portkey, OpenRouter)। এই পাঁচ স্তরের stack মান না কমিয়ে LLM-এর খরচ 5–50 গুণ কমাতে পারে। <strong>প্রতিটি section দুই ভাবে লেখা:</strong> engineer-এর জন্য technical version (code আর diagram সহ), আর সাধারণ পাঠকের জন্য সহজ ভাষায় ব্যাখ্যা (উপমা সহ)। প্রতিটি topic-এর শেষে বাংলা ব্যাখ্যাও আছে।"
+  },
   "sections": [
     {
       "id": "s6",
       "num": "01",
       "title": "Cost & performance optimisation",
       "sub": "LLM bills scale with usage. Three knobs let you cut cost by 5–50× without losing quality: <strong>cascade</strong> (cheap → expensive routing), <strong>cache</strong> (semantic, prefix, output), and <strong>compress</strong> (prompt compression, distillation).",
+      "bn": {
+        "title": "খরচ আর performance optimisation",
+        "sub": "LLM-এর বিল ব্যবহারের সাথে বাড়ে। মান না কমিয়ে খরচ 5–50 গুণ কমানোর তিনটা উপায় আছে: <strong>cascade</strong> (সস্তা model থেকে দামি model-এ পাঠানো), <strong>cache</strong> (semantic, prefix, output), আর <strong>compress</strong> (prompt compression, distillation)।"
+      },
       "body": [
         {
           "type": "heading",

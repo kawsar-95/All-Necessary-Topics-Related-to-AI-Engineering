@@ -53,6 +53,8 @@ not set it, so the site serves from `/`. Code that builds a URL by hand
 | `/`                         | Landing page. An index of the 13 parts.            |
 | `/topics/<slug>`            | One part, with prev/next links and an outline.     |
 | `/search-index.json`        | The search index. Built at build time.             |
+| `/bn/`, `/bn/topics/<slug>` | The same pages in Bangla. See "Languages".         |
+| `/bn/search-index.json`     | The Bangla search index.                           |
 
 The 13 parts, in order:
 
@@ -86,10 +88,11 @@ The schema is in [`src/lib/content-schema.ts`](src/lib/content-schema.ts).
 A file has this shape:
 
 ```
-{ slug, title, tagline?, lede, sections: [...], sources: [...] }
+{ slug, title, tagline?, lede, bn: { title, tagline?, lede }, sections: [...], sources: [...] }
 ```
 
-Each section has `id`, `num`, `title`, `sub`, three lists of blocks
+Each section has `id`, `num`, `title`, `sub`, `bn: { title, sub }` (the
+Bangla title and intro), three lists of blocks
 (`body` for Technical, `layman`, and `bangla`), an optional `videos`
 list, and an optional `practice` list.
 
@@ -203,6 +206,37 @@ A task is one entry in the section's `practice` list:
 The panel is `src/components/content/PracticeList.tsx` and `CopyButton.tsx`.
 The voice-to-language rule is `src/lib/practice.ts`.
 
+## Languages
+
+Every page exists in English and in Bangla (বাংলা).
+
+| | English | Bangla |
+|---|---|---|
+| URL | `/`, `/topics/<slug>/` | `/bn/`, `/bn/topics/<slug>/` |
+| Interface text | English | Bangla, from `UI.bn` in `src/lib/i18n.ts` |
+| Part and section titles and intros | `title`, `tagline`, `lede`, `sub` | the `bn` fields of the content |
+| A section opens in | Technical | বাংলা (listed first in the voice switcher) |
+| Practice tasks | English (Bangla in the বাংলা voice) | Bangla in every voice |
+| Videos | English (Bangla first in the বাংলা voice) | Bangla first, then English, in every voice |
+| Technical and Layman's text, code, diagrams | English | English (one click away) |
+
+- Bangla text keeps English technical words (prompt, token, model, and so
+  on) where Bangla has no common word.
+- The header button switches to the same page in the other language and
+  keeps the section in view. It saves the choice in `localStorage` (key
+  `lang`).
+- An inline script in `<head>` (`langInitScript` in `src/lib/i18n.ts`)
+  sets `<html lang>` from the URL before the first paint. If the reader
+  chose the other language before, it opens the same page in that
+  language. Without JavaScript, each URL shows its own language.
+- The English pages are in the route group `src/app/(en)/` and the Bangla
+  pages in `src/app/bn/`. Both render the same page components
+  (`src/components/pages/`) with a `lang` prop. `SiteShell` draws the
+  header, sidebar, and footer in that language.
+- The 404 page shows its text in both languages.
+- To add an interface string, add it to `en` in `src/lib/i18n.ts`. The
+  type then requires it in `bn` too.
+
 ## Search
 
 Press Ctrl+K (Cmd+K on macOS) to open the search palette.
@@ -214,6 +248,10 @@ Press Ctrl+K (Cmd+K on macOS) to open the search palette.
 3. The palette builds a MiniSearch index in the browser and searches as you
    type.
 4. A result links to the section, for example `/topics/inference#<id>`.
+
+The Bangla site uses `/bn/search-index.json`. Its documents hold the
+Bangla titles, the বাংলা voice, and the Technical text, so English terms
+such as "token" find results too. Results link to `/bn/` pages.
 
 The shared helpers are in `src/lib/search.ts`.
 
@@ -234,17 +272,19 @@ All citations resolve to:
 .
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx                  root layout: fonts, header, sidebar, footer
-│   │   ├── page.tsx                    landing page (index of 13 parts)
-│   │   ├── not-found.tsx               404
+│   │   ├── layout.tsx                  root layout: fonts, head scripts
+│   │   ├── (en)/                       English pages: layout, home, topics/[slug]
+│   │   ├── bn/                         Bangla pages: layout, home, topics/[slug], search index
+│   │   ├── not-found.tsx               404 (both languages)
 │   │   ├── globals.css                 design tokens and prose styles
-│   │   ├── search-index.json/route.ts  search index (static)
-│   │   └── topics/[slug]/page.tsx      topic page (one per slug, prerendered)
+│   │   └── search-index.json/route.ts  English search index (static)
 │   ├── components/
 │   │   ├── content/                    topic header, sections, voice switcher,
 │   │   │   └── blocks/                 sources, prev/next, one file per block type
-│   │   ├── layout/                     site header, sidebar, mobile nav, theme switch
-│   │   └── navigation/                 search palette, outline (TOC)
+│   │   ├── layout/                     site shell, header, sidebar, mobile nav,
+│   │   │                               language and theme switches
+│   │   ├── navigation/                 search palette, outline (TOC)
+│   │   └── pages/                      home and topic pages, shared by both languages
 │   ├── content/                        13 topic JSON files (source of truth)
 │   └── lib/
 │       ├── content-schema.ts           block types and Zod schema
@@ -252,8 +292,9 @@ All citations resolve to:
 │       ├── search.ts                   search index helpers
 │       ├── videos.ts                   which videos each voice shows
 │       ├── practice.ts                 which practice language each voice shows
-│       └── theme.ts                    theme choice and the inline head script
-├── tests/                              content-schema, search, video, practice, and theme tests
+│       ├── theme.ts                    theme choice and the inline head script
+│       └── i18n.ts                     languages, URLs, interface text, the lang head script
+├── tests/                              content-schema, search, video, practice, theme, PWA, and language tests
 ├── docs/                               design spec and plan
 ├── .github/workflows/deploy-pages.yml  GitHub Pages deploy
 ├── next.config.ts                      static export and base path

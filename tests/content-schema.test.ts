@@ -17,13 +17,13 @@ test("isAllowedInline accepts escaped pseudo-tags", () => {
 });
 
 test("TopicFileSchema accepts nested callout blocks", () => {
-  const file = { slug: "x", title: "X", lede: "L", sources: [], sections: [{ id: "s1", num: "01", title: "T", sub: "", layman: [], bangla: [],
+  const file = { slug: "x", title: "X", lede: "L", bn: { title: "X", lede: "L" }, sources: [], sections: [{ id: "s1", num: "01", title: "T", sub: "", bn: { title: "T", sub: "" }, layman: [], bangla: [],
     body: [{ type: "callout", variant: "pink", blocks: [{ type: "list", ordered: false, items: ["a"] }] }] }] };
   assert.deepEqual(TopicFileSchema.parse(file), file);
 });
 
 test("TopicFileSchema rejects unknown block types and bad variants", () => {
-  const base = { slug: "x", title: "X", lede: "L", sources: [], sections: [{ id: "s1", num: "01", title: "T", sub: "", layman: [], bangla: [], body: [] as unknown[] }] };
+  const base = { slug: "x", title: "X", lede: "L", bn: { title: "X", lede: "L" }, sources: [], sections: [{ id: "s1", num: "01", title: "T", sub: "", bn: { title: "T", sub: "" }, layman: [], bangla: [], body: [] as unknown[] }] };
   base.sections[0].body = [{ type: "aside", html: "x" }];
   assert.throws(() => TopicFileSchema.parse(base));
   base.sections[0].body = [{ type: "callout", variant: "blue", blocks: [] }];
@@ -31,12 +31,12 @@ test("TopicFileSchema rejects unknown block types and bad variants", () => {
 });
 
 test("TopicFileSchema rejects an unknown key on a section", () => {
-  const file = { slug: "x", title: "X", lede: "L", sources: [], sections: [{ id: "s1", num: "01", title: "T", sub: "", layman: [], bangla: [], body: [], tag_line: "oops" }] };
+  const file = { slug: "x", title: "X", lede: "L", bn: { title: "X", lede: "L" }, sources: [], sections: [{ id: "s1", num: "01", title: "T", sub: "", bn: { title: "T", sub: "" }, layman: [], bangla: [], body: [], tag_line: "oops" }] };
   assert.throws(() => TopicFileSchema.parse(file));
 });
 
 test("TopicFileSchema rejects caption_bn on a diagram block", () => {
-  const file = { slug: "x", title: "X", lede: "L", sources: [], sections: [{ id: "s1", num: "01", title: "T", sub: "", layman: [], bangla: [],
+  const file = { slug: "x", title: "X", lede: "L", bn: { title: "X", lede: "L" }, sources: [], sections: [{ id: "s1", num: "01", title: "T", sub: "", bn: { title: "T", sub: "" }, layman: [], bangla: [],
     body: [{ type: "diagram", svg: "<svg/>", caption_bn: "oops" }] }] };
   assert.throws(() => TopicFileSchema.parse(file));
 });

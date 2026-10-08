@@ -11,6 +11,7 @@ const topics: (TopicFile & { part: number })[] = [
     slug: "rag",
     title: "RAG",
     lede: "",
+    bn: { title: "RAG (বাংলা)", lede: "" },
     sources: [],
     sections: [
       {
@@ -18,8 +19,9 @@ const topics: (TopicFile & { part: number })[] = [
         num: "07",
         title: "Reranking: Cohere, BGE, Voyage",
         sub: "Cross-encoders",
+        bn: { title: "Reranking (বাংলা)", sub: "Cross-encoder" },
         layman: [],
-        bangla: [],
+        bangla: [{ type: "paragraph", html: "সহজ ব্যাখ্যা" }],
         body: [
           {
             type: "callout",
@@ -80,4 +82,12 @@ test("blockText reads every block type", () => {
   for (const [block, want] of cases) {
     assert.equal(blockText(block, strip).replace(/\s+/g, " ").trim(), want, block.type);
   }
+});
+
+test("buildSearchDocs in Bangla: Bangla titles, /bn links, Bangla and Technical text", () => {
+  const [doc] = buildSearchDocs(topics, strip, "bn");
+  assert.equal(doc.href, "/bn/topics/rag#s7");
+  assert.equal(doc.topic, "RAG (বাংলা)");
+  assert.equal(doc.title, "Reranking (বাংলা)");
+  assert.match(doc.text, /^Cross-encoder সহজ ব্যাখ্যা BM25 first$/);
 });

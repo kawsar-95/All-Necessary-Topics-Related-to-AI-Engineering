@@ -2,15 +2,16 @@
 
 import { useRef } from "react";
 import type { CSSProperties, KeyboardEvent } from "react";
+import { UI } from "@/lib/i18n";
+import type { Lang } from "@/lib/i18n";
 
 export type Voice = "main" | "layman" | "bangla" | "all";
 
-export const VOICE_LABEL: Record<Voice, string> = {
-  main: "Technical",
-  layman: "Layman's",
-  bangla: "বাংলা",
-  all: "All three",
-};
+/** The button text of each voice in `lang`. */
+export function voiceLabel(voice: Voice, lang: Lang): string {
+  const ui = UI[lang];
+  return { main: ui.voiceMain, layman: ui.voiceLayman, bangla: ui.voiceBangla, all: ui.voiceAll }[voice];
+}
 
 export const VOICE_COLOR: Record<Voice, string> = {
   main: "var(--accent)",
@@ -28,10 +29,12 @@ export function VoiceSwitcher({
   value,
   onChange,
   available,
+  lang,
 }: {
   value: Voice;
   onChange: (v: Voice) => void;
   available: Voice[];
+  lang: Lang;
 }) {
   const buttons = useRef<Map<Voice, HTMLButtonElement>>(new Map());
 
@@ -52,7 +55,7 @@ export function VoiceSwitcher({
   return (
     <div
       role="group"
-      aria-label="Voice"
+      aria-label={UI[lang].voiceGroup}
       onKeyDown={onKeyDown}
       className="inline-flex max-w-full flex-wrap gap-1 rounded-xl border border-border bg-bg-raised p-1"
     >
@@ -86,7 +89,7 @@ export function VoiceSwitcher({
                 : "border-transparent text-text-dim hover:bg-bg-raised-2 hover:text-text")
             }
           >
-            {VOICE_LABEL[v]}
+            {voiceLabel(v, lang)}
           </button>
         );
       })}

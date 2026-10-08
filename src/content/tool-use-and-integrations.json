@@ -2,12 +2,20 @@
   "slug": "tool-use-and-integrations",
   "title": "Tool Use and Integrations",
   "lede": "How an LLM becomes an actor: tool/function schema design, parallel tool calling, Model Context Protocol (MCP) servers/clients/resources/prompts, sandboxed code execution (E2B, Modal, Daytona, Cloudflare), API wrappers, and tool-result formatting for LLM consumption. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
+  "bn": {
+    "title": "Tool Use আর Integration",
+    "lede": "LLM কীভাবে নিজে কাজ করতে শেখে: tool/function schema-র design, parallel tool calling, Model Context Protocol (MCP) server/client/resource/prompt, sandbox-এ code চালানো (E2B, Modal, Daytona, Cloudflare), API wrapper, আর LLM যাতে সহজে পড়তে পারে সেভাবে tool-result সাজানো। <strong>প্রতিটি section দুই ভাবে লেখা:</strong> engineer-এর জন্য technical version (code আর diagram সহ), আর সাধারণ পাঠকের জন্য সহজ ভাষায় ব্যাখ্যা (উপমা সহ)। প্রতিটি topic-এর শেষে বাংলা ব্যাখ্যাও আছে।"
+  },
   "sections": [
     {
       "id": "s2",
       "num": "01",
       "title": "Tool use & integrations (incl. MCP)",
       "sub": "An LLM is just a text generator until you give it <strong>tools</strong>: a way to call your API, run code, query a database, or read a file. Tool design is the difference between a chatbot demo and a production system. The single highest-leverage decision is the quality of your tool descriptions.",
+      "bn": {
+        "title": "Tool use আর integration (MCP সহ)",
+        "sub": "Tool না দেওয়া পর্যন্ত LLM শুধু একটা text generator। <strong>Tool</strong> মানে এমন একটা উপায়, যাতে সে আপনার API call করতে, code চালাতে, database-এ query করতে বা file পড়তে পারে। Chatbot-এর demo আর production system-এর মধ্যে তফাত গড়ে দেয় tool design। সবচেয়ে বড় প্রভাব ফেলার সিদ্ধান্ত হলো আপনার tool description-এর মান।"
+      },
       "body": [
         {
           "type": "heading",

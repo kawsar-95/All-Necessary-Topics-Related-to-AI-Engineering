@@ -2,12 +2,20 @@
   "slug": "agents-and-agentic-systems",
   "title": "Agents and Agentic Systems",
   "lede": "An <strong>agent</strong> is an LLM running in a control loop: it observes the world, decides what to do, calls tools, observes the results, and repeats until the goal is reached. This chapter covers the four canonical agent loops, single- vs multi-agent orchestration, state machines and workflow graphs, agent memory, human-in-the-loop checkpoints, subagents, error recovery, durable long-running execution, and browser / computer-use agents.",
+  "bn": {
+    "title": "Agent আর Agentic System",
+    "lede": "<strong>Agent</strong> হলো একটা LLM, যা একটা control loop-এর ভেতরে চলে। সে চারপাশ দেখে (observe), কী করবে ঠিক করে, tool call করে, ফলাফল দেখে, আর লক্ষ্যে না পৌঁছানো পর্যন্ত এটা বারবার করে। এই অধ্যায়ে আছে: চারটা প্রচলিত agent loop, single-agent বনাম multi-agent orchestration, state machine আর workflow graph, agent memory, human-in-the-loop checkpoint, subagent, error recovery, দীর্ঘ সময় ধরে চলা durable execution, আর browser / computer-use agent।"
+  },
   "sections": [
     {
       "id": "s1",
       "num": "01",
       "title": "What an agent actually is",
       "sub": "A working definition, the boundary between \"agent\" and \"workflow,\" and the minimum set of components any production agent must have.",
+      "bn": {
+        "title": "Agent আসলে কী",
+        "sub": "একটা কাজ চালানোর মতো সংজ্ঞা, \"agent\" আর \"workflow\"-এর মধ্যে সীমারেখা, আর যেকোনো production agent-এ অন্তত কী কী component থাকতেই হবে।"
+      },
       "body": [
         {
           "type": "heading",
@@ -233,6 +241,10 @@
       "num": "02",
       "title": "The four canonical agent loops",
       "sub": "Every agent loop you'll meet in production is a variation of one of these four patterns. Pick by the shape of your task, not by hype.",
+      "bn": {
+        "title": "চারটা প্রচলিত agent loop",
+        "sub": "Production-এ যত agent loop দেখবেন, সবই এই চারটা pattern-এর কোনো একটার রকমফের। কাজের ধরন দেখে বেছে নিন, হাইপ দেখে নয়।"
+      },
       "body": [
         {
           "type": "diagram",
@@ -483,6 +495,10 @@
       "num": "03",
       "title": "Single-agent vs multi-agent orchestration",
       "sub": "The most expensive mistake in agent engineering is reaching for a multi-agent setup when a well-tuned single agent would do.",
+      "bn": {
+        "title": "Single-agent বনাম multi-agent orchestration",
+        "sub": "Agent engineering-এর সবচেয়ে দামি ভুল হলো: ভালোভাবে tune করা একটা agent-ই যথেষ্ট ছিল, অথচ multi-agent setup বেছে নেওয়া।"
+      },
       "body": [
         {
           "type": "heading",
@@ -711,6 +727,10 @@
       "num": "04",
       "title": "State machines and workflow graphs",
       "sub": "For non-trivial agents, replace the implicit loop with an explicit <strong>graph</strong> of nodes (LLM calls, tool calls, human approvals) connected by edges (conditional transitions). This is how production systems stay debuggable.",
+      "bn": {
+        "title": "State machine আর workflow graph",
+        "sub": "সহজ নয় এমন agent-এর ক্ষেত্রে অদৃশ্য loop-এর জায়গায় একটা পরিষ্কার <strong>graph</strong> বানান। এর node হবে LLM call, tool call বা human approval, আর edge হবে শর্ত অনুযায়ী এক ধাপ থেকে আরেক ধাপে যাওয়া। এভাবেই production system-এ debug করা সহজ থাকে।"
+      },
       "body": [
         {
           "type": "heading",
@@ -942,6 +962,10 @@
       "num": "05",
       "title": "Agent memory: scratchpad, semantic, procedural",
       "sub": "Three memory types show up again and again in the agent literature.<a class=\"cite\" href=\"#src8\">[8]</a>",
+      "bn": {
+        "title": "Agent-এর memory: scratchpad, semantic, procedural",
+        "sub": "Agent নিয়ে লেখা গবেষণায় বারবার তিন ধরনের memory আসে।<a class=\"cite\" href=\"#src8\">[8]</a>"
+      },
       "body": [
         {
           "type": "heading",
@@ -1170,6 +1194,10 @@
       "num": "06",
       "title": "Human-in-the-loop checkpoints",
       "sub": "Most production agents need at least one approval step.",
+      "bn": {
+        "title": "Human-in-the-loop checkpoint (মানুষের অনুমোদনের ধাপ)",
+        "sub": "বেশিরভাগ production agent-এ অন্তত একটা approval ধাপ লাগে।"
+      },
       "body": [
         {
           "type": "heading",
@@ -1386,6 +1414,10 @@
       "num": "07",
       "title": "Subagents and delegation patterns",
       "sub": "When a single agent's task list grows too large for one context window, the natural move is to delegate.",
+      "bn": {
+        "title": "Subagent আর delegation pattern",
+        "sub": "একটা agent-এর কাজের তালিকা যখন এক context window-এর জন্য বেশি বড় হয়ে যায়, তখন স্বাভাবিক সমাধান হলো কাজ ভাগ করে অন্যকে দেওয়া (delegate)।"
+      },
       "body": [
         {
           "type": "heading",
@@ -1595,6 +1627,10 @@
       "num": "08",
       "title": "Error recovery, retries, and self-correction",
       "sub": "Three escalating layers: retry the same call, fall back to a different one, or reflect on the failure and revise. Always bound retries.",
+      "bn": {
+        "title": "Error recovery, retry আর self-correction",
+        "sub": "তিন ধাপের উপায়, ধাপে ধাপে বড় হয়: একই call আবার করা, অন্য একটা উপায়ে যাওয়া (fallback), অথবা ব্যর্থতাটা নিয়ে ভেবে (reflect) ঠিক করে নেওয়া। Retry-র একটা সীমা সবসময় বেঁধে দিন।"
+      },
       "body": [
         {
           "type": "heading",
@@ -1815,6 +1851,10 @@
       "num": "09",
       "title": "Long-running agents and durable execution",
       "sub": "Agents that take minutes or hours face three problems a normal Python loop can't solve: crashes lose state, rate limits force waits, and human approvals force pauses. Durable execution engines solve all three.",
+      "bn": {
+        "title": "দীর্ঘক্ষণ চলা agent আর durable execution",
+        "sub": "যে agent কয়েক মিনিট বা কয়েক ঘণ্টা চলে, তার তিনটা সমস্যা সাধারণ Python loop সামলাতে পারে না: crash হলে state হারিয়ে যায়, rate limit-এর জন্য অপেক্ষা করতে হয়, আর human approval-এর জন্য থামতে হয়। Durable execution engine এই তিনটারই সমাধান দেয়।"
+      },
       "body": [
         {
           "type": "heading",
@@ -2043,6 +2083,10 @@
       "num": "10",
       "title": "Browser and computer-use agents",
       "sub": "The newest agent category uses a model that can see a screenshot and act with mouse/keyboard primitives. OpenAI's Operator and Anthropic's \"computer use\" are the marquee examples. They trade precision for generality.",
+      "bn": {
+        "title": "Browser আর computer-use agent",
+        "sub": "এটা agent-এর সবচেয়ে নতুন ধরন। এখানে model screenshot দেখতে পারে, আর mouse/keyboard-এর মতো মৌলিক কাজ দিয়ে কাজ করে। উদাহরণ হিসেবে সবচেয়ে পরিচিত OpenAI-র Operator আর Anthropic-এর \"computer use\"। এরা নিখুঁত হওয়ার বদলে সবকিছুতে কাজ করতে পারাকে বেছে নেয়।"
+      },
       "body": [
         {
           "type": "heading",

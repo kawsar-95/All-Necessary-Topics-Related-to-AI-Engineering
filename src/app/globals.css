@@ -73,9 +73,11 @@
   --color-pink: var(--pink);
   --color-code-bg: var(--code-bg);
 
-  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-mono-jb), ui-monospace, SFMono-Regular, monospace;
+  /* Each stack ends its Latin fonts with Noto Sans Bengali, so Bengali
+     letters in any text, Bangla page or not, use it. */
+  --font-display: var(--font-fraunces), var(--font-noto-bengali), ui-serif, Georgia, serif;
+  --font-sans: var(--font-inter), var(--font-noto-bengali), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-jb), var(--font-noto-bengali), ui-monospace, SFMono-Regular, monospace;
   --font-bengali: var(--font-noto-bengali), var(--font-inter), sans-serif;
 }
 
@@ -87,13 +89,8 @@ html {
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-inter), var(--font-noto-bengali), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
-}
-
-/* Inter has no Bengali glyphs. */
-:lang(bn) {
-  font-family: var(--font-noto-bengali), var(--font-inter), sans-serif;
 }
 
 ::selection {
@@ -136,7 +133,7 @@ body {
 .prose-inline strong { color: var(--text); font-weight: 600; }
 .prose-inline em { color: var(--text-dim); font-style: italic; }
 .prose-inline code {
-  font-family: var(--font-mono-jb), ui-monospace, monospace;
+  font-family: var(--font-mono-jb), var(--font-noto-bengali), ui-monospace, monospace;
   font-size: 0.86em;
   background: var(--bg-raised-2);
   color: color-mix(in srgb, var(--accent) 70%, var(--text));
@@ -164,7 +161,7 @@ body {
   padding: 2px 5px;
   border-radius: 4px;
   margin: 0 1px;
-  font-family: var(--font-mono-jb), ui-monospace, monospace;
+  font-family: var(--font-mono-jb), var(--font-noto-bengali), ui-monospace, monospace;
 }
 .prose-inline a.cite:hover { background: var(--accent); color: var(--bg); }
 
@@ -182,7 +179,7 @@ body {
 .code-block .shiki {
   margin: 0;
   padding: 16px 18px;
-  font-family: var(--font-mono-jb), ui-monospace, monospace;
+  font-family: var(--font-mono-jb), var(--font-noto-bengali), ui-monospace, monospace;
   font-size: 13px;
   line-height: 1.6;
   overflow: visible;
@@ -201,7 +198,7 @@ body {
   top: 6px;
   right: 10px;
   z-index: 1;
-  font-family: var(--font-mono-jb), ui-monospace, monospace;
+  font-family: var(--font-mono-jb), var(--font-noto-bengali), ui-monospace, monospace;
   font-size: 10px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -243,9 +240,13 @@ body {
 [data-theme="light"] .diagram-svg [fill="#f472b6" i] { fill: #be185d; }
 [data-theme="light"] .diagram-svg [stroke="#f472b6" i] { stroke: #be185d; }
 
-/* Practice panel labels (src/components/content/PracticeList.tsx): wide
-   letter spacing splits Bengali letters, so Bangla labels use none. */
-.practice-label:lang(bn) {
+/* Wide letter spacing splits Bengali letters apart. The small uppercase
+   labels (Part numbers, section labels, practice labels) use none in Bangla
+   text. */
+:lang(bn) .uppercase,
+.uppercase:lang(bn) {
   letter-spacing: normal;
+}
+.practice-label:lang(bn) {
   font-size: 12px;
 }

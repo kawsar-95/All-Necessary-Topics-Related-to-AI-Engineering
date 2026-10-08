@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { UI } from "@/lib/i18n";
+import type { Lang } from "@/lib/i18n";
 
 /** Chromium's install event. It is not in the TypeScript DOM types. */
 interface BeforeInstallPromptEvent extends Event {
@@ -13,7 +15,7 @@ interface BeforeInstallPromptEvent extends Event {
  * install the site as an app (Chromium browsers). Other browsers use their
  * own menu, for example Safari's "Add to Home Screen".
  */
-export function InstallButton() {
+export function InstallButton({ lang }: { lang: Lang }) {
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
@@ -43,8 +45,8 @@ export function InstallButton() {
     <button
       type="button"
       onClick={install}
-      aria-label="Install this site as an app"
-      title="Install this site as an app"
+      aria-label={UI[lang].installApp}
+      title={UI[lang].installApp}
       className="grid size-9 shrink-0 place-items-center rounded-md border border-border bg-bg-raised/60 text-text-dim transition-colors hover:border-border-strong hover:text-text"
     >
       <svg viewBox="0 0 20 20" className="size-[18px]" fill="none" aria-hidden="true">

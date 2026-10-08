@@ -1,13 +1,15 @@
 import Link from "next/link";
 import type { NavItem } from "@/lib/topics";
+import { UI, fmtNum, topicHref } from "@/lib/i18n";
+import type { Lang } from "@/lib/i18n";
 
 // Client files take the type from here. A type import is erased at build
 // time, so no server code from topics.ts goes into the client bundle.
 export type { NavItem };
 
-/** Returns the topic slug of a `/topics/<slug>` path, or null. */
+/** Returns the topic slug of a `/topics/<slug>` or `/bn/topics/<slug>` path, or null. */
 export function activeSlugFromPath(pathname: string | null): string | null {
-  const match = pathname?.match(/^\/topics\/([^/]+)/);
+  const match = pathname?.match(/^(?:\/bn)?\/topics\/([^/]+)/);
   return match ? match[1] : null;
 }
 
@@ -18,17 +20,19 @@ export function activeSlugFromPath(pathname: string | null): string | null {
  */
 export function SidebarList({
   items,
+  lang,
   activeSlug,
   onNavigate,
 }: {
   items: NavItem[];
+  lang: Lang;
   activeSlug: string | null;
   onNavigate?: () => void;
 }) {
   return (
-    <nav aria-label="Parts" className="px-3 py-6">
+    <nav aria-label={UI[lang].partsNav} className="px-3 py-6">
       <p className="mb-3 px-3 font-mono text-[11px] uppercase tracking-[0.16em] text-text-faint">
-        Parts
+        {UI[lang].partsNav}
       </p>
       <ol className="m-0 list-none space-y-px p-0">
         {items.map((item) => {
@@ -36,7 +40,7 @@ export function SidebarList({
           return (
             <li key={item.slug}>
               <Link
-                href={`/topics/${item.slug}`}
+                href={topicHref(item.slug, lang)}
                 aria-current={active ? "page" : undefined}
                 onClick={onNavigate}
                 className={
@@ -52,7 +56,7 @@ export function SidebarList({
                     (active ? "text-accent" : "text-text-faint")
                   }
                 >
-                  Part {item.part}
+                  {UI[lang].part(fmtNum(lang, item.part))}
                 </span>
                 <span
                   className={

@@ -3,12 +3,21 @@
   "title": "Context Engineering",
   "tagline": "the new \"prompt engineering\"",
   "lede": "A dense, citation-backed reference for the seven techniques every production LLM system reaches for — context budgeting, summarization, caching, hierarchical memory, compression, tool-result truncation, and the \"lost in the middle\" failure mode. <strong>Each section ships in two voices:</strong> the engineer's version (with diagrams and papers) and a layman's version (plain English with analogies) at the bottom of each topic. <strong>প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।</strong>",
+  "bn": {
+    "title": "Context Engineering-এর কৌশল",
+    "tagline": "নতুন “prompt engineering”",
+    "lede": "সাতটি কৌশলের একটি ঘন, citation-সহ রেফারেন্স, যা প্রতিটি production LLM system-এ লাগে: context budgeting, summarization, caching, hierarchical memory, compression, tool-result truncation, আর “lost in the middle” সমস্যা। <strong>প্রতিটি section দুই ভাবে লেখা:</strong> engineer-এর ভার্সন (diagram আর paper-সহ) এবং প্রতিটি টপিকের শেষে সাধারণ পাঠকের ভার্সন (সহজ ভাষায়, উপমা দিয়ে)। <strong>প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।</strong>"
+  },
   "sections": [
     {
       "id": "s1",
       "num": "01",
       "title": "Context window budgeting",
       "sub": "A model has a fixed-size working memory. Every byte you allocate competes with every other byte. Context engineering is the discipline of <em>deciding what lives where</em> — system prompt, history, tool definitions, retrieved docs, prior outputs, the user's actual request.",
+      "bn": {
+        "title": "Context window-এর budgeting",
+        "sub": "Model-এর কাজ করার স্মৃতির আকার নির্দিষ্ট। আপনি যে byte-ই বরাদ্দ করেন, সে অন্য সব byte-এর সাথে জায়গার জন্য প্রতিযোগিতা করে। Context engineering হলো <em>কী কোথায় থাকবে তা ঠিক করার</em> কৌশল — system prompt, history, tool-এর সংজ্ঞা, retrieve করা document, আগের output, আর user-এর আসল অনুরোধ।"
+      },
       "body": [
         {
           "type": "heading",
@@ -227,6 +236,10 @@
       "num": "02",
       "title": "Conversation summarization & rolling memory",
       "sub": "A 50-turn chat is 50× the size of a 1-turn chat. Most of those tokens are <em>noise</em> — greetings, \"can you clarify,\" half-finished thoughts. Summarization trades raw history for compressed state, keeping the model coherent without the linear cost.",
+      "bn": {
+        "title": "Conversation summarization আর rolling memory",
+        "sub": "50 বার কথা বলা chat-এর আকার 1 বারের chat-এর 50 গুণ। এই token-গুলোর বেশিরভাগই <em>অপ্রয়োজনীয়</em> — শুভেচ্ছা, “একটু বুঝিয়ে বলবেন?”, আধা-শেষ চিন্তা। Summarization কাঁচা history-র বদলে সংক্ষেপিত অবস্থা রাখে। এতে খরচ সমানে না বেড়েও model-এর কথার ধারা ঠিক থাকে।"
+      },
       "body": [
         {
           "type": "heading",
@@ -480,6 +493,10 @@
       "num": "03",
       "title": "Prompt caching strategies",
       "sub": "Frontier providers let you <strong>cache a prefix of your prompt</strong>: identical tokens at the start of a request cost dramatically less and run faster. Used well, caching drops 80–90% of the input bill for apps with stable system prompts and long retrieval sections.",
+      "bn": {
+        "title": "Prompt caching-এর কৌশল",
+        "sub": "Frontier provider-রা আপনার <strong>prompt-এর শুরুর অংশ cache করতে</strong> দেয়: request-এর শুরুতে একই token থাকলে খরচ অনেক কম আর গতি বেশি। যে app-এর system prompt স্থির আর retrieval অংশ লম্বা, সেখানে ভালোভাবে করলে input-এর বিলের 80–90% কমে যায়।"
+      },
       "body": [
         {
           "type": "heading",
@@ -783,6 +800,10 @@
       "num": "04",
       "title": "Hierarchical memory",
       "sub": "Humans don't have one type of memory — they have working memory, short-term, episodic, and procedural layers. AI systems that aspire to long-running tasks need the same stratification. <strong>Hierarchical memory</strong> = store different kinds of state at different timescales, summarised at each layer.",
+      "bn": {
+        "title": "Hierarchical memory (স্তরভাগ করা স্মৃতি)",
+        "sub": "মানুষের স্মৃতি একরকম নয় — working memory, short-term, episodic, আর procedural স্তর আছে। যে AI system দীর্ঘ সময়ের কাজ করতে চায়, তারও এমন স্তরভাগ দরকার। <strong>Hierarchical memory</strong> মানে বিভিন্ন ধরনের অবস্থা বিভিন্ন সময়সীমায় রাখা, আর প্রতিটি স্তরে সারাংশ করা।"
+      },
       "body": [
         {
           "type": "heading",
@@ -1027,6 +1048,10 @@
       "num": "05",
       "title": "Context compression & pruning",
       "sub": "When summarization is too lossy and you have no time to spare, <strong>compression</strong> removes redundancy and <strong>pruning</strong> drops irrelevant tokens. The goal: same information density, fewer tokens.",
+      "bn": {
+        "title": "Context compression আর pruning",
+        "sub": "Summarization যখন বেশি তথ্য হারায় আর হাতে সময়ও নেই, তখন <strong>compression</strong> বাড়তি পুনরাবৃত্তি সরায় আর <strong>pruning</strong> অপ্রাসঙ্গিক token ফেলে দেয়। লক্ষ্য: তথ্যের ঘনত্ব একই থাকবে, token কমবে।"
+      },
       "body": [
         {
           "type": "heading",
@@ -1313,6 +1338,10 @@
       "num": "06",
       "title": "Tool result truncation strategies",
       "sub": "A single tool call can return 100K tokens — a long code file, a thousand-row database result, a 50-page web page. Left unchecked, one tool result can fill your entire context window. Truncation is the discipline of keeping tool results <em>useful but bounded</em>.",
+      "bn": {
+        "title": "Tool result truncation-এর কৌশল",
+        "sub": "একটি tool call 100K token ফেরত দিতে পারে — লম্বা code file, হাজার সারির database ফলাফল, 50 পাতার web page। আটকে না রাখলে একটি tool result-ই পুরো context window ভরে ফেলতে পারে। Truncation হলো tool result-কে <em>কাজের কিন্তু সীমিত</em> রাখার কৌশল।"
+      },
       "body": [
         {
           "type": "heading",
@@ -1580,6 +1609,10 @@
       "num": "07",
       "title": "Lost in the Middle & mitigation",
       "sub": "Liu et al. (2023) showed a robust phenomenon: language models attend strongly to information at the <em>beginning</em> and <em>end</em> of their input, and perform close to random for information buried in the <em>middle</em>. The longer the context, the worse the middle. This single finding reframes how you should structure prompts.",
+      "bn": {
+        "title": "Lost in the Middle আর তার সমাধান",
+        "sub": "Liu et al. (2023) একটি পাকা ঘটনা দেখিয়েছেন: language model input-এর <em>শুরু</em> আর <em>শেষ</em> অংশের তথ্যে জোরালো attention দেয়, কিন্তু <em>মাঝখানে</em> চাপা পড়া তথ্যে প্রায় এলোমেলো উত্তর দেয়। Context যত লম্বা, মাঝখানের অবস্থা তত খারাপ। এই একটি আবিষ্কার prompt সাজানোর ধরনটাই বদলে দেয়।"
+      },
       "body": [
         {
           "type": "heading",

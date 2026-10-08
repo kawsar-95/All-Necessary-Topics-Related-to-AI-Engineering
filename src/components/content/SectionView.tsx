@@ -5,6 +5,8 @@ import type { CSSProperties } from "react";
 import type { Block, Section } from "@/lib/content-schema";
 import { practiceLang } from "@/lib/practice";
 import { videosForVoice } from "@/lib/videos";
+import { UI } from "@/lib/i18n";
+import type { Lang } from "@/lib/i18n";
 import { Inline } from "./Inline";
 import { PracticeList } from "./PracticeList";
 import { ProseBlocks } from "./ProseBlocks";
@@ -12,11 +14,13 @@ import { VideoList } from "./VideoList";
 import { VOICE_COLOR, VoiceSwitcher } from "./VoiceSwitcher";
 import type { Voice } from "./VoiceSwitcher";
 
-function availableVoices(section: Section): Voice[] {
+/** The voices a section has. The Bangla site lists বাংলা first. */
+function availableVoices(section: Section, lang: Lang): Voice[] {
   const voices: Voice[] = [];
+  if (lang === "bn" && section.bangla.length) voices.push("bangla");
   if (section.body.length) voices.push("main");
   if (section.layman.length) voices.push("layman");
-  if (section.bangla.length) voices.push("bangla");
+  if (lang === "en" && section.bangla.length) voices.push("bangla");
   if (voices.length > 1) voices.push("all");
   return voices;
 }
@@ -95,10 +99,13 @@ function VoicePanel({
  * One section of a topic: number, title, lede, and the voice switcher.
  * The Technical voice renders as plain prose. The Layman's and Bangla voices
  * render in panels. "All three" stacks them in that order. The choice is
- * local to the section.
+ * local to the section. On the Bangla site, a section opens in বাংলা and
+ * its title, intro, practice tasks, and labels are in Bangla.
  */
-export function SectionView({ section }: { section: Section }) {
-  const available = availableVoices(section);
+export function SectionView({ section, lang }: { section: Section; lang: Lang }) {
+  const ui = UI[lang];
+  const text = lang === "bn" ? section.bn : section;
+  const available = availableVoices(section, lang);
   const [voice, setVoice] = useState<Voice>(available[0] ?? "main");
   const show = (v: Exclude<Voice, "all">) =>
     (voice === v || voice === "all") && available.includes(v);
@@ -169,18 +176,18 @@ export function SectionView({ section }: { section: Section }) {
           id={`${section.id}-title`}
           className="mt-3 font-display text-[clamp(1.75rem,4.2vw,2.375rem)] font-medium leading-[1.12] tracking-[-0.015em] text-balance text-text"
         >
-          {section.title}
+          {text.title}
         </h2>
         <Inline
           as="p"
-          html={section.sub}
+          html={text.sub}
           className="mt-4 text-lg leading-relaxed text-pretty text-text-dim sm:text-[1.1875rem]"
         />
       </header>
 
       {available.length > 1 && (
         <div className="mt-8">
-          <VoiceSwitcher value={voice} onChange={setVoice} available={available} />
+          <VoiceSwitcher value={voice} onChange={setVoice} available={available} lang={lang} />
         </div>
       )}
 
@@ -196,21 +203,21 @@ export function SectionView({ section }: { section: Section }) {
         {show("layman") && (
           <VoicePanel
             voice="layman"
-            title="Layman's version"
-            note="plain English, no jargon"
+            title={ui.laymanTitle}
+            note={ui.laymanNote}
             blocks={section.layman}
           />
         )}
         {show("bangla") && (
           <VoicePanel
             voice="bangla"
-            title="বাংলা ব্যাখ্যা"
-            note="সহজ ভাষায় বিস্তারিত"
+            title={ui.banglaTitle}
+            note={ui.banglaNote}
             blocks={section.bangla}
           />
         )}
-        <PracticeList sectionId={section.id} practice={section.practice} lang={practiceLang(voice)} />
-        <VideoList sectionId={section.id} videos={videosForVoice(section.videos, voice)} />
+        <PracticeList sectionId={section.id} practice={section.practice} lang={practiceLang(voice, lang)} />
+        <VideoList sectionId={section.id} videos={videosForVoice(section.videos, voice, lang)} lang={lang} />
       </div>
     </section>
   );

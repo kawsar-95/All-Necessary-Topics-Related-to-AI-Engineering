@@ -3,12 +3,21 @@
   "title": "LLM Fundamentals",
   "tagline": "from an engineer's lens",
   "lede": "A dense, citation-backed reference for ten topics every ML engineer, applied researcher, and platform builder needs to internalise — tokens, families, sampling, structured outputs, tool use, multimodal, embeddings, reasoning, and the trade-offs that decide which model runs in production. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies) at the bottom of each topic. প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
+  "bn": {
+    "title": "LLM-এর মূল ভিত্তি",
+    "tagline": "একজন engineer-এর চোখে",
+    "lede": "দশটি বিষয়ের একটি ঘন, citation-সহ রেফারেন্স। প্রত্যেক ML engineer, applied researcher আর platform builder-এর এগুলো ভালোভাবে বোঝা দরকার: token, model family, sampling, structured output, tool use, multimodal, embedding, reasoning, আর production-এ কোন model চলবে তা ঠিক করে দেওয়া trade-off। <strong>প্রতিটি section দুই ভাবে লেখা:</strong> engineer-এর ভার্সন (technical, code আর diagram-সহ) এবং প্রতিটি টপিকের শেষে সাধারণ পাঠকের ভার্সন (সহজ ভাষায়, উপমা দিয়ে)। প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।"
+  },
   "sections": [
     {
       "id": "s1",
       "num": "01",
       "title": "Tokens, tokenization & context cost",
       "sub": "Everything a model does — attention, generation, cost — is denominated in <strong>tokens</strong>, not characters or words. If your prompt shrinks from 800 to 200 tokens, you just cut cost by 75% and latency by a meaningful fraction. This is the single biggest engineering lever you have.",
+      "bn": {
+        "title": "Token, tokenization আর context-এর খরচ",
+        "sub": "Model যা কিছু করে — attention, generation, খরচ — সবকিছুর হিসাব হয় <strong>token</strong> দিয়ে, অক্ষর বা শব্দ দিয়ে নয়। আপনার prompt যদি 800 token থেকে কমে 200 token হয়, তাহলে খরচ কমল 75%, আর latencyও উল্লেখযোগ্যভাবে কমল। আপনার হাতে থাকা সবচেয়ে বড় engineering সুবিধা এটাই।"
+      },
       "body": [
         {
           "type": "heading",
@@ -282,6 +291,10 @@
       "num": "02",
       "title": "Model families & trade-offs",
       "sub": "The frontier in 2025 is dominated by five families, each with a distinct architectural and commercial philosophy. Picking \"the best model\" is a misframe — the right question is <em>which trade-off matches your workload's centre of gravity</em>.",
+      "bn": {
+        "title": "Model family আর trade-off",
+        "sub": "2025 সালে frontier-এ পাঁচটি family-র দাপট। প্রতিটির architecture আর ব্যবসার দর্শন আলাদা। “সেরা model কোনটা” — এই প্রশ্নটাই ভুল। সঠিক প্রশ্ন হলো: <em>কোন trade-off আপনার workload-এর মূল চাহিদার সাথে মেলে</em>।"
+      },
       "body": [
         {
           "type": "diagram",
@@ -540,6 +553,10 @@
       "num": "03",
       "title": "Closed vs open-weight models",
       "sub": "\"Open\" splits into two camps that engineers often confuse: <strong>open-weight</strong> (you can download and run the model) and <strong>open-source</strong> (you also have training code, data, and licence to modify and redistribute). Most \"open\" LLMs are open-weight.",
+      "bn": {
+        "title": "Closed বনাম open-weight model",
+        "sub": "“Open” দুই দলে ভাগ হয়, আর engineer-রাও প্রায়ই দুটো গুলিয়ে ফেলেন: <strong>open-weight</strong> (model ডাউনলোড করে নিজে চালাতে পারবেন) আর <strong>open-source</strong> (এর সাথে training code, data, আর বদলে আবার বিলি করার licenseও পাবেন)। বেশিরভাগ “open” LLM আসলে open-weight।"
+      },
       "body": [
         {
           "type": "heading",
@@ -764,6 +781,10 @@
       "num": "04",
       "title": "Sampling parameters",
       "sub": "A model outputs a probability distribution over every token in its vocabulary. <em>Sampling</em> is how you turn that distribution into text. The same logits can produce robotic lists, creative prose, or factual hallucinations depending on five knobs.",
+      "bn": {
+        "title": "Sampling parameter-এর ব্যবহার",
+        "sub": "Model তার vocabulary-র প্রতিটি token-এর উপর একটি probability distribution দেয়। <em>Sampling</em> হলো সেই distribution থেকে text বানানোর উপায়। একই logits থেকে যান্ত্রিক তালিকা, সৃজনশীল গদ্য, কিংবা বানানো ভুল তথ্য (hallucination) — যেকোনোটি আসতে পারে, পাঁচটি knob কীভাবে ঘোরান তার উপর।"
+      },
       "body": [
         {
           "type": "heading",
@@ -1010,6 +1031,10 @@
       "num": "05",
       "title": "Streaming vs non-streaming",
       "sub": "Generation is sequential — tokens come one at a time. Streaming returns them <em>as they're produced</em> via Server-Sent Events or chunked HTTP, so the UI can render the first word while the rest is still being decoded. Non-streaming waits for the full response.",
+      "bn": {
+        "title": "Streaming বনাম non-streaming",
+        "sub": "Generation ধাপে ধাপে হয় — token আসে একটা একটা করে। Streaming মানে token তৈরি হওয়ার সাথে সাথেই <em>পাঠিয়ে দেওয়া</em>, Server-Sent Events বা chunked HTTP দিয়ে। ফলে বাকিটা তৈরি হতে থাকার মধ্যেই UI প্রথম শব্দটা দেখাতে পারে। Non-streaming পুরো response তৈরি হওয়া পর্যন্ত অপেক্ষা করে।"
+      },
       "body": [
         {
           "type": "diagram",
@@ -1217,6 +1242,10 @@
       "num": "06",
       "title": "Structured outputs & JSON mode",
       "sub": "Forcing free-form text into a typed schema unlocks LLMs as reliable components in larger pipelines. There are three progressively stricter approaches.",
+      "bn": {
+        "title": "Structured output আর JSON mode",
+        "sub": "ইচ্ছেমতো লেখা text-কে নির্দিষ্ট type-এর schema-য় বাঁধলে LLM বড় pipeline-এর একটি ভরসাযোগ্য অংশ হয়ে ওঠে। এর তিনটি উপায় আছে, একটার চেয়ে আরেকটা ধাপে ধাপে বেশি কঠোর।"
+      },
       "body": [
         {
           "type": "heading",
@@ -1415,6 +1444,10 @@
       "num": "07",
       "title": "Function calling & tool use",
       "sub": "Function calling lets the model emit a <em>structured</em> request to invoke a tool (a function, an API, a database query) instead of free-form prose. The model doesn't execute — it <strong>decides what to call and with what arguments</strong>, and your code runs the tool and feeds the result back. This is the basis of every LLM agent.",
+      "bn": {
+        "title": "Function calling আর tool use",
+        "sub": "Function calling-এ model সাধারণ গদ্য না লিখে একটি <em>structured</em> অনুরোধ পাঠায়, যাতে একটি tool চালানো যায় (function, API, বা database query)। Model নিজে চালায় না — সে <strong>ঠিক করে কোনটা call করবে আর কী argument দিয়ে</strong>। আপনার code tool চালায় এবং ফলাফল model-কে ফেরত দেয়। প্রতিটি LLM agent-এর ভিত্তি এটাই।"
+      },
       "body": [
         {
           "type": "heading",
@@ -1633,6 +1666,10 @@
       "num": "08",
       "title": "Multimodal inputs (vision, audio, PDFs)",
       "sub": "Modern frontier models ingest more than text: images, audio, video frames, and PDF pages become tokens the transformer can attend to. The unifying trick: <strong>any modality is converted into a sequence of embedding vectors</strong> and concatenated with the text sequence.",
+      "bn": {
+        "title": "Multimodal input (ছবি, audio, PDF)",
+        "sub": "আধুনিক frontier model শুধু text নয়, আরও অনেক কিছু নেয়: ছবি, audio, video frame, আর PDF-এর পাতা। এগুলো token হয়ে যায়, যার উপর transformer attention দিতে পারে। মূল কৌশলটা এক: <strong>যেকোনো modality-কে embedding vector-এর একটি sequence-এ বদলে</strong> text sequence-এর সাথে জুড়ে দেওয়া হয়।"
+      },
       "body": [
         {
           "type": "heading",
@@ -1901,6 +1938,10 @@
       "num": "09",
       "title": "Embedding models & reranker models",
       "sub": "Two specialised model types that, together with an LLM, form the standard retrieval-augmented generation (RAG) stack. <strong>Embeddings</strong> compress text into a vector such that semantically similar items land near each other. <strong>Rerankers</strong> score (query, document) pairs with cross-attention for higher precision.",
+      "bn": {
+        "title": "Embedding model আর reranker model",
+        "sub": "দুটি বিশেষ ধরনের model। LLM-এর সাথে মিলে এরা retrieval-augmented generation (RAG)-এর স্ট্যান্ডার্ড stack বানায়। <strong>Embedding</strong> text-কে একটি vector-এ চেপে আনে, যাতে একই অর্থের জিনিস কাছাকাছি থাকে। <strong>Reranker</strong> cross-attention দিয়ে (query, document) জোড়ার score দেয়, ফলে আরও নিখুঁত ফলাফল মেলে।"
+      },
       "body": [
         {
           "type": "heading",
@@ -2151,6 +2192,10 @@
       "num": "10",
       "title": "Reasoning models & extended thinking",
       "sub": "A new class of models trained to spend <em>more compute at inference time</em> on hard problems. Instead of answering immediately, they emit a chain of internal reasoning (\"thinking tokens\"), then produce a final answer. This is the most important capability shift since GPT-4.",
+      "bn": {
+        "title": "Reasoning model আর extended thinking",
+        "sub": "নতুন ধরনের model, যাদের শেখানো হয়েছে কঠিন সমস্যায় <em>inference-এর সময় বেশি compute</em> খরচ করতে। সাথে সাথে উত্তর না দিয়ে এরা ভেতরে একটি চিন্তার ধারা (“thinking token”) লেখে, তারপর চূড়ান্ত উত্তর দেয়। GPT-4-এর পর এটাই সবচেয়ে গুরুত্বপূর্ণ সক্ষমতার পরিবর্তন।"
+      },
       "body": [
         {
           "type": "heading",

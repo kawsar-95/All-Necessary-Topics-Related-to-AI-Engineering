@@ -2,12 +2,20 @@
   "slug": "prompt-engineering",
   "title": "Prompt Engineering",
   "lede": "A dense, citation-backed reference for the eight techniques every prompt engineer reaches for — message design, few-shot and personas, reasoning patterns, structured prompts, templating, versioning, output handling, and adversarial defense. <strong>Each section ships in two voices:</strong> the engineer's version (with code, diagrams, and papers) and a layman's version (plain English with analogies) at the bottom of each topic. <strong>প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।</strong>",
+  "bn": {
+    "title": "Prompt Engineering-এর কৌশল",
+    "lede": "আটটি কৌশলের একটি ঘন, citation-সহ রেফারেন্স, যা প্রত্যেক prompt engineer-এর কাজে লাগে: message design, few-shot আর persona, reasoning pattern, structured prompt, templating, versioning, output handling, আর adversarial আক্রমণ থেকে বাঁচা। <strong>প্রতিটি section দুই ভাবে লেখা:</strong> engineer-এর ভার্সন (code, diagram আর paper-সহ) এবং প্রতিটি টপিকের শেষে সাধারণ পাঠকের ভার্সন (সহজ ভাষায়, উপমা দিয়ে)। <strong>প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।</strong>"
+  },
   "sections": [
     {
       "id": "s1",
       "num": "01",
       "title": "System vs User vs Assistant message design",
       "sub": "Every modern chat API accepts an array of <strong>messages</strong>, each tagged with a <em>role</em>. How you split instructions across these roles is the foundation of reliable prompting — get it right and every downstream technique (few-shot, tools, agents) becomes easier.",
+      "bn": {
+        "title": "System, User আর Assistant message-এর design",
+        "sub": "আজকের প্রতিটি chat API <strong>message</strong>-এর একটি array নেয়, আর প্রতিটির গায়ে একটি <em>role</em> লাগানো থাকে। এই role-গুলোর মধ্যে নির্দেশ কীভাবে ভাগ করবেন, তার উপরই নির্ভরযোগ্য prompting দাঁড়িয়ে আছে। এটা ঠিকঠাক করতে পারলে পরের সব কৌশল (few-shot, tool, agent) সহজ হয়ে যায়।"
+      },
       "body": [
         {
           "type": "heading",
@@ -270,6 +278,10 @@
       "num": "02",
       "title": "Few-shot, role prompting & personas",
       "sub": "The model's behaviour is shaped by <em>what you show it</em>. Three related techniques: <strong>few-shot</strong> examples (show, don't tell), <strong>role prompting</strong> (assign an identity), and <strong>persona design</strong> (give that identity detail).",
+      "bn": {
+        "title": "Few-shot, role prompting আর persona",
+        "sub": "Model কেমন আচরণ করবে, তা ঠিক হয় <em>আপনি তাকে কী দেখান</em> তা দিয়ে। তিনটি সম্পর্কিত কৌশল: <strong>few-shot</strong> উদাহরণ (বলার বদলে দেখান), <strong>role prompting</strong> (একটি পরিচয় দিন), আর <strong>persona design</strong> (সেই পরিচয়কে বিস্তারিত করুন)।"
+      },
       "body": [
         {
           "type": "heading",
@@ -559,6 +571,10 @@
       "num": "03",
       "title": "Chain-of-thought, ReAct & reflection patterns",
       "sub": "These three patterns unlock <em>reasoning</em> in models — letting the AI \"think out loud\" before answering. Without them, a model guesses at hard multi-step problems; with them, it can plan, look things up, and correct its own mistakes.",
+      "bn": {
+        "title": "Chain-of-thought, ReAct আর reflection pattern",
+        "sub": "এই তিনটি pattern model-এর মধ্যে <em>reasoning</em> জাগিয়ে তোলে, অর্থাৎ উত্তর দেওয়ার আগে AI “জোরে জোরে ভাবে”। এগুলো ছাড়া কঠিন, বহুধাপের সমস্যায় model আন্দাজে উত্তর দেয়। এগুলো থাকলে সে পরিকল্পনা করতে পারে, কিছু খুঁজে দেখতে পারে, আর নিজের ভুল শুধরে নিতে পারে।"
+      },
       "body": [
         {
           "type": "heading",
@@ -823,6 +839,10 @@
       "num": "04",
       "title": "XML / Markdown structuring for reliable parsing",
       "sub": "Free-form prose is fine for humans, but software needs structured output. Markdown and XML give the model a <em>visual scaffold</em> that doubles as a <em>parsing contract</em> — the model can label sections and you can extract them deterministically.",
+      "bn": {
+        "title": "নির্ভরযোগ্য parsing-এর জন্য XML / Markdown structuring",
+        "sub": "মানুষের জন্য সাধারণ গদ্যই চলে, কিন্তু software-এর দরকার structured output। Markdown আর XML model-কে একটি <em>চোখে দেখা কাঠামো</em> দেয়, যা একই সাথে <em>parsing-এর চুক্তি</em>ও বটে — model section-গুলোতে label দিতে পারে, আর আপনি সেগুলো নির্ভুলভাবে তুলে নিতে পারেন।"
+      },
       "body": [
         {
           "type": "heading",
@@ -1076,6 +1096,10 @@
       "num": "05",
       "title": "Prompt templating & variable injection",
       "sub": "Real prompts are not single strings. They're <strong>templates</strong> with variables — user input, retrieved context, today's date, the model's prior reply — spliced in at call time. Treat them like code: structured, typed, testable.",
+      "bn": {
+        "title": "Prompt templating আর variable injection",
+        "sub": "আসল prompt একটা সাধারণ string নয়। এগুলো variable-সহ <strong>template</strong> — user-এর input, retrieve করা context, আজকের তারিখ, model-এর আগের উত্তর — যা call করার সময় বসানো হয়। এগুলোকে code-এর মতো দেখুন: কাঠামোবদ্ধ, type-যুক্ত, আর test করার যোগ্য।"
+      },
       "body": [
         {
           "type": "heading",
@@ -1327,6 +1351,10 @@
       "num": "06",
       "title": "Prompt versioning — prompts as code",
       "sub": "A prompt that ships is a deployed artifact. Treat it like one: version control, code review, regression tests, staging environments, canary rollouts. \"I'll just edit the prompt in production\" is how production AI features break.",
+      "bn": {
+        "title": "Prompt versioning — prompt-ও code",
+        "sub": "Deploy করা prompt একটি deploy করা জিনিসই। তাই সেভাবেই দেখুন: version control, code review, regression test, staging environment, canary rollout। “Production-এই prompt-টা একটু বদলে দিই” — এভাবেই production-এর AI feature ভেঙে পড়ে।"
+      },
       "body": [
         {
           "type": "heading",
@@ -1537,6 +1565,10 @@
       "num": "07",
       "title": "Output parsers & graceful failure handling",
       "sub": "The model is a probability machine. It will eventually output something your parser doesn't expect — a malformed JSON, an empty list, a refusal, a thousand-token ramble. Your job is to <em>handle that case</em>, not pretend it won't happen.",
+      "bn": {
+        "title": "Output parser আর ব্যর্থতা সামলানো",
+        "sub": "Model একটি probability-র যন্ত্র। কোনো না কোনো সময় সে এমন কিছু দেবে যা আপনার parser আশা করেনি — ভাঙা JSON, খালি list, প্রত্যাখ্যান (refusal), বা হাজার token-এর বকবকানি। আপনার কাজ <em>সেই অবস্থা সামলানো</em>, এমন ভান করা নয় যে এটা ঘটবেই না।"
+      },
       "body": [
         {
           "type": "heading",
@@ -1886,6 +1918,10 @@
       "num": "08",
       "title": "Prompt injection defense at the prompt layer",
       "sub": "<strong>Prompt injection</strong> is the #1 security problem of LLM-integrated apps. A user (or worse, an attacker who controls retrieved data) writes instructions inside data, trying to hijack the model. The prompt-layer defenses below reduce — but do not eliminate — the risk.",
+      "bn": {
+        "title": "Prompt layer-এ prompt injection থেকে রক্ষা",
+        "sub": "LLM-যুক্ত app-এর সবচেয়ে বড় নিরাপত্তা সমস্যা হলো <strong>prompt injection</strong>। কোনো user (বা আরও খারাপ, যে attacker retrieve করা data নিয়ন্ত্রণ করে) data-র ভেতরে নির্দেশ লিখে দেয়, model-কে হাইজ্যাক করার জন্য। নিচের prompt-layer-এর প্রতিরক্ষা ঝুঁকি কমায়, কিন্তু পুরোপুরি শেষ করে না।"
+      },
       "body": [
         {
           "type": "heading",

@@ -2,12 +2,20 @@
   "slug": "rag-knowledge-systems",
   "title": "RAG and Knowledge Systems",
   "lede": "A citation-backed reference for ten topics behind production RAG: chunking, vector databases, hybrid search, query transformation, multi-hop and agentic retrieval, GraphRAG, reranking, metadata filtering, document parsing, and multimodal retrieval. <strong>Each section ships in three voices:</strong> the engineer's version (diagrams, code, research findings), a layman's version (plain English with analogies), and a Bangla explanation. <strong>প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।</strong>",
+  "bn": {
+    "title": "RAG আর Knowledge System",
+    "lede": "Production RAG-এর পেছনের দশটি বিষয়ের citation-সহ রেফারেন্স: chunking, vector database, hybrid search, query transformation, multi-hop আর agentic retrieval, GraphRAG, reranking, metadata filtering, document parsing, আর multimodal retrieval। <strong>প্রতিটি section তিন ভাবে লেখা:</strong> engineer-এর ভার্সন (diagram, code, গবেষণার ফলাফল), সাধারণ পাঠকের ভার্সন (সহজ ভাষায়, উপমা দিয়ে), আর বাংলা ব্যাখ্যা। <strong>প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।</strong>"
+  },
   "sections": [
     {
       "id": "s1",
       "num": "01",
       "title": "Chunking strategies: fixed, semantic, structural, late chunking",
       "sub": "Retrieval works on pieces of documents, not whole documents, so how you cut the text decides what the retriever can ever return. A chunk that is too coarse buries the answer in noise; one that is too fine strips away the context that made the sentence meaningful. This section covers four families: <strong>fixed-size</strong> (with overlap and recursive separators), <strong>structural</strong> (headers and sentences), <strong>semantic</strong> (embedding-driven breakpoints) and <strong>late chunking</strong> (split after the transformer), plus Anthropic's <strong>contextual retrieval</strong>, which repairs lost context by prepending an explanation to every chunk.<a class=\"cite\" href=\"#src1\">[1]</a><a class=\"cite\" href=\"#src2\">[2]</a>",
+      "bn": {
+        "title": "Chunking: fixed, semantic, structural আর late chunking",
+        "sub": "Retrieval কাজ করে document-এর টুকরো নিয়ে, পুরো document নিয়ে নয়। তাই লেখাটা কীভাবে কাটবেন, তার উপরই ঠিক হয় retriever কী ফেরত দিতে পারবে। Chunk বেশি বড় হলে উত্তর বাড়তি লেখার ভিড়ে হারিয়ে যায়। বেশি ছোট হলে বাক্যটির অর্থ যে context দিয়েছিল, তা চলে যায়। এখানে চার ধরন আছে: <strong>fixed-size</strong> (overlap আর recursive separator-সহ), <strong>structural</strong> (header আর বাক্য), <strong>semantic</strong> (embedding দিয়ে ঠিক করা ভাঙার জায়গা) আর <strong>late chunking</strong> (transformer-এর পরে ভাঙা)। সাথে Anthropic-এর <strong>contextual retrieval</strong>, যা প্রতিটি chunk-এর আগে একটি ব্যাখ্যা জুড়ে হারানো context ফিরিয়ে আনে।<a class=\"cite\" href=\"#src1\">[1]</a><a class=\"cite\" href=\"#src2\">[2]</a>"
+      },
       "body": [
         {
           "type": "heading",
@@ -348,6 +356,10 @@
       "num": "02",
       "title": "Vector databases: Qdrant, Pinecone, Weaviate, pgvector, Chroma, Milvus",
       "sub": "A vector database stores embeddings and answers \"which stored vectors are closest to this one?\" without comparing against every row. Exact search over millions of vectors is too slow, so these systems build an <strong>approximate nearest neighbour (ANN)</strong> index, most often the HNSW graph.<a class=\"cite\" href=\"#src6\">[6]</a> Six popular options differ less in the core idea than in deployment model, index choices, hybrid-search support and how they isolate tenants. The feature table below is built only from vendor documentation I fetched; the \"when to choose\" guidance is my own synthesis and is labelled that way.",
+      "bn": {
+        "title": "Vector database: Qdrant, Pinecone, Weaviate, pgvector, Chroma, Milvus-এর তুলনা",
+        "sub": "Vector database embedding জমা রাখে, আর “জমানো কোন vector-গুলো এটির সবচেয়ে কাছে?” — এই প্রশ্নের উত্তর দেয়, প্রতিটি row-র সাথে তুলনা না করেই। লক্ষ লক্ষ vector-এ exact search খুব ধীর, তাই এসব system একটি <strong>approximate nearest neighbour (ANN)</strong> index বানায়, সবচেয়ে বেশি HNSW graph।<a class=\"cite\" href=\"#src6\">[6]</a> জনপ্রিয় ছয়টি option-এর মূল ধারণা প্রায় এক। পার্থক্য deployment model, index-এর বিকল্প, hybrid search-এর সাপোর্ট আর tenant আলাদা রাখার উপায়ে। নিচের feature table শুধু আমার পড়া vendor documentation থেকে বানানো। “কখন কোনটা বাছবেন” পরামর্শটা আমার নিজের সংশ্লেষণ, আর সেটা সেভাবেই লেখা আছে।"
+      },
       "body": [
         {
           "type": "heading",
@@ -707,6 +719,10 @@
       "num": "03",
       "title": "Hybrid search (BM25 + vector) & reciprocal rank fusion",
       "sub": "Keyword search (BM25) and embedding search fail in opposite ways: BM25 needs the query's exact words to appear, while dense vectors can blur rare identifiers, names and codes. <strong>Hybrid search</strong> runs both and merges the results. The most common merge is <strong>reciprocal rank fusion (RRF)</strong>, which ignores raw scores and combines only each document's rank in each list.<a class=\"cite\" href=\"#src16\">[16]</a> The catch is that the two retrievers' scores live on different scales, which is exactly the problem rank-based fusion sidesteps.",
+      "bn": {
+        "title": "Hybrid search (BM25 + vector) আর reciprocal rank fusion",
+        "sub": "Keyword search (BM25) আর embedding search উল্টো উল্টো জায়গায় ব্যর্থ হয়। BM25-এর জন্য query-র ঠিক শব্দগুলো লেখায় থাকতে হয়। Dense vector আবার বিরল identifier, নাম আর code ঝাপসা করে ফেলতে পারে। <strong>Hybrid search</strong> দুটোই চালিয়ে ফলাফল মিলিয়ে দেয়। সবচেয়ে প্রচলিত মেলানোর উপায় <strong>reciprocal rank fusion (RRF)</strong>: এটা কাঁচা score দেখে না, শুধু প্রতিটি তালিকায় document-এর ranking মিলিয়ে নেয়।<a class=\"cite\" href=\"#src16\">[16]</a> সমস্যাটা হলো, দুই retriever-এর score আলাদা মাপের, আর rank-ভিত্তিক fusion ঠিক এই সমস্যাটাই এড়িয়ে যায়।"
+      },
       "body": [
         {
           "type": "heading",
@@ -965,6 +981,10 @@
       "num": "04",
       "title": "Query rewriting, expansion & HyDE",
       "sub": "User queries are short, ambiguous and phrased differently from the documents that answer them. <strong>Query transformation</strong> puts a step before retrieval that rewrites, broadens, multiplies or even \"answers\" the query so the retriever has a better string (or vector) to match. Established variants include HyDE<a class=\"cite\" href=\"#src23\">[23]</a>, step-back prompting<a class=\"cite\" href=\"#src24\">[24]</a>, Query2doc<a class=\"cite\" href=\"#src25\">[25]</a>, RAG-Fusion<a class=\"cite\" href=\"#src26\">[26]</a> and Rewrite-Retrieve-Read<a class=\"cite\" href=\"#src27\">[27]</a>. Each trades one extra LLM call (latency and cost) for a better chance that the right chunk appears in the candidate set.",
+      "bn": {
+        "title": "Query rewriting, expansion আর HyDE",
+        "sub": "User-এর query ছোট, অস্পষ্ট, আর উত্তর-দেওয়া document-এর ভাষা থেকে আলাদা। <strong>Query transformation</strong> retrieval-এর আগে একটি ধাপ বসায়, যা query-কে নতুন করে লেখে, বড় করে, একাধিক করে, এমনকি “উত্তর দিয়েও” ফেলে, যাতে retriever মেলানোর জন্য ভালো একটি string (বা vector) পায়। পরিচিত ধরনগুলো: HyDE<a class=\"cite\" href=\"#src23\">[23]</a>, step-back prompting<a class=\"cite\" href=\"#src24\">[24]</a>, Query2doc<a class=\"cite\" href=\"#src25\">[25]</a>, RAG-Fusion<a class=\"cite\" href=\"#src26\">[26]</a> আর Rewrite-Retrieve-Read<a class=\"cite\" href=\"#src27\">[27]</a>। প্রতিটিতে একটি বাড়তি LLM call লাগে (latency আর খরচ), বিনিময়ে সঠিক chunk candidate-এর মধ্যে আসার সম্ভাবনা বাড়ে।"
+      },
       "body": [
         {
           "type": "heading",
@@ -1243,6 +1263,10 @@
       "num": "05",
       "title": "Multi-hop retrieval & agentic retrieval",
       "sub": "Some questions cannot be answered from one retrieval: the second search depends on what the first one found. Multi-hop benchmarks such as HotpotQA (113k Wikipedia question-answer pairs that require reasoning over multiple documents, with sentence-level supporting facts)<a class=\"cite\" href=\"#src28\">[28]</a> exist to test exactly this. <strong>Agentic retrieval</strong> lets the model itself decide whether to retrieve, what to search for, whether the results are good enough, and when to stop. The price is more LLM calls, more latency and a harder system to debug.",
+      "bn": {
+        "title": "Multi-hop retrieval আর agentic retrieval",
+        "sub": "কিছু প্রশ্নের উত্তর একবার retrieval করে মেলে না: দ্বিতীয় search নির্ভর করে প্রথমটি কী পেল তার উপর। HotpotQA-র মতো multi-hop benchmark ঠিক এটাই পরীক্ষা করে (Wikipedia থেকে 113k প্রশ্ন-উত্তরের জোড়া, যেগুলোর জন্য একাধিক document নিয়ে reasoning লাগে, আর প্রতিটির সাথে বাক্য-স্তরের সহায়ক তথ্য আছে)।<a class=\"cite\" href=\"#src28\">[28]</a> <strong>Agentic retrieval</strong>-এ model নিজেই ঠিক করে retrieve করবে কি না, কী খুঁজবে, ফলাফল যথেষ্ট ভালো কি না, আর কখন থামবে। এর দাম: বেশি LLM call, বেশি latency, আর system debug করা কঠিন।"
+      },
       "body": [
         {
           "type": "heading",
@@ -1538,6 +1562,10 @@
       "num": "06",
       "title": "Reranking: Cohere, BGE, Voyage",
       "sub": "First-stage retrieval (BM25, dense vectors, or both) is built to be fast over a huge corpus, so it scores each document without ever looking at the query and document together. A <strong>reranker</strong> is a second-stage model that does look at them together: it takes the short candidate list and re-orders it by a more accurate relevance score. Sentence-Transformers documents this as the recommended pattern: a bi-encoder retrieves top-k candidates, then a cross-encoder re-ranks them.<a class=\"cite\" href=\"#src43\">[43]</a> Hosted options include Cohere Rerank and Voyage rerankers; open weights include BAAI's BGE rerankers.<a class=\"cite\" href=\"#src44\">[44]</a><a class=\"cite\" href=\"#src45\">[45]</a><a class=\"cite\" href=\"#src46\">[46]</a>",
+      "bn": {
+        "title": "Reranking-এ ফলাফল সাজানো: Cohere, BGE, Voyage",
+        "sub": "প্রথম ধাপের retrieval (BM25, dense vector, বা দুটোই) বিশাল corpus-এ দ্রুত চলার জন্য বানানো। তাই সে প্রতিটি document-এর score দেয় query আর document একসাথে না দেখেই। <strong>Reranker</strong> দ্বিতীয় ধাপের model, যে দুটো একসাথে দেখে: ছোট candidate তালিকা নিয়ে আরও নিখুঁত relevance score দিয়ে সেটা নতুন করে সাজায়। Sentence-Transformers এটাকেই সুপারিশ করা pattern হিসেবে লিখেছে: bi-encoder top-k candidate retrieve করে, তারপর cross-encoder তাদের re-rank করে।<a class=\"cite\" href=\"#src43\">[43]</a> Hosted option-এর মধ্যে আছে Cohere Rerank আর Voyage reranker, আর open weight-এর মধ্যে BAAI-র BGE reranker।<a class=\"cite\" href=\"#src44\">[44]</a><a class=\"cite\" href=\"#src45\">[45]</a><a class=\"cite\" href=\"#src46\">[46]</a>"
+      },
       "body": [
         {
           "type": "heading",
@@ -1796,6 +1824,10 @@
       "num": "07",
       "title": "Metadata filtering & structured retrieval",
       "sub": "Real questions mix meaning with constraints: \"refund policy for <em>enterprise</em> customers in <em>2025</em>\" or \"science-fiction movies after 2000 with rating above 8\". Vector similarity alone cannot enforce <code>year &gt; 2000</code>, so production retrieval attaches metadata to each chunk and filters on it, and for questions about counts or totals it hands the job to a database. The hard part is that a filter interacts badly with approximate nearest-neighbour (ANN) indexes, and each vector database handles that differently.<a class=\"cite\" href=\"#src50\">[50]</a><a class=\"cite\" href=\"#src51\">[51]</a>",
+      "bn": {
+        "title": "Metadata filtering আর structured retrieval",
+        "sub": "আসল প্রশ্নে অর্থের সাথে শর্তও মেশানো থাকে: “2025 সালে <em>enterprise</em> customer-দের refund policy” বা “2000-এর পরের, rating 8-এর বেশি science-fiction সিনেমা”। শুধু vector similarity দিয়ে <code>year &gt; 2000</code> জোর করে খাটানো যায় না। তাই production retrieval প্রতিটি chunk-এ metadata জুড়ে তার উপর filter করে। আর গোনা বা মোট বের করার প্রশ্ন হলে কাজটা database-কে দিয়ে দেয়। কঠিন দিকটা হলো, filter approximate nearest-neighbour (ANN) index-এর সাথে ভালোভাবে কাজ করে না, আর প্রতিটি vector database এটা আলাদা ভাবে সামলায়।<a class=\"cite\" href=\"#src50\">[50]</a><a class=\"cite\" href=\"#src51\">[51]</a>"
+      },
       "body": [
         {
           "type": "heading",
@@ -2092,6 +2124,10 @@
       "num": "08",
       "title": "GraphRAG & knowledge-graph augmentation",
       "sub": "Vector search returns chunks that look like the query. It struggles with \"global\" questions such as \"what are the main themes in this dataset?\", which no single chunk answers. Microsoft's GraphRAG reframes this as query-focused summarization: an LLM builds an entity knowledge graph, pre-generates summaries for communities of related entities, and merges partial answers from those summaries at query time.<a class=\"cite\" href=\"#src37\">[37]</a> Lighter variants (LightRAG<a class=\"cite\" href=\"#src38\">[38]</a>, HippoRAG<a class=\"cite\" href=\"#src39\">[39]</a>) and graph-database tooling (Neo4j<a class=\"cite\" href=\"#src40\">[40]</a>) target the same gap with different cost profiles.",
+      "bn": {
+        "title": "GraphRAG আর knowledge-graph দিয়ে শক্তিবৃদ্ধি",
+        "sub": "Vector search এমন chunk ফেরত দেয় যা দেখতে query-র মতো। কিন্তু “এই dataset-এর মূল বিষয়গুলো কী?” — এমন “global” প্রশ্নে সে হোঁচট খায়, কারণ কোনো একটি chunk-ই এর উত্তর দেয় না। Microsoft-এর GraphRAG এটাকে query-কেন্দ্রিক summarization হিসেবে দেখে: একটি LLM entity knowledge graph বানায়, সম্পর্কিত entity-র দলগুলোর (community) summary আগে থেকেই তৈরি করে রাখে, আর query-র সময় সেই summary থেকে আংশিক উত্তর জুড়ে দেয়।<a class=\"cite\" href=\"#src37\">[37]</a> হালকা ধরনগুলো (LightRAG<a class=\"cite\" href=\"#src38\">[38]</a>, HippoRAG<a class=\"cite\" href=\"#src39\">[39]</a>) আর graph-database tooling (Neo4j<a class=\"cite\" href=\"#src40\">[40]</a>) একই ফাঁক পূরণ করতে চায়, তবে খরচের হিসাব আলাদা।"
+      },
       "body": [
         {
           "type": "heading",
@@ -2351,6 +2387,10 @@
       "num": "09",
       "title": "Document parsing pipelines: Unstructured, LlamaParse, Docling",
       "sub": "A RAG system is only as good as the text it indexes, and most enterprise knowledge sits in PDFs, scans, slide decks and spreadsheets, not clean strings. A <strong>parsing pipeline</strong> turns those files into structured elements (headings, paragraphs, tables, figures) and then into Markdown or JSON that a chunker can split sensibly. Three widely used options are Docling (IBM Research, MIT-licensed)<a class=\"cite\" href=\"#src58\">[58]</a>, the Unstructured open-source partitioner<a class=\"cite\" href=\"#src59\">[59]</a> and LlamaParse from LlamaIndex<a class=\"cite\" href=\"#src60\">[60]</a>.",
+      "bn": {
+        "title": "Document parsing pipeline: Unstructured, LlamaParse, Docling-এর পরিচয়",
+        "sub": "RAG system ততটাই ভালো, index করা text যতটা ভালো। অথচ company-র বেশিরভাগ জ্ঞান থাকে PDF, scan, slide deck আর spreadsheet-এ, পরিষ্কার string-এ নয়। <strong>Parsing pipeline</strong> এই file-গুলোকে structured element-এ (heading, paragraph, table, figure) বদলায়, তারপর Markdown বা JSON-এ, যাতে chunker সেটাকে বুদ্ধি করে ভাঙতে পারে। তিনটি বহুল ব্যবহৃত option: Docling (IBM Research, MIT license)<a class=\"cite\" href=\"#src58\">[58]</a>, open-source Unstructured partitioner<a class=\"cite\" href=\"#src59\">[59]</a> আর LlamaIndex-এর LlamaParse<a class=\"cite\" href=\"#src60\">[60]</a>।"
+      },
       "body": [
         {
           "type": "heading",
@@ -2629,6 +2669,10 @@
       "num": "10",
       "title": "Multimodal RAG: images, tables, charts",
       "sub": "Text-only RAG goes blind the moment the answer lives in a chart, a scanned table or a slide. Multimodal RAG keeps those objects searchable. There are three broad designs: turn everything into text, embed images directly into a shared vector space, or retrieve page images with late interaction and let a vision-capable model read them.<a class=\"cite\" href=\"#src63\">[63]</a><a class=\"cite\" href=\"#src62\">[62]</a>",
+      "bn": {
+        "title": "Multimodal RAG: ছবি, table, chart",
+        "sub": "উত্তর কোনো chart, scan করা table বা slide-এ থাকলে শুধু text-ভিত্তিক RAG অন্ধ হয়ে যায়। Multimodal RAG এই জিনিসগুলোকে খোঁজার যোগ্য রাখে। তিনটি বড় নকশা আছে: সবকিছুকে text বানিয়ে ফেলা, ছবিকে সরাসরি একটি shared vector space-এ embed করা, অথবা late interaction দিয়ে পাতার ছবি retrieve করে vision-সক্ষম model-কে পড়তে দেওয়া।<a class=\"cite\" href=\"#src63\">[63]</a><a class=\"cite\" href=\"#src62\">[62]</a>"
+      },
       "body": [
         {
           "type": "heading",

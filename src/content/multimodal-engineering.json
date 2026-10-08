@@ -2,12 +2,20 @@
   "slug": "multimodal-engineering",
   "title": "Multimodal Engineering",
   "lede": "Vision (OCR-via-LLM, document AI), voice (STT/TTS, realtime APIs from OpenAI / LiveKit / Vapi), image generation (Flux, SDXL, Imagen, DALL-E; ControlNet, LoRA, ComfyUI), and video generation (Sora, Veo, Runway, Kling). <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
+  "bn": {
+    "title": "Multimodal Engineering (text-এর বাইরে)",
+    "lede": "Vision (LLM দিয়ে OCR, document AI), voice (STT/TTS, OpenAI / LiveKit / Vapi-র realtime API), image generation (Flux, SDXL, Imagen, DALL-E; ControlNet, LoRA, ComfyUI), আর video generation (Sora, Veo, Runway, Kling)। <strong>প্রতিটি section দুই ভাবে লেখা:</strong> engineer-এর জন্য technical version (code আর diagram সহ), আর সাধারণ পাঠকের জন্য সহজ ভাষায় ব্যাখ্যা (উপমা সহ)। প্রতিটি topic-এর শেষে বাংলা ব্যাখ্যাও আছে।"
+  },
   "sections": [
     {
       "id": "s8",
       "num": "01",
       "title": "Multimodal engineering (vision, voice, video)",
       "sub": "Text was the first modality. In 2025, every production AI app combines at least two of <strong>vision</strong>, <strong>voice</strong>, <strong>image generation</strong>, and <strong>video generation</strong>. Multimodal engineering is the discipline of choosing models, latency budgets, and pipelines for each.",
+      "bn": {
+        "title": "Multimodal engineering: vision, voice আর video",
+        "sub": "Text ছিল প্রথম modality। 2025 সালে প্রতিটা production AI app <strong>vision</strong>, <strong>voice</strong>, <strong>image generation</strong> আর <strong>video generation</strong>-এর অন্তত দুটো একসাথে ব্যবহার করে। Multimodal engineering হলো প্রতিটার জন্য model, latency budget আর pipeline বেছে নেওয়ার কাজ।"
+      },
       "body": [
         {
           "type": "heading",

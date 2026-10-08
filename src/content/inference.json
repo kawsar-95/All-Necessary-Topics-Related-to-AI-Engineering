@@ -2,12 +2,20 @@
   "slug": "inference",
   "title": "Inference",
   "lede": "API-based vs self-hosted inference; vLLM, TGI, SGLang, Ollama, llama.cpp; GGUF/AWQ/GPTQ/INT4-INT8 quantisation; KV cache, prefix caching, speculative decoding; continuous batching; TTFT vs TPS; GPU economics, edge inference, and the major hosted providers (Together, Fireworks, Groq, Cerebras, Replicate, AWS Bedrock). <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
+  "bn": {
+    "title": "Inference (model চালানো)",
+    "lede": "API-ভিত্তিক বনাম নিজে host করা inference; vLLM, TGI, SGLang, Ollama, llama.cpp; GGUF/AWQ/GPTQ/INT4-INT8 quantisation; KV cache, prefix caching, speculative decoding; continuous batching; TTFT বনাম TPS; GPU-র অর্থনীতি, edge inference, আর বড় বড় hosted provider (Together, Fireworks, Groq, Cerebras, Replicate, AWS Bedrock)। <strong>প্রতিটি section দুই ভাবে লেখা:</strong> engineer-এর জন্য technical version (code আর diagram সহ), আর সাধারণ পাঠকের জন্য সহজ ভাষায় ব্যাখ্যা (উপমা সহ)। প্রতিটি topic-এর শেষে বাংলা ব্যাখ্যাও আছে।"
+  },
   "sections": [
     {
       "id": "s3",
       "num": "01",
       "title": "Inference (servers, quantization, providers)",
       "sub": "Every LLM call has two sides: the <strong>request</strong> you send and the <strong>inference</strong> that serves it. Most teams start by renting (Together, Fireworks, Groq, Cerebras, Replicate, AWS Bedrock). Once usage justifies it, you self-host with vLLM, TGI, SGLang, Ollama, or llama.cpp — and learn a different optimization vocabulary: KV cache, prefix caching, speculative decoding, continuous batching.",
+      "bn": {
+        "title": "Inference: server, quantization আর provider",
+        "sub": "প্রতিটা LLM call-এর দুই দিক: আপনার পাঠানো <strong>request</strong>, আর সেটা যে <strong>inference</strong> সামলায়। বেশিরভাগ team শুরুতে ভাড়া নেয় (Together, Fireworks, Groq, Cerebras, Replicate, AWS Bedrock)। ব্যবহার যথেষ্ট বাড়লে তারা vLLM, TGI, SGLang, Ollama বা llama.cpp দিয়ে নিজে host করে। তখন optimization-এর একদম নতুন শব্দভান্ডার শিখতে হয়: KV cache, prefix caching, speculative decoding, continuous batching।"
+      },
       "body": [
         {
           "type": "heading",

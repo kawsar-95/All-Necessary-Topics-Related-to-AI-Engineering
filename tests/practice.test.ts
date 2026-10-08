@@ -26,7 +26,7 @@ const bn: PracticeText = { ...en, title: "AI কেন আলাদা উত্
 const valid: Practice = { en, bn };
 
 function fileWith(practice: unknown) {
-  return { slug: "x", title: "X", lede: "L", sources: [], sections: [{ id: "s1", num: "01", title: "T", sub: "", body: [], layman: [], bangla: [], practice }] };
+  return { slug: "x", title: "X", lede: "L", bn: { title: "X", lede: "L" }, sources: [], sections: [{ id: "s1", num: "01", title: "T", sub: "", bn: { title: "T", sub: "" }, body: [], layman: [], bangla: [], practice }] };
 }
 const parse = (practice: unknown) => TopicFileSchema.parse(fileWith(practice));
 const withEn = (patch: Partial<PracticeText>): Practice => ({ en: { ...en, ...patch }, bn });

@@ -1,14 +1,11 @@
-import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter, JetBrains_Mono, Noto_Sans_Bengali } from "next/font/google";
 import "./globals.css";
-import { getNavItems } from "@/lib/topics";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { SearchPalette } from "@/components/navigation/SearchPalette";
-import { Sidebar } from "@/components/layout/Sidebar";
-import { SidebarList } from "@/components/layout/SidebarList";
+import { langInitScript } from "@/lib/i18n";
 import { ServiceWorker } from "@/components/layout/ServiceWorker";
+
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 const fraunces = Fraunces({
   variable: "--font-fraunces",
@@ -60,11 +57,10 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
-  const items = getNavItems();
-
   return (
-    // The inline script changes data-theme before React hydrates, so React
-    // must accept the DOM value (suppressHydrationWarning).
+    // The inline scripts change data-theme and lang before React hydrates,
+    // so React must accept the DOM values (suppressHydrationWarning). The
+    // header, sidebar, and footer come from SiteShell in each language layout.
     <html
       lang="en"
       data-theme="dark"
@@ -73,34 +69,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: langInitScript(BASE_PATH) }} />
       </head>
       <body className="min-h-full bg-bg text-text">
-        <a
-          href="#content"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:border focus:border-accent focus:bg-bg-raised focus:px-4 focus:py-2 focus:text-sm focus:text-text"
-        >
-          Skip to content
-        </a>
-        <SiteHeader items={items} searchSlot={<SearchPalette />} />
-        <div className="lg:grid lg:grid-cols-[260px_minmax(0,1fr)]">
-          <aside className="hidden border-r border-border lg:sticky lg:top-14 lg:block lg:h-[calc(100vh-3.5rem)] lg:self-start lg:overflow-y-auto">
-            <Suspense fallback={<SidebarList items={items} activeSlug={null} />}>
-              <Sidebar items={items} />
-            </Suspense>
-          </aside>
-          <div className="flex min-h-[calc(100vh-3.5rem)] min-w-0 flex-col">
-            {/* The inline style beats the global :focus-visible rule for the skip-link target. */}
-            <main id="content" tabIndex={-1} style={{ outline: "none" }} className="flex-1">
-              {children}
-            </main>
-            <footer className="mt-24 border-t border-border px-6 py-8 text-xs leading-relaxed text-text-faint">
-              <p className="mx-auto max-w-3xl">
-                13 parts · citations verified against each publisher&apos;s
-                metadata.
-              </p>
-            </footer>
-          </div>
-        </div>
+        {children}
         <ServiceWorker />
       </body>
     </html>

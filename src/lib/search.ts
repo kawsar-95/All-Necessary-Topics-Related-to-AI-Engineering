@@ -4,6 +4,7 @@
 
 import MiniSearch from "minisearch";
 import type { Block, TopicFile } from "./content-schema.ts";
+import type { Lang } from "./i18n.ts";
 
 export type SearchDoc = {
   id: string;
@@ -50,23 +51,32 @@ export function blockText(block: Block, strip: (html: string) => string): string
   }
 }
 
-/** One doc per section. The text comes from the Technical voice only. */
+/**
+ * One doc per section. English docs use the Technical voice. Bangla docs
+ * use the Bangla titles and the বাংলা voice, plus the Technical text, so a
+ * search for an English term such as "token" works on the Bangla site too.
+ */
 export function buildSearchDocs(
   topics: (TopicFile & { part: number })[],
   strip: (html: string) => string,
+  lang: Lang = "en",
 ): SearchDoc[] {
+  const bn = lang === "bn";
   return topics.flatMap((topic) =>
-    topic.sections.map((section) => ({
-      id: `${topic.slug}#${section.id}`,
-      href: `/topics/${topic.slug}#${section.id}`,
-      part: topic.part,
-      topic: topic.title,
-      title: section.title,
-      text: [strip(section.sub), ...section.body.map((block) => blockText(block, strip))]
-        .join(" ")
-        .replace(/\s+/g, " ")
-        .trim(),
-    })),
+    topic.sections.map((section) => {
+      const blocks = bn ? [...section.bangla, ...section.body] : section.body;
+      return {
+        id: `${topic.slug}#${section.id}`,
+        href: `${bn ? "/bn" : ""}/topics/${topic.slug}#${section.id}`,
+        part: topic.part,
+        topic: bn ? topic.bn.title : topic.title,
+        title: bn ? section.bn.title : section.title,
+        text: [strip(bn ? section.bn.sub : section.sub), ...blocks.map((block) => blockText(block, strip))]
+          .join(" ")
+          .replace(/\s+/g, " ")
+          .trim(),
+      };
+    }),
   );
 }
 

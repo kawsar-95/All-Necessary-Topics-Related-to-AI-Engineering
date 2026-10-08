@@ -3,6 +3,8 @@
 import { useEffect, useLayoutEffect, useSyncExternalStore } from "react";
 import { THEME_STORAGE_KEY, nextTheme, resolveTheme } from "@/lib/theme";
 import type { Theme } from "@/lib/theme";
+import { UI } from "@/lib/i18n";
+import type { Lang } from "@/lib/i18n";
 
 const LIGHT_QUERY = "(prefers-color-scheme: light)";
 
@@ -35,7 +37,8 @@ function getTheme(): Theme {
  * changes it and saves the choice. The icon comes from CSS, so it is right
  * before hydration too.
  */
-export function ThemeToggle() {
+export function ThemeToggle({ lang }: { lang: Lang }) {
+  const ui = UI[lang];
   const theme = useSyncExternalStore(subscribe, getTheme, () => null);
 
   // In development, React's Strict Mode remount clears data-theme on <html>.
@@ -64,12 +67,14 @@ export function ThemeToggle() {
     }
   };
 
+  const label = theme === null ? ui.themeGeneric : nextTheme(theme) === "light" ? ui.themeToLight : ui.themeToDark;
+
   return (
     <button
       type="button"
       onClick={toggle}
-      aria-label={theme ? `Switch to ${nextTheme(theme)} theme` : "Switch color theme"}
-      title={theme ? `Switch to ${nextTheme(theme)} theme` : "Switch color theme"}
+      aria-label={label}
+      title={label}
       className="grid size-9 shrink-0 place-items-center rounded-md border border-border bg-bg-raised/60 text-text-dim transition-colors hover:border-border-strong hover:text-text"
     >
       {/* Sun: shown in the dark theme (switches to light). */}

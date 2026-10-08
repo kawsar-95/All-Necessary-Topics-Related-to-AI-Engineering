@@ -5,7 +5,8 @@
 // fails `next build`.
 
 import { TopicFileSchema } from "@/lib/content-schema";
-import type { TopicFile } from "@/lib/content-schema";
+import type { Section, TopicFile } from "@/lib/content-schema";
+import type { Lang } from "@/lib/i18n";
 
 import llmFundamentals from "@/content/llm-fundamentals.json";
 import promptEngineering from "@/content/prompt-engineering.json";
@@ -89,10 +90,24 @@ export function stripTags(html: string): string {
     .replaceAll("&amp;", "&");
 }
 
-export function getOutline(topic: Topic): OutlineItem[] {
+/** The title, tagline, and intro of a topic in `lang`. */
+export function topicText(topic: Topic, lang: Lang): { title: string; tagline?: string; lede: string } {
+  return lang === "bn" ? topic.bn : { title: topic.title, tagline: topic.tagline, lede: topic.lede };
+}
+
+/** The title and intro of a section in `lang`. */
+export function sectionText(section: Section, lang: Lang): { title: string; sub: string } {
+  return lang === "bn" ? section.bn : { title: section.title, sub: section.sub };
+}
+
+/**
+ * The page outline. Section titles follow `lang`. The h3 headings of a
+ * one-section topic come from the Technical body, which is English only.
+ */
+export function getOutline(topic: Topic, lang: Lang = "en"): OutlineItem[] {
   const single = topic.sections.length === 1;
   return topic.sections.flatMap((section) => {
-    const item: OutlineItem = { id: section.id, title: section.title, level: 2 };
+    const item: OutlineItem = { id: section.id, title: sectionText(section, lang).title, level: 2 };
     if (!single) return [item];
     const headings = section.body.flatMap((block): OutlineItem[] =>
       block.type === "heading" && block.level === 3
@@ -103,6 +118,6 @@ export function getOutline(topic: Topic): OutlineItem[] {
   });
 }
 
-export function getNavItems(): NavItem[] {
-  return TOPICS.map((t) => ({ part: t.part, slug: t.slug, title: t.title }));
+export function getNavItems(lang: Lang = "en"): NavItem[] {
+  return TOPICS.map((t) => ({ part: t.part, slug: t.slug, title: topicText(t, lang).title }));
 }

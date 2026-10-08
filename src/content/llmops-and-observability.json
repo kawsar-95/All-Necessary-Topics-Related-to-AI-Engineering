@@ -2,12 +2,20 @@
   "slug": "llmops-and-observability",
   "title": "LLMOps and Observability",
   "lede": "Tracing with Langfuse / LangSmith / Helicone / Arize Phoenix / Braintrust; per-request token, cost, and latency tracking; prompt and agent versioning; A/B testing; replay and debugging; drift detection when model upgrades silently change behaviour; feedback loops that grow your eval dataset. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
+  "bn": {
+    "title": "LLMOps আর Observability",
+    "lede": "Langfuse / LangSmith / Helicone / Arize Phoenix / Braintrust দিয়ে tracing; প্রতিটা request-এর token, খরচ আর latency মাপা; prompt আর agent-এর versioning; A/B testing; replay করে debug করা; model upgrade-এ চুপচাপ আচরণ বদলে গেলে সেই drift ধরা; আর feedback loop, যা আপনার eval dataset বড় করে। <strong>প্রতিটি section দুই ভাবে লেখা:</strong> engineer-এর জন্য technical version (code আর diagram সহ), আর সাধারণ পাঠকের জন্য সহজ ভাষায় ব্যাখ্যা (উপমা সহ)। প্রতিটি topic-এর শেষে বাংলা ব্যাখ্যাও আছে।"
+  },
   "sections": [
     {
       "id": "s4",
       "num": "01",
       "title": "LLMOps & observability",
       "sub": "Traditional DevOps answers \"did the request return 200?\" LLM apps need richer questions: <em>did the model return the right answer, at the right cost, in the right tone, with no leakage?</em> The discipline of answering those is <strong>LLMOps</strong>, and it has its own toolchain.",
+      "bn": {
+        "title": "LLMOps আর observability",
+        "sub": "পুরোনো DevOps জিজ্ঞেস করে, \"request কি 200 ফেরত দিয়েছে?\" LLM app-এ আরও গভীর প্রশ্ন লাগে: <em>model কি সঠিক উত্তর দিয়েছে, ঠিক খরচে, ঠিক সুরে, কোনো তথ্য ফাঁস না করে?</em> এই প্রশ্নগুলোর উত্তর খোঁজার কাজকে বলে <strong>LLMOps</strong>, আর এর নিজস্ব toolchain আছে।"
+      },
       "body": [
         {
           "type": "heading",

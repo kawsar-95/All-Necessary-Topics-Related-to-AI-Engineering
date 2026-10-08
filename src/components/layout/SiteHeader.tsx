@@ -2,6 +2,9 @@ import { Suspense } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import type { NavItem } from "@/lib/topics";
+import { UI, homeHref } from "@/lib/i18n";
+import type { Lang } from "@/lib/i18n";
+import { LanguageSwitch, LanguageSwitchFallback } from "./LanguageSwitch";
 import { MobileNav } from "./MobileNav";
 import { InstallButton } from "./InstallButton";
 import { ThemeToggle } from "./ThemeToggle";
@@ -21,13 +24,16 @@ function MenuButtonPlaceholder() {
 
 /**
  * The sticky top bar: the menu button (below `lg`), the logo, and on the
- * right the search trigger slot, the install button, and the theme switch.
+ * right the search trigger slot, the language switch, the install button,
+ * and the theme switch.
  */
 export function SiteHeader({
   items,
+  lang,
   searchSlot,
 }: {
   items: NavItem[];
+  lang: Lang;
   searchSlot?: ReactNode;
 }) {
   return (
@@ -37,9 +43,9 @@ export function SiteHeader({
       <div aria-hidden="true" className="absolute inset-0 -z-10 bg-bg/85 backdrop-blur-md" />
       <div className="flex h-full items-center gap-3 px-4 sm:px-6">
         <Suspense fallback={<MenuButtonPlaceholder />}>
-          <MobileNav items={items} />
+          <MobileNav items={items} lang={lang} />
         </Suspense>
-        <Link href="/" className="flex min-w-0 items-center gap-2.5 text-text no-underline">
+        <Link href={homeHref(lang)} className="flex min-w-0 items-center gap-2.5 text-text no-underline">
           <span
             aria-hidden="true"
             className="grid size-7 shrink-0 place-items-center rounded-md border border-border-strong bg-bg-raised font-display text-[15px] font-semibold italic leading-none text-accent"
@@ -47,13 +53,16 @@ export function SiteHeader({
             Ai
           </span>
           <span className="truncate font-display text-[17px] font-semibold tracking-tight">
-            AI Engineering
+            {UI[lang].siteName}
           </span>
         </Link>
         <div className="ml-auto flex items-center gap-2">
           {searchSlot}
-          <InstallButton />
-          <ThemeToggle />
+          <Suspense fallback={<LanguageSwitchFallback lang={lang} />}>
+            <LanguageSwitch lang={lang} />
+          </Suspense>
+          <InstallButton lang={lang} />
+          <ThemeToggle lang={lang} />
         </div>
       </div>
     </header>

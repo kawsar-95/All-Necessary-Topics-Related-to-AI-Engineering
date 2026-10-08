@@ -9,7 +9,7 @@ const en2: Video = { id: "kCc8FmEb1nY", title: "Let's build GPT", channel: "Andr
 const bn1: Video = { id: "abcdefghijk", title: "এলএলএম কী", channel: "Example", lang: "bn" };
 
 function fileWith(videos: unknown) {
-  return { slug: "x", title: "X", lede: "L", sources: [], sections: [{ id: "s1", num: "01", title: "T", sub: "", body: [], layman: [], bangla: [], videos }] };
+  return { slug: "x", title: "X", lede: "L", bn: { title: "X", lede: "L" }, sources: [], sections: [{ id: "s1", num: "01", title: "T", sub: "", bn: { title: "T", sub: "" }, body: [], layman: [], bangla: [], videos }] };
 }
 
 test("TopicFileSchema accepts sections with and without videos", () => {

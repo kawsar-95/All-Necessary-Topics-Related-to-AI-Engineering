@@ -57,6 +57,8 @@ export type Section = {
   num: string;
   title: string;
   sub: Inline;
+  /** The Bangla title and intro, for the Bangla site. */
+  bn: { title: string; sub: Inline };
   body: Block[];
   layman: Block[];
   bangla: Block[];
@@ -71,6 +73,8 @@ export type TopicFile = {
   title: string;
   tagline?: string;
   lede: Inline;
+  /** The Bangla title, tagline, and intro, for the Bangla site. */
+  bn: { title: string; tagline?: string; lede: Inline };
   sections: Section[];
   sources: Source[];
 };
@@ -191,6 +195,7 @@ export const SectionSchema: z.ZodType<Section> = z.strictObject({
   num: z.string(),
   title: z.string(),
   sub: InlineSchema,
+  bn: z.strictObject({ title: PlainTextSchema, sub: InlineSchema }),
   body: z.array(BlockSchema),
   layman: z.array(BlockSchema),
   bangla: z.array(BlockSchema),
@@ -209,6 +214,11 @@ export const TopicFileSchema: z.ZodType<TopicFile> = z.strictObject({
   title: z.string(),
   tagline: z.string().optional(),
   lede: InlineSchema,
+  bn: z.strictObject({
+    title: PlainTextSchema,
+    tagline: PlainTextSchema.optional(),
+    lede: InlineSchema,
+  }),
   sections: z.array(SectionSchema),
   sources: z.array(SourceSchema),
 });

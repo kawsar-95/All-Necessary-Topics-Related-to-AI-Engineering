@@ -2,12 +2,20 @@
   "slug": "evaluation-engineering",
   "title": "Evaluation Engineering",
   "lede": "Offline evals on golden datasets, LLM-as-judge (pairwise + rubric), RAG metrics (faithfulness, answer relevance, context precision/recall via Ragas), agent evals (task success, trajectory, tool-call accuracy), synthetic data generation, frameworks (Promptfoo, DeepEval, Inspect, Braintrust, OpenAI Evals), online evals on production traffic, and red-teaming. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
+  "bn": {
+    "title": "Evaluation Engineering (model মাপার কাজ)",
+    "lede": "Golden dataset-এর ওপর offline eval, LLM-as-judge (pairwise + rubric), RAG metric (faithfulness, answer relevance, context precision/recall, Ragas দিয়ে), agent eval (task success, trajectory, tool-call accuracy), synthetic data তৈরি, framework (Promptfoo, DeepEval, Inspect, Braintrust, OpenAI Evals), production traffic-এর ওপর online eval, আর red-teaming। <strong>প্রতিটি section দুই ভাবে লেখা:</strong> engineer-এর জন্য technical version (code আর diagram সহ), আর সাধারণ পাঠকের জন্য সহজ ভাষায় ব্যাখ্যা (উপমা সহ)। প্রতিটি topic-এর শেষে বাংলা ব্যাখ্যাও আছে।"
+  },
   "sections": [
     {
       "id": "s5",
       "num": "01",
       "title": "Evaluation engineering",
       "sub": "If you can't measure it, you can't improve it. <strong>Evaluation engineering</strong> is the discipline of turning \"the model feels worse today\" into numbers, then turning the numbers into a CI signal that gates every prompt or model change.",
+      "bn": {
+        "title": "Evaluation engineering: model মাপার কাজ",
+        "sub": "মাপতে না পারলে উন্নতি করা যায় না। <strong>Evaluation engineering</strong> হলো \"model আজ খারাপ লাগছে\" কথাটাকে সংখ্যায় বদলানোর কাজ। তারপর সেই সংখ্যাকে CI-র একটা signal বানানো হয়, যা প্রতিটা prompt বা model বদলানোর আগে পরীক্ষা করে।"
+      },
       "body": [
         {
           "type": "heading",
