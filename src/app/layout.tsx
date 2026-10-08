@@ -9,7 +9,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { SidebarList } from "@/components/layout/SidebarList";
 
 const fraunces = Fraunces({
-  variable: "--font-display",
+  variable: "--font-fraunces",
   subsets: ["latin"],
   display: "swap",
   style: ["normal", "italic"],
@@ -29,7 +29,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 const notoBengali = Noto_Sans_Bengali({
-  variable: "--font-bengali",
+  variable: "--font-noto-bengali",
   subsets: ["bengali"],
   display: "swap",
   weight: ["400", "500", "600", "700"],
@@ -53,6 +53,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${fraunces.variable} ${inter.variable} ${jetbrainsMono.variable} ${notoBengali.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-bg text-text">
+        <a
+          href="#content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:border focus:border-accent focus:bg-bg-raised focus:px-4 focus:py-2 focus:text-sm focus:text-text"
+        >
+          Skip to content
+        </a>
         <SiteHeader items={items} searchSlot={<SearchPalette />} />
         <div className="lg:grid lg:grid-cols-[260px_minmax(0,1fr)]">
           <aside className="hidden border-r border-border lg:sticky lg:top-14 lg:block lg:h-[calc(100vh-3.5rem)] lg:self-start lg:overflow-y-auto">
@@ -61,7 +67,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </Suspense>
           </aside>
           <div className="flex min-h-[calc(100vh-3.5rem)] min-w-0 flex-col">
-            <main className="flex-1">{children}</main>
+            {/* The inline style beats the global :focus-visible rule for the skip-link target. */}
+            <main id="content" tabIndex={-1} style={{ outline: "none" }} className="flex-1">
+              {children}
+            </main>
             <footer className="mt-24 border-t border-border px-6 py-8 text-xs leading-relaxed text-text-faint">
               <p className="mx-auto max-w-3xl">
                 13 parts · citations verified against each publisher&apos;s

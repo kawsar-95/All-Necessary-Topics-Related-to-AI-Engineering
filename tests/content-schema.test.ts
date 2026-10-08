@@ -29,3 +29,14 @@ test("TopicFileSchema rejects unknown block types and bad variants", () => {
   base.sections[0].body = [{ type: "callout", variant: "blue", blocks: [] }];
   assert.throws(() => TopicFileSchema.parse(base));
 });
+
+test("TopicFileSchema rejects an unknown key on a section", () => {
+  const file = { slug: "x", title: "X", lede: "L", sources: [], sections: [{ id: "s1", num: "01", title: "T", sub: "", layman: [], bangla: [], body: [], tag_line: "oops" }] };
+  assert.throws(() => TopicFileSchema.parse(file));
+});
+
+test("TopicFileSchema rejects caption_bn on a diagram block", () => {
+  const file = { slug: "x", title: "X", lede: "L", sources: [], sections: [{ id: "s1", num: "01", title: "T", sub: "", layman: [], bangla: [],
+    body: [{ type: "diagram", svg: "<svg/>", caption_bn: "oops" }] }] };
+  assert.throws(() => TopicFileSchema.parse(file));
+});

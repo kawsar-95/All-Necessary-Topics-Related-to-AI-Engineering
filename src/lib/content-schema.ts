@@ -61,57 +61,57 @@ const CalloutVariantSchema = z.enum(["info", "good", "warn", "danger", "pink"]);
 
 export const BlockSchema: z.ZodType<Block> = z.lazy(() =>
   z.discriminatedUnion("type", [
-    z.object({ type: z.literal("paragraph"), html: InlineSchema }),
-    z.object({
+    z.strictObject({ type: z.literal("paragraph"), html: InlineSchema }),
+    z.strictObject({
       type: z.literal("heading"),
       level: z.union([z.literal(3), z.literal(4)]),
       id: z.string(),
       html: InlineSchema,
     }),
-    z.object({
+    z.strictObject({
       type: z.literal("list"),
       ordered: z.boolean(),
       items: z.array(InlineSchema),
     }),
-    z.object({
+    z.strictObject({
       type: z.literal("code"),
       lang: z.string(),
       code: z.string(),
       html: z.string(),
     }),
-    z.object({
+    z.strictObject({
       type: z.literal("diagram"),
       svg: z.string(),
       caption: InlineSchema.optional(),
       captionBn: InlineSchema.optional(),
     }),
-    z.object({
+    z.strictObject({
       type: z.literal("callout"),
       variant: CalloutVariantSchema,
       blocks: z.array(BlockSchema),
     }),
-    z.object({ type: z.literal("analogy"), blocks: z.array(BlockSchema) }),
-    z.object({
+    z.strictObject({ type: z.literal("analogy"), blocks: z.array(BlockSchema) }),
+    z.strictObject({
       type: z.literal("pillGrid"),
-      items: z.array(z.object({ label: InlineSchema, value: InlineSchema })),
+      items: z.array(z.strictObject({ label: InlineSchema, value: InlineSchema })),
     }),
-    z.object({
+    z.strictObject({
       type: z.literal("table"),
       headers: z.array(InlineSchema),
       rows: z.array(z.array(InlineSchema)),
     }),
-    z.object({
+    z.strictObject({
       type: z.literal("panels"),
       panels: z.array(
-        z.object({ heading: InlineSchema, blocks: z.array(BlockSchema) }),
+        z.strictObject({ heading: InlineSchema, blocks: z.array(BlockSchema) }),
       ),
     }),
-    z.object({ type: z.literal("divider") }),
-    z.object({ type: z.literal("html"), html: z.string() }),
+    z.strictObject({ type: z.literal("divider") }),
+    z.strictObject({ type: z.literal("html"), html: z.string() }),
   ]),
 );
 
-export const SectionSchema: z.ZodType<Section> = z.object({
+export const SectionSchema: z.ZodType<Section> = z.strictObject({
   id: z.string(),
   num: z.string(),
   title: z.string(),
@@ -121,13 +121,13 @@ export const SectionSchema: z.ZodType<Section> = z.object({
   bangla: z.array(BlockSchema),
 });
 
-const SourceSchema = z.object({
+const SourceSchema = z.strictObject({
   n: z.number(),
   url: z.string(),
   text: z.string(),
 });
 
-export const TopicFileSchema: z.ZodType<TopicFile> = z.object({
+export const TopicFileSchema: z.ZodType<TopicFile> = z.strictObject({
   slug: z.string(),
   title: z.string(),
   tagline: z.string().optional(),

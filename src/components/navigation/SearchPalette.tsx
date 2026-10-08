@@ -187,9 +187,9 @@ export function SearchPalette() {
             className="relative flex max-h-[min(34rem,80vh)] w-full max-w-xl flex-col overflow-hidden rounded-xl border border-border-strong bg-bg-raised shadow-2xl shadow-black/60"
           >
             <h2 id={titleId} className="sr-only">
-              Search the guides
+              Search all 13 parts
             </h2>
-            <div className="flex shrink-0 items-center gap-3 border-b border-border px-4 focus-within:border-accent/60">
+            <div className="flex shrink-0 items-center gap-3 border-b border-border px-4 focus-within:border-accent focus-within:shadow-[inset_0_-2px_0_var(--accent)]">
               <svg aria-hidden="true" viewBox="0 0 20 20" className="size-4 shrink-0 text-text-faint" fill="none">
                 <circle cx="9" cy="9" r="5.5" stroke="currentColor" strokeWidth="1.6" />
                 <path d="M13.2 13.2L17 17" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
@@ -198,7 +198,7 @@ export function SearchPalette() {
                 ref={inputRef}
                 type="text"
                 role="combobox"
-                aria-label="Search the guides"
+                aria-label="Search all 13 parts"
                 aria-expanded={hits.length > 0}
                 aria-controls={listId}
                 aria-activedescendant={hits.length > 0 ? optionId(active) : undefined}
