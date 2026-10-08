@@ -80,78 +80,27 @@ body {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Section shell used by SectionView (src/components/content/SectionView.tsx)
-   until Task 9 replaces it. The block components style their own content.
+   Voice switch (src/components/content/SectionView.tsx): the new voice fades
+   in and rises 4px. No motion when the reader asks for reduced motion.
    ───────────────────────────────────────────────────────────────────────── */
-.prose-guide {
-  color: var(--text);
-  font-size: 16px;
-  line-height: 1.7;
+@keyframes voice-fade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
-.prose-guide h2 {
-  font-family: var(--font-display), ui-serif, Georgia, serif;
-  font-size: clamp(26px, 3.4vw, 34px);
-  font-weight: 600;
-  margin: 0;
-  letter-spacing: -0.01em;
-  line-height: 1.15;
-  color: var(--text);
+.voice-fade {
+  animation: voice-fade 180ms ease-out both;
 }
-.prose-guide p.sub {
-  font-size: 17px;
-  color: var(--text-dim);
-  border-left: 2px solid var(--accent);
-  padding-left: 14px;
-  margin: 10px 0 24px;
+@media (prefers-reduced-motion: reduce) {
+  .voice-fade {
+    animation: none;
+  }
 }
-.prose-guide .section-head {
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-  margin: 0 0 6px;
-}
-.prose-guide .section-num {
-  font-family: var(--font-mono-jb), ui-monospace, monospace;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--accent);
-  letter-spacing: 0.06em;
-  white-space: nowrap;
-}
-
-/* Sources list at the bottom of a topic (src/components/Sources.tsx). */
-.source-list {
-  counter-reset: src;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.source-list li {
-  counter-increment: src;
-  padding: 8px 0 8px 48px;
-  position: relative;
-  font-size: 14px;
-  color: var(--text-dim);
-  border-bottom: 1px solid var(--border);
-}
-.source-list li:last-child { border-bottom: none; }
-.source-list li::before {
-  content: "[" counter(src) "]";
-  position: absolute;
-  left: 0;
-  top: 9px;
-  font-family: var(--font-mono-jb), ui-monospace, monospace;
-  font-size: 12px;
-  color: var(--text-faint);
-}
-.source-list a {
-  color: var(--text);
-  text-decoration: none;
-  border-bottom: 1px solid var(--border-strong);
-  overflow-wrap: anywhere;
-  transition: color 0.15s, border-color 0.15s;
-}
-.source-list a:hover { color: var(--accent); border-bottom-color: var(--accent); }
 
 /* ─────────────────────────────────────────────────────────────────────────
    Block renderer styles (src/components/content): inline strings and Shiki
