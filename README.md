@@ -90,8 +90,8 @@ A file has this shape:
 ```
 
 Each section has `id`, `num`, `title`, `sub`, three lists of blocks
-(`body` for Technical, `layman`, and `bangla`), and an optional `videos`
-list.
+(`body` for Technical, `layman`, and `bangla`), an optional `videos`
+list, and an optional `practice` list.
 
 A block has a `type`. These are the block types:
 
@@ -142,6 +142,39 @@ Each section can list YouTube videos in `videos`:
 The cards are `src/components/content/VideoList.tsx` and `VideoCard.tsx`.
 The voice rule is `src/lib/videos.ts`.
 
+## Practice
+
+Each section has a "Practice" panel with hands-on tasks. A reader does
+them in any free AI chat (ChatGPT, Claude, or Gemini). No install, code,
+or API key is necessary. In a part with several sections, each section has
+1 task. A part with only 1 big section has 3 or 4 tasks.
+
+A task is one entry in the section's `practice` list:
+
+```json
+{
+  "title": "Watch sampling change the answer",
+  "goal": "See that the same prompt gives different answers.",
+  "steps": ["Send Prompt A in three new chats.", "Compare the answers."],
+  "prompts": [{ "label": "Prompt A", "text": "Invent one name for a coffee shop." }],
+  "lookFor": ["The name changes between chats."],
+  "check": { "question": "Why does it change?", "answer": "The model samples each token." },
+  "challenge": "Ask for the most common name. What changes?"
+}
+```
+
+- The panel adds the first step, "Open any free AI chat", with links. Do
+  not write it in `steps`.
+- `prompts[].text` and `title` are plain text. The other text fields
+  allow the inline tags.
+- A prompt must hold all the material that the task needs. A reader must
+  not have to find text somewhere else.
+- The panel shows in every voice, after the section text and before the
+  videos. Each prompt has a Copy button. The self-check answer stays
+  hidden until the reader opens it.
+
+The panel is `src/components/content/PracticeList.tsx` and `CopyButton.tsx`.
+
 ## Search
 
 Press Ctrl+K (Cmd+K on macOS) to open the search palette.
@@ -189,7 +222,7 @@ All citations resolve to:
 │       ├── content-schema.ts           block types and Zod schema
 │       ├── topics.ts                   loads and validates content; order, outline, nav
 │       └── search.ts                   search index helpers
-├── tests/                              content-schema and search tests
+├── tests/                              content-schema, search, video, and practice tests
 ├── docs/                               design spec and plan
 ├── .github/workflows/deploy-pages.yml  GitHub Pages deploy
 ├── next.config.ts                      static export and base path

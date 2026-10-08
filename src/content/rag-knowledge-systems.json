@@ -273,6 +273,37 @@
           "channel": "Weaviate vector database",
           "lang": "en"
         }
+      ],
+      "practice": [
+        {
+          "title": "Cut a policy in the wrong place",
+          "goal": "See how a chunk boundary in the wrong place can make the model give a wrong answer, and how a clean boundary fixes it.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. It gives the model only chunk 2 of a fixed-size split. Note the answer.",
+            "Send Prompt B in another <strong>new</strong> chat. It gives one chunk that was cut at the sentence boundary. Note the answer.",
+            "Compare the two answers. Find the exact words in each chunk that caused the difference."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "You are a support bot. Answer the question using ONLY the retrieved chunk below. If the chunk does not contain the answer, say \"Not enough information\".\n\nRetrieved chunk (chunk 2 of 2, cut every 90 characters):\n\"days of purchase. Pro plan customers may request a refund within 30 days. Refunds are paid to the original payment method in 5 business days.\"\n\nQuestion: How many days do Basic plan customers have to ask for a refund?"
+            },
+            {
+              "label": "Prompt B",
+              "text": "You are a support bot. Answer the question using ONLY the retrieved chunk below. If the chunk does not contain the answer, say \"Not enough information\".\n\nRetrieved chunk (cut at the sentence boundary):\n\"Zentro Cloud Refund Policy. Basic plan customers may request a full refund within 14 days of purchase. Pro plan customers may request a refund within 30 days.\"\n\nQuestion: How many days do Basic plan customers have to ask for a refund?"
+            }
+          ],
+          "lookFor": [
+            "In Prompt A the number 14 is gone. The text was cut after \"within\", so the chunk starts with \"days of purchase\".",
+            "Some models say \"Not enough information\". Others may wrongly answer 30. Both are bad.",
+            "In Prompt B the whole fact sits in one chunk, so the answer is easy and correct."
+          ],
+          "check": {
+            "question": "Why did Prompt A fail even though the full policy exists in the document?",
+            "answer": "The fixed-size splitter cut through a fact, so the number and its subject landed in different chunks, and the retriever returned only one of them. Chunk overlap, a recursive splitter, or a sentence-aware splitter keeps coherent units whole."
+          },
+          "challenge": "Take the Prompt B chunk and change the first sentence to <em>The company raised prices.</em> Ask <em>Which company raised prices?</em> Then prepend a one-line context note. This is the idea behind contextual retrieval."
+        }
       ]
     },
     {
@@ -574,6 +605,37 @@
           "channel": "CMU Database Group",
           "lang": "en"
         }
+      ],
+      "practice": [
+        {
+          "title": "Find three nearest neighbours three ways",
+          "goal": "See that L2 distance, cosine, and dot product can pick three different nearest vectors, and why the metric must match your embedding model.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. Check one row of the table by hand with a calculator.",
+            "In the <strong>same</strong> chat, send Prompt B. Read how the answer changes with the number of vectors.",
+            "Write down which vector wins under each metric. Do all three metrics agree?"
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "A tiny vector database holds these 2D vectors:\nP1 = (2, 2)\nP2 = (10, 9)\nP3 = (1, 0.5)\nP4 = (0, 3)\nP5 = (-1, -1)\n\nThe query vector is q = (1, 1).\n\nDo an exact flat scan. For every point, compute: (a) the L2 (straight-line) distance to q, (b) the cosine similarity with q, (c) the dot product with q. Show a table with 3 decimals. Then name the nearest neighbour under each metric (smallest L2, largest cosine, largest dot product). Show the calculation for P2 in full."
+            },
+            {
+              "label": "Prompt B",
+              "text": "Now think like a database engineer. Case 1: a collection has 5,000 vectors. Case 2: a collection has 50 million vectors. For each case, say whether you would use a flat scan, an IVF index, or an HNSW graph index. Give 2 reasons per case. Then explain in 3 sentences why an approximate index can miss the true nearest neighbour."
+            }
+          ],
+          "lookFor": [
+            "Most models find three different winners: P3 for L2, P1 for cosine, and P2 for dot product.",
+            "P2 wins the dot product only because it is long. Its angle to q is almost the same as P1.",
+            "For 5,000 vectors a flat scan is exact and fast enough. For 50 million, an approximate index such as HNSW is needed, with some recall loss."
+          ],
+          "check": {
+            "question": "Your embedding model was trained with cosine similarity. Which metric should the vector database use, and why?",
+            "answer": "Use cosine (or dot product on unit-length vectors, which ranks the same). Another metric, such as L2 or raw dot product on unnormalised vectors, can rank by vector length and return different neighbours, so the index metric must match the model."
+          },
+          "challenge": "Ask the model to normalise all five vectors to length 1 and repeat the three metrics. Which winners now agree, and why?"
+        }
       ]
     },
     {
@@ -773,6 +835,37 @@
           "title": "Build your own Hybrid Search",
           "channel": "Abhishek Thakur",
           "lang": "en"
+        }
+      ],
+      "practice": [
+        {
+          "title": "Fuse two ranked lists with RRF",
+          "goal": "Compute reciprocal rank fusion by hand, see that the constant k changes the final order, and see why raw scores cannot be added.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. Check the score of document B with a calculator for both k values.",
+            "In the <strong>same</strong> chat, send Prompt B. Look at which list the raw sum favours.",
+            "Write down: does the top document change when k changes from 60 to 2?"
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Reciprocal rank fusion (RRF) gives each document the score: sum over all lists of 1 / (k + rank), where rank starts at 1.\n\nBM25 list (best first): A, B, E, C, G\nVector list (best first): C, B, D, F, A\n\nCompute the RRF score of every document twice: once with k = 60 and once with k = 2. Show a table with 4 decimals. Give the final ranking for each k. If two documents tie, say so."
+            },
+            {
+              "label": "Prompt B",
+              "text": "A hybrid search system has these raw scores for three documents.\n\nBM25 scores: X = 14.2, Y = 9.8, Z = 2.1\nCosine scores: X = 0.61, Y = 0.83, Z = 0.88\n\n1) Add the raw scores for each document and rank them.\n2) Rank them again with RRF (k = 60), using each document's rank in each list.\n3) In 3 short sentences, explain which method treats both retrievers fairly and why."
+            }
+          ],
+          "lookFor": [
+            "With k = 60 the top document is B. With k = 2 the top document is C. A small change in k can change the order.",
+            "B is never first in either list, but it is ranked high in both lists. Agreement between retrievers wins.",
+            "In Prompt B the raw sum is almost the same as the BM25 order, because BM25 scores are large. RRF gives the two lists a similar weight."
+          ],
+          "check": {
+            "question": "Why does RRF use ranks and not the raw scores of BM25 and the vector search?",
+            "answer": "BM25 scores are unbounded and the vector scores are cosine values, so they sit on different scales and cannot be added fairly. Rank-based fusion removes the scale problem, but its constant k still matters, and engines use different defaults."
+          },
+          "challenge": "Ask the model to add a third list, <em>Recency list: E, A, B, C, D, F, G</em>, and recompute with k = 60. Which document wins now?"
         }
       ]
     },
@@ -979,6 +1072,41 @@
           "title": "RAG from scratch: Part 7 (Query Translation -- Decomposition)",
           "channel": "LangChain",
           "lang": "en"
+        }
+      ],
+      "practice": [
+        {
+          "title": "Search with a hypothetical answer",
+          "goal": "See that a vague user query matches the wrong passage by keyword, and that a HyDE-style hypothetical answer finds the right one.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. Note which document the model picks for the raw query.",
+            "In the <strong>same</strong> chat, send Prompt B. Copy the passage the model writes.",
+            "Send Prompt C in the same chat, with that passage pasted in place of the marked text. Compare the picked document with step 1."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "You are a keyword search engine. Score each document by the number of words it shares with the query (ignore the words: a, the, it, I, when, to, on). List the shared words and the count per document. Then name the best document.\n\nQuery: \"it keeps saying not allowed when I push\"\n\nD1: Fixing HTTP 403 Forbidden on git push. Your access token lacks write permission. Create a new personal access token with the repo scope.\nD2: How to push a new branch. Run git push origin branch-name. Use --set-upstream to track it.\nD3: Branch protection rules block direct pushes to main. Permission is denied for everyone except admins. Open a pull request instead.\nD4: Cleaning up old branches. Delete merged branches with git branch -d."
+            },
+            {
+              "label": "Prompt B",
+              "text": "Write a short passage (3 sentences) that could appear in a help-centre article answering this question: \"it keeps saying not allowed when I push\". The passage may contain guesses. Do not add any title or comment."
+            },
+            {
+              "label": "Prompt C",
+              "text": "Repeat the same keyword search with the same rules and the same documents D1 to D4. This time the query is the passage below. List the shared words and the count per document, then name the best document.\n\nQuery: \"[PASTE THE PASSAGE FROM PROMPT B HERE]\""
+            }
+          ],
+          "lookFor": [
+            "With the raw query, D2 often wins on the single word \"push\", but D2 does not explain the error.",
+            "The hypothetical passage is likely to use words such as permission, denied, forbidden, token, or protection.",
+            "With the passage as query, D1 or D3 often wins. The passage may contain wrong details, but the right documents still match."
+          ],
+          "check": {
+            "question": "Why can a made-up answer retrieve better than the original question in HyDE?",
+            "answer": "The hypothetical document is written in the style and vocabulary of a real answer, so it matches relevant documents better than a short vague query. It may contain false details, but the retrieval step only needs its relevance pattern, not its facts."
+          },
+          "challenge": "Ask the model for three different rewrites of the raw query. Run the keyword search with each one. Do the three lists of top documents agree?"
         }
       ]
     },
@@ -1189,6 +1317,41 @@
           "channel": "Coding Crash Courses",
           "lang": "en"
         }
+      ],
+      "practice": [
+        {
+          "title": "Play the search tool for an agent",
+          "goal": "See that a multi-hop question needs several searches, where each query depends on the last result, and that the model must decide when to stop.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. The model should answer with one search call. Do not answer it yet.",
+            "In the <strong>same</strong> chat, send Prompt B as the first tool result. Then send Prompt C as the next tool result.",
+            "If the model asks for a third search, reply: <code>Search result: Amina Rahman works in the Chattogram office.</code> Count the searches."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "You are a research agent. You can use one tool.\n\nTool: search(query: string) -> returns a short text snippet from the company wiki.\n\nRules:\n- Reply with ONLY one line, either: SEARCH: <your query>  or  FINAL: <your answer>.\n- Use at most 4 searches.\n- Use only information from search results. Do not guess.\n\nQuestion: In which city does the manager of the team that built the Kestrel payment API work?"
+            },
+            {
+              "label": "Prompt B",
+              "text": "Search result: The Kestrel payment API was built by the Ledger team in 2023."
+            },
+            {
+              "label": "Prompt C",
+              "text": "Search result: The Ledger team is managed by Amina Rahman."
+            }
+          ],
+          "lookFor": [
+            "The first query asks about Kestrel. It cannot contain the final answer, because the manager's name is not known yet.",
+            "The second query uses a fact from the first result (the Ledger team). Each search depends on the last one.",
+            "The model should write FINAL only after it has the city. Some models stop early and guess. That is a failure."
+          ],
+          "check": {
+            "question": "Why can one single retrieval step not answer this question well?",
+            "answer": "The second and third searches depend on what the earlier searches found, so no single query holds all the needed facts. This is a multi-hop question, and agentic retrieval lets the model choose the next query and when to stop, at the cost of more LLM calls."
+          },
+          "challenge": "Start a new chat with Prompt A, but change the rule to <em>Use at most 2 searches</em>. What does the model do when it cannot finish in time? Is that what you want?"
+        }
       ]
     },
     {
@@ -1388,6 +1551,37 @@
           "title": "Semantic search and reranking with Cohere and Pinecone",
           "channel": "Pinecone",
           "lang": "en"
+        }
+      ],
+      "practice": [
+        {
+          "title": "Rerank candidates, then cut too early",
+          "goal": "See a reranker fix a wrong keyword order, and see that it cannot find a passage that stage one did not return.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. Compare the new order with the first-stage order.",
+            "Send Prompt B in a <strong>new</strong> chat. It has only the top 2 candidates from the same list.",
+            "Write down what the model says about Prompt B. Could any reranker give a good answer here?"
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "You are a reranker. Read the query and the 6 candidate passages, which are in first-stage (keyword) order. Give each passage a relevance score from 0 to 10 for the query, with a 1-sentence reason. Then output the new order, best first.\n\nQuery: Can I get my money back if the course is bad?\n\n1. Our course gets very good reviews, and the money you spend on learning is well spent.\n2. Please get back to us within 24 hours if the course website is down.\n3. Refund policy: if you are not satisfied, request a refund within 30 days. We return the full amount to your card.\n4. Course prices include tax. Money transfers from other banks take 2 days.\n5. Refunds need a receipt or an order number.\n6. Bad weather may delay in-person classes."
+            },
+            {
+              "label": "Prompt B",
+              "text": "You are a reranker. Read the query and the 2 candidate passages, which are the top 2 from a first-stage search. Give each passage a relevance score from 0 to 10 for the query, with a 1-sentence reason. Then say if the candidates are enough to answer the query.\n\nQuery: Can I get my money back if the course is bad?\n\n1. Our course gets very good reviews, and the money you spend on learning is well spent.\n2. Please get back to us within 24 hours if the course website is down."
+            }
+          ],
+          "lookFor": [
+            "In Prompt A, passage 3 (the refund policy) should move to the top, and passage 5 should be high. They share few exact words with the query.",
+            "Passages 1, 2, and 4 share words like \"money\" and \"course\" but do not answer the question, so they get low scores.",
+            "In Prompt B both scores are low. The right passage is not in the list, so no reranking can recover it."
+          ],
+          "check": {
+            "question": "Why does a cross-encoder reranker give better order than the first-stage retriever, and what can it not do?",
+            "answer": "A reranker reads the query and the passage together, so it can judge meaning, while first-stage retrieval scores each document without the query in view. But a reranker only re-orders the candidates it receives. If the right passage is not in the top-N, it is lost."
+          },
+          "challenge": "Add a seventh passage, <em>Money-back requests are handled by billing.</em>, at the end of Prompt A. Where does the model put it, and is its score fair?"
         }
       ]
     },
@@ -1613,6 +1807,37 @@
           "channel": "Professor Py: AI Foundations",
           "lang": "en"
         }
+      ],
+      "practice": [
+        {
+          "title": "Test pre-filter against post-filter",
+          "goal": "See that filtering after the search can return zero results, and see how an LLM can turn a text request into a structured filter.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. Check the number of results for each method.",
+            "In the <strong>same</strong> chat, send Prompt B. Check that the filters only use the fields in the schema.",
+            "Write down what a downstream LLM would do with an empty result list."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "A movie search has a vector similarity score for the query \"space survival\". The user wants the top 3 movies with year greater than 2000.\n\nCatalog (title, year, rating, similarity):\nOrbit Lost, 1998, 8.4, 0.92\nRed Dust, 1995, 7.9, 0.90\nMoon Base Zero, 1999, 8.1, 0.88\nSilent Ship, 2004, 8.6, 0.80\nStar Harbor, 2012, 7.2, 0.78\nLunar Mail, 2016, 8.3, 0.75\nDeep Orbit, 2019, 8.8, 0.70\nDust Planet, 2001, 6.9, 0.66\n\nMethod 1 (post-filter): take the top 3 by similarity first, then remove movies with year 2000 or earlier.\nMethod 2 (pre-filter): remove movies with year 2000 or earlier first, then take the top 3 by similarity.\n\nShow the result of each method. Say how many results each returns."
+            },
+            {
+              "label": "Prompt B",
+              "text": "You are a self-querying retriever. Turn each request into JSON with two keys: \"query\" (the meaning part) and \"filter\" (the structured part). Use ONLY these fields: genre (string), year (integer), rating (float). Allowed operators: $eq, $gt, $gte, $lt, $lte, $and. If a request needs a field that does not exist, put it in a \"unsupported\" key instead of inventing a field.\n\nRequests:\n1. sci-fi movies after 2000 with rating above 8\n2. gentle comedies from the 1990s\n3. movies directed by Nolan about dreams"
+            }
+          ],
+          "lookFor": [
+            "Method 1 returns no movies. The top 3 by similarity are all from 1999 or earlier, so the filter removes all of them.",
+            "Method 2 returns Silent Ship, Star Harbor, and Lunar Mail, which is exactly 3 results.",
+            "In request 3 a good model reports \"director\" as unsupported. A poor one invents a director field that the database does not have."
+          ],
+          "check": {
+            "question": "Why is an empty result list from a post-filter dangerous in a RAG system?",
+            "answer": "The filter ran after the approximate search, so the matching items were never in the candidate list, and the downstream LLM then answers from nothing or guesses. Pre-filtering (or filtering inside the index graph) returns k matching items, and you should check result counts, not only scores."
+          },
+          "challenge": "Ask the model: <em>How many movies in the catalog have rating above 8, and what is their average year?</em> Is this a similarity problem or a database query? Which tool is the right one?"
+        }
       ]
     },
     {
@@ -1799,6 +2024,41 @@
           "title": "RAG with a Neo4j Knowledge Graph: How it Works and How to Set It Up",
           "channel": "Neo4j",
           "lang": "en"
+        }
+      ],
+      "practice": [
+        {
+          "title": "Build a tiny knowledge graph",
+          "goal": "Do the GraphRAG index steps by hand: extract entities and relations, summarise communities, then answer a whole-corpus question and spot extraction errors.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. Read the relation lines. Look for entities that were merged or missed.",
+            "In the <strong>same</strong> chat, send Prompt B. Then send Prompt C.",
+            "Compare the answer to Prompt C with what you see in the text. Note any wrong or missing link."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Step 1 of a GraphRAG index. Read the text and extract entities and relationships. Output only lines in this format: Entity A -> relation -> Entity B. Do nothing else.\n\nText: Dhaka Plant makes motor housings. Chattogram Plant makes gearboxes. Delta Steel supplies steel to Dhaka Plant. Delta Steel Ltd. also supplies steel to Chattogram Plant. Orion Bolts supplies bolts to Dhaka Plant only. Nova Paints supplies paint to Chattogram Plant. Both plants ship to Rahim Motors, a bus maker. A strike at Delta Steel in June delayed deliveries to both plants. Orion Bolts is owned by Karim Holdings, which also owns Nova Paints."
+            },
+            {
+              "label": "Prompt B",
+              "text": "Step 2. Group the entities into communities of closely connected entities. Give each community a name and a one-sentence summary. Output only the communities."
+            },
+            {
+              "label": "Prompt C",
+              "text": "Step 3. Using ONLY the community summaries above, answer this global question in 3 sentences: What are the main risks and themes across this whole supplier network?"
+            }
+          ],
+          "lookFor": [
+            "Delta Steel and Delta Steel Ltd. may appear as two entities. If they do, the graph hides that one supplier links both plants.",
+            "The community summaries are short. They hold facts from many sentences, such as the shared owner and the strike.",
+            "The final answer talks about themes (dependence on one steel supplier, shared ownership). One text chunk alone would not give these."
+          ],
+          "check": {
+            "question": "Why does GraphRAG build community summaries at index time, and what is the main cost?",
+            "answer": "A global question such as \"what are the main themes?\" has no single matching chunk, so GraphRAG pre-writes summaries of communities in the entity graph and merges them at query time. The cost is the many LLM calls for extraction and summarisation, and extraction errors (missed or merged entities) limit every later answer."
+          },
+          "challenge": "Open a <strong>new</strong> chat. Send only the first two sentences of the text and ask the same question as Prompt C. How much worse is the answer, and why?"
         }
       ]
     },
@@ -2005,6 +2265,41 @@
           "title": "How to convert PDF DOCX to Structured TXT Formats for RAG! (UNSTRUCTURED Tutorial)",
           "channel": "1littlecoder",
           "lang": "en"
+        }
+      ],
+      "practice": [
+        {
+          "title": "Feed the model broken parsed text",
+          "goal": "See how bad parsing (mixed columns, empty scan output) harms the answer, and why a clean structure and an OCR fallback matter.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. This text came from a two-column page read line by line. Note the answer.",
+            "Send Prompt B in a <strong>new</strong> chat. It is the same page with the columns parsed correctly. Compare the answers.",
+            "Send Prompt C in a <strong>new</strong> chat. This is a scanned page with no text layer. Read how the model reacts."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Answer the question using ONLY the extracted page text below. If you are not sure, say what is unclear.\n\nExtracted text:\n\"Basic costs 8 USD a Basic allows 3 month. Pro costs 25 users. Pro allows USD a month. The free 20 users. Extra users trial lasts 14 days. cost 2 USD each.\"\n\nQuestion: How many users does the Pro plan allow, and how much does an extra user cost?"
+            },
+            {
+              "label": "Prompt B",
+              "text": "Answer the question using ONLY the extracted page text below. If you are not sure, say what is unclear.\n\nExtracted text (Markdown):\n\"## Pricing\nBasic costs 8 USD a month. Pro costs 25 USD a month. The free trial lasts 14 days.\n\n## Limits\nBasic allows 3 users. Pro allows 20 users. Extra users cost 2 USD each.\"\n\nQuestion: How many users does the Pro plan allow, and how much does an extra user cost?"
+            },
+            {
+              "label": "Prompt C",
+              "text": "Answer the question using ONLY the extracted page text below. If you are not sure, say what is unclear.\n\nExtracted text:\n\"\"\n\nQuestion: How many users does the Pro plan allow, and how much does an extra user cost?"
+            }
+          ],
+          "lookFor": [
+            "With Prompt A some models decode the text correctly, but they may mix up the numbers or tell you the text is confusing. The risk is a confident wrong answer.",
+            "With Prompt B the answer is easy and correct (20 users, 2 USD). The headings make the structure clear.",
+            "With Prompt C a good model says there is no text. A parser must detect an empty result and run OCR."
+          ],
+          "check": {
+            "question": "Why should a RAG pipeline check for empty or odd parser output before chunking?",
+            "answer": "The index can only hold what the parser recovered. A fast text-layer parser returns nothing for a scan, and a naive reader can mix columns, so a check for empty output, a re-run with OCR or a layout-aware parser, and a visual spot-check of multi-column pages protect the quality."
+          },
+          "challenge": "In Prompt A, keep the same words but write them as a 3-row table in Markdown by yourself. Then ask the same question. How much did structure help?"
         }
       ]
     },
@@ -2233,6 +2528,41 @@
           "title": "Optimizing Document Retrieval with ColPali and Qdrant's Binary Quantization",
           "channel": "Qdrant Vector Search",
           "lang": "en"
+        }
+      ],
+      "practice": [
+        {
+          "title": "Search by summary, answer from raw",
+          "goal": "See that a summary used as a retrieval key can hide a detail, and that handing the raw table to the answer step restores it.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. Copy the one-sentence summary the model writes.",
+            "Send Prompt B in a <strong>new</strong> chat, with the summary pasted in place of the marked text. Note the answer.",
+            "Send Prompt C in a <strong>new</strong> chat. It gives the raw table. Compare the answer with step 2."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Write ONE sentence that summarises this table, so that it can be stored in a search index. Reply with the sentence only.\n\nTable: Quarterly revenue by branch (lakh BDT)\nBranch | Q1 | Q2 | Q3 | Q4\nDhaka | 42 | 45 | 51 | 60\nChattogram | 30 | 28 | 35 | 41\nSylhet | 18 | 22 | 19 | 27\nRajshahi | 15 | 16 | 21 | 24"
+            },
+            {
+              "label": "Prompt B",
+              "text": "Answer the question using ONLY the text below. If the text does not contain the answer, say \"The text does not contain the answer\".\n\nText: \"[PASTE THE SUMMARY FROM PROMPT A HERE]\"\n\nQuestion: Which branch had a revenue drop from Q2 to Q3, and by how many lakh BDT?"
+            },
+            {
+              "label": "Prompt C",
+              "text": "Answer the question using ONLY the table below. If the table does not contain the answer, say \"The table does not contain the answer\".\n\nTable: Quarterly revenue by branch (lakh BDT)\nBranch | Q1 | Q2 | Q3 | Q4\nDhaka | 42 | 45 | 51 | 60\nChattogram | 30 | 28 | 35 | 41\nSylhet | 18 | 22 | 19 | 27\nRajshahi | 15 | 16 | 21 | 24\n\nQuestion: Which branch had a revenue drop from Q2 to Q3, and by how many lakh BDT?"
+            }
+          ],
+          "lookFor": [
+            "The summary is usually about the general trend (Dhaka leads, revenue grows), not about one small drop.",
+            "With the summary only, the model should say it cannot answer. Some models guess, which is worse.",
+            "With the raw table the answer is Sylhet, down 3 lakh BDT (22 to 19)."
+          ],
+          "check": {
+            "question": "In multimodal RAG, why keep a pointer to the raw table or image when you index a summary?",
+            "answer": "The retriever only sees what the summariser wrote, so a detail left out of the summary cannot be found or answered. If the summary is the retrieval key and the raw object goes to the answer step (option 3), the generator can still read the exact cell values."
+          },
+          "challenge": "If your chat allows image upload, put the table in a screenshot and ask the same question with the image. Compare the answer with Prompt C. If you have no image upload, skip this."
         }
       ]
     }

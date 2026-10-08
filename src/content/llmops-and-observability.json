@@ -240,6 +240,126 @@
           "channel": "AI Engineer",
           "lang": "en"
         }
+      ],
+      "practice": [
+        {
+          "title": "Turn a flat log into a trace",
+          "goal": "Build a span tree from a log and see why a request can return 200 and still fail the user.",
+          "steps": [
+            "Read the log in Prompt A. Before you ask, guess which step took the longest time.",
+            "Start a <strong>new</strong> chat. Send Prompt A. Compare the tree with your guess.",
+            "Check two durations by subtracting the start time from the end time. Does the total match the model's number?",
+            "In the <strong>same</strong> chat, send Prompt B. Read what the model says about the 200 status."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Here is the flat log of one agent run (invented data):\n\n10:02:11.000 REQUEST_START POST /chat user=u_204 prompt_id=support-v7\n10:02:11.020 SPAN_START build_system_prompt\n10:02:11.040 SPAN_END   build_system_prompt\n10:02:11.040 SPAN_START llm_call_1 model=model-x\n10:02:12.440 SPAN_END   llm_call_1 in_tokens=1200 out_tokens=60 decision=\"call tool search_orders\"\n10:02:12.440 SPAN_START tool_search_orders args={\"customer\":\"u_204\"}\n10:02:16.940 SPAN_END   tool_search_orders status=timeout\n10:02:16.940 SPAN_START llm_call_2 model=model-x\n10:02:18.140 SPAN_END   llm_call_2 in_tokens=1350 out_tokens=80\n10:02:18.150 REQUEST_END status=200 answer=\"Sorry, I could not check your order right now.\"\n\nTasks:\n1. Draw this run as a trace: a tree of spans with indentation. Show the duration of each span in seconds.\n2. Name the slowest span and say what share of the total time it used.\n3. Name the span where the real problem started."
+            },
+            {
+              "label": "Prompt B",
+              "text": "The request returned status 200. A classic DevOps dashboard shows green for it. Explain in 3 short sentences what a plain 200 check misses for this run. Then list 4 fields that the trace should carry so that I can find this failure later."
+            }
+          ],
+          "lookFor": [
+            "The tool span runs from 12.440 to 16.940, so it takes 4.5 seconds. That is the slowest span, about 63% of the 7.15 second total.",
+            "The tree has the request as the parent, and the two LLM calls and the tool call as children. The problem started in the tool span (timeout).",
+            "Good field lists include prompt_id, model, token counts, cost, latency, and the tool status."
+          ],
+          "check": {
+            "question": "Why is status 200 not enough to call this request healthy?",
+            "answer": "The server answered, but the answer was wrong for the user, because the tool timed out. LLMOps asks whether the model gave the right answer, so a trace of spans (LLM calls and tool calls) is needed to see where it failed."
+          },
+          "challenge": "Add a second tool call to the log that runs at the same time as the first one. Ask the model to redraw the tree. How does the total time change?"
+        },
+        {
+          "title": "Find which feature loses money",
+          "goal": "Turn token logs into cost per feature, and see how tags make the question answerable.",
+          "steps": [
+            "Look at the six log rows in Prompt A. Guess which feature loses money.",
+            "Start a <strong>new</strong> chat. Send Prompt A. Check the cost of request 4 by hand with the invented prices.",
+            "In the <strong>same</strong> chat, send Prompt B. Read the estimate and the warning.",
+            "Write down which tags in the log made these answers possible."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Here are logged LLM requests (invented data). Prices per 1 million tokens: small model = 0.20 USD input and 0.80 USD output. Large model = 3.00 USD input and 15.00 USD output.\n\nid | feature       | user | model | in_tokens | out_tokens | latency_s\n1  | autocomplete  | u1   | small | 300       | 20         | 0.4\n2  | autocomplete  | u2   | small | 280       | 25         | 0.5\n3  | autocomplete  | u1   | small | 310       | 18         | 0.4\n4  | report_writer | u3   | large | 12000     | 1500       | 14.2\n5  | report_writer | u4   | large | 9000      | 1200       | 11.8\n6  | report_writer | u3   | large | 15000     | 2000       | 18.5\n\nRevenue: each autocomplete request earns 0.001 USD. Each report_writer request earns 0.04 USD.\n\nTasks:\n1. Compute the cost of each request in USD. Show the formula once, then give a table.\n2. Sum cost and revenue per feature.\n3. Say which feature loses money, and by how much per request on average."
+            },
+            {
+              "label": "Prompt B",
+              "text": "Now suppose we move report_writer to the small model. Use the same token counts for requests 4, 5, and 6. What is the new average cost per request? What must we measure before we make this change in production? Answer in under 100 words."
+            }
+          ],
+          "lookFor": [
+            "Request 4 costs 12,000 × 3 ÷ 1,000,000 = 0.036 USD for input, plus 0.0225 USD for output, so 0.0585 USD in total. This is above the 0.04 USD it earns.",
+            "report_writer loses money on all three requests. autocomplete costs a tiny fraction of a cent and makes a profit.",
+            "In Prompt B, the new cost is a few tenths of a cent, but a good answer says to check output quality with evals first. Verify the arithmetic yourself."
+          ],
+          "check": {
+            "question": "Which logged fields let you answer 'is this feature losing money?'",
+            "answer": "Input tokens, output tokens, and model give the cost, using the vendor's prices. The feature tag groups the requests, and latency and user tags answer other questions later. Without these tags the data cannot answer the question."
+          },
+          "challenge": "Add a cache_hit column to Prompt A where half of the large-model input tokens are cached at 10% of the price. Ask the model to recompute. Does report_writer still lose money?"
+        },
+        {
+          "title": "Decide when to stop an A/B test",
+          "goal": "See why you pick the metric first and wait for enough data before you declare a winner between two prompt versions.",
+          "steps": [
+            "Read the data in Prompt A. On paper, decide: ship v8 after day 1, or wait for day 7? Write your reason.",
+            "Start a <strong>new</strong> chat. Send Prompt A. Compare the model's advice with your decision.",
+            "In the <strong>same</strong> chat, send Prompt B. Read why the split uses a hash of user_id."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "We test two versions of our support-bot prompt in production (invented data). Traffic is split by a hash of user_id. Version support-v7 is the current prompt. Version support-v8 is a new, longer prompt.\n\nAfter day 1 (afternoon):\n- v7: 40 thumbs-up out of 60 rated answers\n- v8: 45 thumbs-up out of 60 rated answers\n\nAfter day 7:\n- v7: 290 thumbs-up out of 420 rated answers, average cost 0.8 cents per answer, average latency 2.1 s\n- v8: 292 thumbs-up out of 420 rated answers, average cost 1.1 cents per answer, average latency 3.3 s\n\nTasks:\n1. Compute the thumbs-up rate for each version at day 1 and at day 7.\n2. Should we stop and ship v8 after day 1? Why or why not?\n3. What should we do at day 7?\n4. Which metrics should we have chosen before the test started?\nBe short and direct."
+            },
+            {
+              "label": "Prompt B",
+              "text": "Why do we split traffic by a hash of user_id, and not at random for every message? Also, why should every trace carry the prompt version ID, such as support-v8? Answer in 4 short sentences."
+            }
+          ],
+          "lookFor": [
+            "Day 1: v7 is 66.7% and v8 is 75.0%. Day 7: v7 is 69.0% and v8 is 69.5%. The early gap almost disappears.",
+            "Most models say that one afternoon with 60 ratings per version is too little data, and that stopping early on a good result is a mistake.",
+            "At day 7, v8 is about the same quality, but it costs more and is slower. A sensible answer keeps v7, unless another metric favors v8."
+          ],
+          "check": {
+            "question": "Why is it wrong to stop the test after one good afternoon?",
+            "answer": "With few ratings, chance can make one variant look better. You should choose the metric first, and stop only when one variant clearly wins on that metric. Cost and latency also count, because a prompt can win on feedback and still be a bad trade."
+          },
+          "challenge": "Change the day 7 numbers so that v8 wins on thumbs-up by 8 points but costs 40% more. Ask the model to help you decide. What extra information would you want?"
+        },
+        {
+          "title": "Catch silent model drift",
+          "goal": "Compare old and new outputs of the 'same' model and see changes that normal tests may miss.",
+          "steps": [
+            "Read the five cases in Prompt A. Mark by eye which ones changed, and how.",
+            "Start a <strong>new</strong> chat. Send Prompt A. Compare the model's list of changes with yours.",
+            "In the <strong>same</strong> chat, send Prompt B. Read the eval case it writes. Does the expected output look right?"
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Our app asks a model to extract JSON like {\"name\": ..., \"amount_bdt\": ...} from a message. The vendor updated the model behind the same model name. We ran 5 production inputs through the old and new versions (invented data).\n\n1. Input: \"Rahim paid 1,200 taka\"\n   OLD: {\"name\":\"Rahim\",\"amount_bdt\":1200}\n   NEW: {\"name\":\"Rahim\",\"amount_bdt\":1200}\n2. Input: \"Sumi sent 5k BDT\"\n   OLD: {\"name\":\"Sumi\",\"amount_bdt\":5000}\n   NEW: {\"name\":\"Sumi\",\"amount_bdt\":\"5k\"}\n3. Input: \"Tanvir paid 300 taka and Mina paid 450 taka\"\n   OLD: [{\"name\":\"Tanvir\",\"amount_bdt\":300},{\"name\":\"Mina\",\"amount_bdt\":450}]\n   NEW: {\"name\":\"Tanvir\",\"amount_bdt\":300}\n4. Input: \"Lina paid 75 taka\"\n   OLD: {\"name\":\"Lina\",\"amount_bdt\":75}\n   NEW: Sure! Here is the JSON: {\"name\":\"Lina\",\"amount_bdt\":75}\n5. Input: \"Arif paid 2,000 taka\"\n   OLD: {\"name\":\"Arif\",\"amount_bdt\":2000}\n   NEW: {\"name\":\"Arif\",\"amount_bdt\":2000}\n\nTasks:\n1. For each case say SAME or CHANGED, and name the type of change.\n2. For each change, write one automatic check (a rule a program can test).\n3. Say what share of live traffic we should send through both models, and what we should alert on."
+            },
+            {
+              "label": "Prompt B",
+              "text": "A user clicked thumbs-down on this answer.\nInput: \"Karim paid 1.5 lakh taka\" (1 lakh = 100,000)\nOutput: {\"name\":\"Karim\",\"amount_bdt\":1.5}\n\nTurn this failure into one test case for our eval dataset. Give the input, the expected output, and the rule that checks it. Then say in 2 sentences why a thousand real failures like this are more useful than synthetic tests."
+            }
+          ],
+          "lookFor": [
+            "Cases 2, 3, and 4 changed. Case 2 has a wrong type (a string, not a number). Case 3 lost the second person. Case 4 added extra text around the JSON.",
+            "Cases 1 and 5 are the same, so a test that uses only simple inputs would show no problem.",
+            "The model should suggest running a small share of traffic, often 1–5%, through both versions and alerting on the difference in eval results."
+          ],
+          "check": {
+            "question": "Why can offline evals miss this kind of change?",
+            "answer": "The model name stayed the same, so nothing in your code changed, and a fixed test set may not contain the cases that broke. Drift detection runs a small share of real production traffic through the old and new model, compares eval scores, and alerts on the difference."
+          },
+          "challenge": "Add one more case to Prompt A where the new model behaves better than the old one. Ask the model to separate regressions from improvements. Why is a one-way alert not enough?"
+        }
       ]
     }
   ],

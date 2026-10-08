@@ -225,6 +225,128 @@
           "channel": "Ready Tensor",
           "lang": "en"
         }
+      ],
+      "practice": [
+        {
+          "title": "Design a cheap-to-expensive model cascade",
+          "goal": "Route easy requests to a cheap model and hard ones to an expensive model, and calculate how much money the cascade saves.",
+          "steps": [
+            "Read the 10 requests in Prompt A. Before you send it, mark each one EASY or HARD in your own notes.",
+            "Send Prompt A in a <strong>new</strong> chat. Compare the routing with your marks.",
+            "Calculate the cost. All large: 10 x 20 = 200 credits. Cascade: 10 x 1 + (number of HARD) x 20.",
+            "Send Prompt B in a <strong>new</strong> chat. See if the escalation check catches the bad draft."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "You are a router for a customer-support system. Each request goes first to a SMALL model (cost 1 credit) or directly to a LARGE model (cost 20 credits). Use SMALL for easy requests. Use LARGE for requests that need long reasoning, code, or many steps.\nFor each request reply with: number, SMALL or LARGE, and a confidence from 0 to 1. Add one short reason.\n\nRequests:\n1. What is your return window?\n2. Where is my order #4471?\n3. Translate \"thank you\" into Bangla.\n4. Two of my orders came in one parcel. One item is damaged. I used a coupon that split the refund across both orders. How much should I get back?\n5. How do I reset my password?\n6. Summarise the legal risks of changing our refund policy for customers in three countries.\n7. What is your phone number?\n8. Write a Python script that matches our payment file to bank statements and flags the mismatches.\n9. Is the blue shirt in stock in size M?\n10. Explain why our conversion rate dropped 12% after the checkout redesign and propose three tests."
+            },
+            {
+              "label": "Prompt B",
+              "text": "A small model wrote a draft answer. Decide if the draft is good enough to send (KEEP) or if a large model must redo it (ESCALATE). Reply with KEEP or ESCALATE and one sentence of reason.\n\nQuestion: A customer bought 3 shirts at 450 BDT each and 1 cap at 280 BDT. A 10% coupon applies to the whole order. Delivery costs 60 BDT and is not discounted. What is the total?\n\nDraft answer: The shirts cost 1,350 BDT and the cap costs 280 BDT. The subtotal is 1,630 BDT. After the 10% coupon the price is 1,467 BDT. Delivery is 60 BDT, so the total is 1,527 BDT."
+            }
+          ],
+          "lookFor": [
+            "Most models send about 4 requests (the long, multi-step ones) to LARGE. That gives a cost near 90 credits instead of 200.",
+            "Prompt B: the draft is correct (1,630 - 163 = 1,467, plus 60 = 1,527). A good check says KEEP. If it says ESCALATE, you paid 20 credits for no gain.",
+            "Routing is a guess. A wrong EASY label on a hard request would give a bad cheap answer, so confidence and checks matter."
+          ],
+          "check": {
+            "question": "Why does a cascade cost less than sending every request to the large model?",
+            "answer": "Most requests are easy, so the cheap model answers them at low cost. Only low-confidence or hard requests escalate to the expensive model, so the average cost per request falls while quality stays high."
+          },
+          "challenge": "Change the draft in Prompt B so that the delivery fee is also discounted. Does the check now say ESCALATE? What does a wrong KEEP cost you?"
+        },
+        {
+          "title": "Find unsafe hits in a semantic cache",
+          "goal": "See how a semantic cache saves calls for similar questions, and how a loose similarity threshold returns a wrong cached answer.",
+          "steps": [
+            "Read the 6 question pairs in Prompt A. For each pair, guess: would the old answer be correct for the new question?",
+            "Send Prompt A in a <strong>new</strong> chat. Compare the similarity scores with your guesses.",
+            "Find pairs with a high score but a wrong cached answer.",
+            "Send Prompt B in a <strong>new</strong> chat. Compare its rules with the pairs you found."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "A semantic cache stores answers to old questions. For a new question, it returns the stored answer if the new question is very similar to the old one.\nFor each pair, give: a similarity score from 0 to 1, HIT or MISS (use HIT if the score is above 0.9), and whether the old answer would be CORRECT or WRONG for the new question.\n\nPairs (old question | new question):\n1. How do I reset my password? | How can I reset my password?\n2. What is the refund status of order 1001? | What is the refund status of order 1002?\n3. What is your return policy? | How long do I have to send an item back?\n4. What is the weather in Dhaka today? | What is the weather in Dhaka tomorrow?\n5. Please cancel my subscription. | Please do not cancel my subscription.\n6. What time do you close at night? | When do you shut in the evening?"
+            },
+            {
+              "label": "Prompt B",
+              "text": "I run a semantic cache for a support chatbot. Give me 4 short rules that decide when a cached answer must NOT be used, even if the similarity score is very high. Give one example question pair for each rule. Keep each rule to one sentence."
+            }
+          ],
+          "lookFor": [
+            "Pairs 1, 3, and 6 are real hits: the words differ, but the meaning is the same. This is the saving a cache gives.",
+            "Pairs 2, 4, and 5 usually get a high score, because the words are almost the same. Yet the old answer is wrong. This is the danger.",
+            "Common rules in Prompt B: skip the cache for IDs, time words, negation, and personal data."
+          ],
+          "check": {
+            "question": "Why is a high similarity score not enough to return a cached answer?",
+            "answer": "A semantic cache compares embeddings, and a small change such as an order number, a date, or a word like not can change the right answer. A strict threshold (the section says cosine above 0.95) and extra rules lower the risk of a wrong hit."
+          },
+          "challenge": "Write two new pairs: one that is a safe HIT with very different words, and one that is a wrong HIT with almost the same words. Ask Prompt A to score them."
+        },
+        {
+          "title": "Compress a long context and test it",
+          "goal": "See how prompt compression cuts length, and test whether the short text still answers the questions.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. Save the three answers as your baseline.",
+            "Send Prompt B in a <strong>new</strong> chat. Compare the length of the result with the original text.",
+            "Copy the compressed text. Put it in Prompt C where it says PASTE HERE. Send Prompt C in a <strong>new</strong> chat.",
+            "Compare the answers of Prompt C with Prompt A. Which fact was lost, if any?"
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Answer the three questions using only the context.\n\nContext:\nThank you for choosing Padma Mart. We are very happy to tell you about our shipping policy. In general, orders that are placed before 2 PM on a working day are usually packed on the same day, and orders that are placed after 2 PM are usually packed on the next working day. Please note that we do not work on Fridays and public holidays. Delivery inside Dhaka normally takes one to two days, while delivery to other cities normally takes three to five days. Shipping inside Dhaka costs 60 BDT, and shipping to other cities costs 120 BDT. We are also glad to say that orders above 2,000 BDT get free shipping inside Dhaka only. If you are not at home, our courier will try to deliver your parcel two times, and after the second failed attempt the parcel returns to our warehouse. We hope you enjoy shopping with us!\n\nQuestions:\n1. How much is shipping to Chattogram for a 1,500 BDT order?\n2. When is a Saturday 3 PM order packed?\n3. How many delivery attempts does the courier make?"
+            },
+            {
+              "label": "Prompt B",
+              "text": "Compress the text below to about one third of its length. Remove filler words and greetings. Keep every number, price, time, and rule. Use short note-style phrases. Reply with the compressed text only.\n\nText:\nThank you for choosing Padma Mart. We are very happy to tell you about our shipping policy. In general, orders that are placed before 2 PM on a working day are usually packed on the same day, and orders that are placed after 2 PM are usually packed on the next working day. Please note that we do not work on Fridays and public holidays. Delivery inside Dhaka normally takes one to two days, while delivery to other cities normally takes three to five days. Shipping inside Dhaka costs 60 BDT, and shipping to other cities costs 120 BDT. We are also glad to say that orders above 2,000 BDT get free shipping inside Dhaka only. If you are not at home, our courier will try to deliver your parcel two times, and after the second failed attempt the parcel returns to our warehouse. We hope you enjoy shopping with us!"
+            },
+            {
+              "label": "Prompt C",
+              "text": "Answer the three questions using only the context.\n\nContext:\nPASTE HERE the compressed text from Prompt B\n\nQuestions:\n1. How much is shipping to Chattogram for a 1,500 BDT order?\n2. When is a Saturday 3 PM order packed?\n3. How many delivery attempts does the courier make?"
+            }
+          ],
+          "lookFor": [
+            "The compressed text is often much shorter, because greetings and filler words carry little information.",
+            "Most answers in Prompt C match Prompt A: 120 BDT, the next working day (not Friday), and 2 attempts.",
+            "If a fact was lost, the compression cost quality. That is why you always test the compressed prompt."
+          ],
+          "check": {
+            "question": "Why does prompt compression save money, and what must you check after you use it?",
+            "answer": "Cost depends on the number of input tokens, and filler text uses tokens without adding information. Compression removes low-information tokens, but you must test that quality does not drop, because a lost fact gives a wrong answer."
+          },
+          "challenge": "Ask for compression to one sixth of the length. Run Prompt C again. At what length does the first fact get lost?"
+        },
+        {
+          "title": "Plan a token budget for three features",
+          "goal": "Use per-feature token budgets with 80% alerts and 100% throttles to find which feature will exceed its budget, and when.",
+          "steps": [
+            "Read the table in Prompt A. By hand, compute the month-end forecast for the Search rewrite feature: usage per day x 30.",
+            "Send Prompt A in a <strong>new</strong> chat. Check each number the chat gives against your own calculation.",
+            "Find the day when each feature reaches the 80% alert and the 100% throttle.",
+            "Decide which feature you would throttle first, and compare your choice with the chat's choice."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "A company gives each LLM feature a monthly token budget. The rule: send an alert at 80% of the budget and throttle the feature at 100%.\nToday is day 12 of a 30-day month. Assume the daily use stays constant.\n\nFeature | Monthly budget | Used so far (12 days)\nChat support | 40,000,000 tokens | 20,000,000 tokens\nDocument summary | 20,000,000 tokens | 4,000,000 tokens\nSearch rewrite | 6,000,000 tokens | 3,600,000 tokens\n\nFor each feature, compute and show in a table:\n1) Forecast usage at the end of the month, as a percent of the budget.\n2) The day of the month when it reaches 80%.\n3) The day of the month when it reaches 100%.\nThen say which feature needs action first, and suggest two cheap ways to reduce its usage."
+            }
+          ],
+          "lookFor": [
+            "Search rewrite uses 0.3 million tokens per day. It forecasts 150% of budget, reaches 80% on day 16, and 100% on day 20.",
+            "Chat support forecasts 125%, reaches 80% on day 20, and 100% on day 24. Document summary forecasts 50% and never alerts.",
+            "If the chat made an arithmetic mistake, that is a good reminder to check numbers yourself. Also notice that the smallest budget is the first problem, not the biggest feature."
+          ],
+          "check": {
+            "question": "Why set a budget per feature and not one budget for the whole company?",
+            "answer": "A per-feature budget with an 80% alert and a 100% throttle stops one runaway feature from using the whole bill. You also see which feature causes the cost, and you can act on it early."
+          },
+          "challenge": "Say that the Search rewrite feature uses a semantic cache that removes 40% of its calls. Ask the chat for the new forecast and the new alert day."
+        }
       ]
     }
   ],

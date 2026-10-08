@@ -261,6 +261,137 @@
           "channel": "Super Data Science",
           "lang": "en"
         }
+      ],
+      "practice": [
+        {
+          "title": "Extract JSON from a messy photo",
+          "goal": "See that a multimodal model can read messy text in an image and return structured data, and that it can still guess wrong.",
+          "steps": [
+            "Pick any everyday photo or screenshot with text: a receipt, a sign, a menu, or a handwritten note. Cover private data first.",
+            "Attach the image in a <strong>new</strong> chat and send Prompt A. Take a photo with your phone if you have none.",
+            "No image upload in your chat? Send Prompt B instead. It has a typed sample of a blurry receipt.",
+            "Compare each JSON value with the real image or sample. Mark every value that is wrong or guessed.",
+            "Read the <code>unclear</code> list. Did the model say what it could not read?"
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Look at the attached image.\nStep 1: Write all the text you can read, in order.\nStep 2: Return JSON with these keys:\n- item_type (for example receipt, sign, menu, note)\n- title (the main heading, or null)\n- dates (list)\n- numbers (list of every number you can read, as written)\n- unclear (list of parts you could not read well)\nDo not guess. If a part is hard to read, put it in unclear and do not put it in the other keys."
+            },
+            {
+              "label": "Prompt B",
+              "text": "Below is the text that came from a blurry photo of a shop receipt. Some characters are wrong.\n\n---\nRAHIM GR0CERY STOR3\n12 Moy 2O25\nRice 5kg ....... 4SO\nOil 1L ......... 18O\nEggs (12) ...... ??5\nTotal .......... 8l5\n---\n\nReturn JSON with these keys:\n- item_type\n- title\n- dates (list)\n- numbers (list of every number, as written)\n- unclear (list of parts you could not read well)\nDo not guess. If a part is hard to read, put it in unclear and do not put it in the other keys."
+            }
+          ],
+          "lookFor": [
+            "Most models read messy or handwritten text well, with no separate OCR tool.",
+            "Some values may be wrong, or the model may fix a broken character without telling you.",
+            "A model that follows the rule puts hard parts in <code>unclear</code>. The explicit <em>do not guess</em> rule changes this a lot.",
+            "The JSON is easy for a program to read. The free text of Step 1 is not."
+          ],
+          "check": {
+            "question": "Why is asking for JSON with an unclear field better than just asking the model to read the image?",
+            "answer": "OCR-via-LLM turns an image into structured data in one step, but the model can guess wrong. The JSON gives a program a fixed shape, and the unclear field makes the model report doubt so you can check those parts by hand."
+          },
+          "challenge": "Send Prompt A again with a worse image, for example a dark or tilted photo. Which keys break first?"
+        },
+        {
+          "title": "Ask better questions about a screenshot",
+          "goal": "See that a precise visual question gives a far more useful answer than a vague one.",
+          "steps": [
+            "Take a screenshot of any app or web page you use, such as a form or a settings screen. Hide private data.",
+            "Attach it in a <strong>new</strong> chat and send Prompt A. Save the answer.",
+            "Attach the same image in another <strong>new</strong> chat and send Prompt B. Compare the two answers.",
+            "No image upload? Send Prompt C in one new chat. Then send only its first paragraph plus <em>What do you think?</em> in another new chat."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "What do you think of this image?"
+            },
+            {
+              "label": "Prompt B",
+              "text": "This is a screenshot of an app screen.\n1. Say in one sentence what the screen is for.\n2. List up to 3 things that look wrong or confusing, such as cut-off text, low contrast, or unclear buttons. For each one, say where it is on the screen.\n3. List what you cannot judge from this image.\nBe specific. Do not praise the design."
+            },
+            {
+              "label": "Prompt C",
+              "text": "Here is a description of a screenshot, because I cannot upload it.\nThe screen is a checkout page for a phone shop. At the top, a title says \"Pay\" in light grey on a white background. In the middle, a field named \"Phone numbr\" has a red border but no message. At the bottom, two buttons sit next to each other: a big green button with the text \"OK\" and a small grey button with the text \"Cancel\". The price \"BDT 12,4\" is cut off at the right edge.\n\n1. Say in one sentence what the screen is for.\n2. List up to 3 things that look wrong or confusing. For each one, say where it is on the screen.\n3. List what you cannot judge from this description.\nBe specific. Do not praise the design."
+            }
+          ],
+          "lookFor": [
+            "Prompt A usually gives a general, polite answer about colours and mood.",
+            "Prompt B gives located, testable problems, such as a cut-off number or a weak button label.",
+            "Most models list some limits in item 3, for example that they cannot see how the screen behaves when you tap it.",
+            "Visual Q&A works best when you say what to look for."
+          ],
+          "check": {
+            "question": "Why does Prompt B give a more useful answer than Prompt A, when the image is the same?",
+            "answer": "Visual Q&A is still a prompt. The model needs a task, a format, and a limit on what to report. A vague question leaves it free to describe the image, but a precise question makes it find problems."
+          },
+          "challenge": "Ask the model to return the three problems as JSON with the keys <code>problem</code>, <code>location</code>, and <code>severity</code>."
+        },
+        {
+          "title": "Find the slow stage in a voice agent",
+          "goal": "See how each stage of an STT, LLM, and TTS pipeline adds delay, and why realtime audio helps.",
+          "steps": [
+            "Read the numbers in Prompt A. Write your own guess of the total delay and of the slowest stage <strong>before</strong> you send it.",
+            "Send Prompt A in a <strong>new</strong> chat. Compare the answer with your guess.",
+            "In the <strong>same</strong> chat, send Prompt B to compare with a realtime design.",
+            "Pick one change from the answer that costs the least work. Say why you chose it."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "I build a voice agent for a bank help line. The design is speech-to-text (STT), then an LLM, then text-to-speech (TTS). After the caller stops talking, the delays are:\n- Wait to be sure the caller finished speaking: 600 ms\n- STT finishes the final text: 400 ms\n- LLM sends its first token: 700 ms\n- The system waits for the LLM to finish a full sentence before it sends text to TTS: 300 ms\n- TTS makes the first audio: 350 ms\n- Network to the caller: 150 ms\n\n1. Add up the total delay before the caller hears the first sound.\n2. Name the stage that is the biggest and the stage that is the easiest to cut.\n3. Suggest two changes. For each, say how many ms it might save and what could go wrong.\nUse a small table."
+            },
+            {
+              "label": "Prompt B",
+              "text": "Now my team thinks about a realtime audio API. Audio streams in both directions, and the model starts to speak after about 450 ms in total.\n1. Which stages of my old design disappear?\n2. Give me two things I might lose, for example control, logging, or the choice of voice.\n3. Give me one rule to decide between the two designs for a bank help line.\nAnswer in 8 lines or fewer."
+            }
+          ],
+          "lookFor": [
+            "The total is 2,500 ms. Check the model added it correctly.",
+            "Every stage waits for the one before it, so small delays add up.",
+            "Good suggestions often stream LLM tokens into TTS, and shorten the end-of-speech wait.",
+            "Most models say that a realtime API gives up some control over each stage."
+          ],
+          "check": {
+            "question": "Why is a pipeline of STT, LLM, and TTS slower than a realtime audio API?",
+            "answer": "In a pipeline, each stage waits for the previous stage to finish, so the delays add up. A realtime API streams audio in both directions, which removes the waits and makes fast turn-taking, under about 500 ms, possible."
+          },
+          "challenge": "Change one number in Prompt A, for example make the LLM 1,500 ms. Ask which change now saves the most time."
+        },
+        {
+          "title": "Choose tools for image generation jobs",
+          "goal": "Learn which image generation tool fits which job: ControlNet, LoRA, inpainting, or IP-Adapter.",
+          "steps": [
+            "Read the four jobs in Prompt A. Write your own choice for each job on paper first.",
+            "Send Prompt A in a <strong>new</strong> chat. Mark each job where the model and you disagree.",
+            "In the <strong>same</strong> chat, send Prompt B. Check whether the pipeline matches the job.",
+            "If your chat can make images, ask it to draw job 3 and see if it can edit only one part."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "I use a diffusion image pipeline. These tools exist: ControlNet (structure such as pose, depth, or edges), LoRA (a small trained add-on for a style or a character), inpainting (edit one masked area), and IP-Adapter (use a reference image as a guide).\n\nFor each job, pick the best tool, give one reason, and say what input I must have.\nJob 1: Make 20 posters with the same cartoon girl in the same drawing style.\nJob 2: Keep the exact pose of a person in my photo, but turn the photo into a painting.\nJob 3: Change only the sky in a product photo and leave the product as it is.\nJob 4: Make a new picture that has the colours and mood of one reference image, with no training.\nIf two tools could work, say so."
+            },
+            {
+              "label": "Prompt B",
+              "text": "Take Job 2 and write the pipeline as a numbered list of nodes, as in ComfyUI. For each node, write its name, its input, and its output. Then give two reasons why a team should keep the pipeline as a saved graph file in version control."
+            }
+          ],
+          "lookFor": [
+            "Most models pick ControlNet for Job 2, inpainting for Job 3, and IP-Adapter for Job 4.",
+            "Job 1 may get LoRA, or IP-Adapter, or both. The model should explain the difference.",
+            "In Prompt B each node takes the output of a node before it, like a chain.",
+            "A saved graph can be reviewed, repeated, and rolled back, like code."
+          ],
+          "check": {
+            "question": "What is the difference between ControlNet and LoRA?",
+            "answer": "ControlNet controls the structure of one image, such as a pose or edges, from an input you give each time. A LoRA is a small trained add-on that teaches the model a style or a character, so it can repeat them in many images."
+          },
+          "challenge": "Add Job 5: put a person from a photo into a new background without changing the face. Ask which tools you need and in what order."
+        }
       ]
     }
   ],

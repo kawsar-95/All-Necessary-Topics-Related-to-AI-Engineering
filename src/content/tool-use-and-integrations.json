@@ -293,6 +293,134 @@
           "channel": "Learn with Sumit - LWS - Bangladesh",
           "lang": "bn"
         }
+      ],
+      "practice": [
+        {
+          "title": "Play the tool in a chat",
+          "goal": "See the tool-calling loop: the model asks for a tool call, you run the tool, and the model uses your result.",
+          "steps": [
+            "Start a <strong>new</strong> chat. Send Prompt A. The model should reply with JSON only. Check the tool name and the order ID.",
+            "In the <strong>same</strong> chat, send Prompt B. You are now the tool. Read the final answer.",
+            "Open a <strong>new</strong> chat. Send Prompt A again. Then send Prompt C, an error result, instead of Prompt B.",
+            "Compare the two final answers. Did the model invent facts when the tool failed?"
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "You are the support assistant for an online shop. You can use ONE tool.\n\nTool schema:\n{\"name\": \"get_order_status\", \"description\": \"Look up the status of one customer order. Use when the user asks where their order is. Returns status, carrier, and expected delivery date, or an error field if the order is not found.\", \"input_schema\": {\"type\": \"object\", \"properties\": {\"order_id\": {\"type\": \"string\", \"description\": \"Order ID such as ORD-4821\"}}, \"required\": [\"order_id\"]}}\n\nRules:\n1. If you need the tool, reply with ONLY a JSON object like {\"tool\": \"name\", \"input\": {...}}. Write no other text.\n2. After I send the tool result, answer the customer in two short sentences.\n\nCustomer message: \"Hi, my order ORD-4821 has not arrived yet. Where is it?\""
+            },
+            {
+              "label": "Prompt B",
+              "text": "TOOL RESULT for get_order_status:\n\n| field | value |\n|---|---|\n| status | delayed |\n| carrier | SwiftCourier |\n| expected_delivery | 2026-03-14 |\n| delay_reason | warehouse backlog |\n\nNow answer the customer."
+            },
+            {
+              "label": "Prompt C",
+              "text": "TOOL RESULT for get_order_status:\n\n{\"error\": \"order_not_found\", \"retryable\": false}\n\nNow answer the customer."
+            }
+          ],
+          "lookFor": [
+            "Most models reply with a small JSON object such as the tool name and <code>order_id</code> set to ORD-4821, and nothing else.",
+            "After Prompt B, the answer uses the carrier, the date, and the delay reason from your table.",
+            "After Prompt C, a good answer says the order was not found. It does not invent a delivery date. Some models may still guess, so read with care."
+          ],
+          "check": {
+            "question": "In this exercise, who ran the tool, and what did the model do with the result?",
+            "answer": "You ran the tool, because the model only writes text. The tool result became prompt content, and the model read it in its next turn. This is why tools should return a clear shape, and an error field when they fail."
+          },
+          "challenge": "Change Prompt B to a very long JSON blob with 15 unused fields. Is the answer still good? Then trim it to a short table with a one-sentence meaning. Which is easier to read?"
+        },
+        {
+          "title": "Compare vague and clear tool descriptions",
+          "goal": "See how the quality of tool names and descriptions changes which tool the model picks and how sure it is.",
+          "steps": [
+            "Start a <strong>new</strong> chat. Send Prompt A, which has two vaguely described tools. Write down what the model does.",
+            "Start another <strong>new</strong> chat. Send Prompt B. It has the same question but two clear tools. Write down what the model does.",
+            "Compare the two replies: the tool chosen, the arguments, and whether the model sounded sure."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "You can use these tools:\n[\n  {\"name\": \"search\", \"description\": \"Searches.\", \"input_schema\": {\"type\": \"object\", \"properties\": {\"q\": {\"type\": \"string\"}}}},\n  {\"name\": \"find\", \"description\": \"Finds things.\", \"input_schema\": {\"type\": \"object\", \"properties\": {\"q\": {\"type\": \"string\"}}}}\n]\n\nRules: If a tool can help, reply with ONLY a JSON object like {\"tool\": \"name\", \"input\": {...}}. If you are not sure which tool is right, reply with one sentence that says why you are not sure. Do not answer the question yourself.\n\nUser question: \"Who does Farhana Akter report to?\""
+            },
+            {
+              "label": "Prompt B",
+              "text": "You can use these tools:\n[\n  {\"name\": \"search_documents\", \"description\": \"Search the company wiki for policy pages and project documents. Use when the user asks about internal policy or past projects. Does NOT return data about people. Returns the top 5 text chunks with source URLs.\", \"input_schema\": {\"type\": \"object\", \"properties\": {\"query\": {\"type\": \"string\", \"description\": \"Natural-language query, 3 to 8 words.\"}}, \"required\": [\"query\"]}},\n  {\"name\": \"get_employee\", \"description\": \"Look up one employee by full name. Use when the user asks who someone is, who their manager is, or which team they are in. Returns name, job title, manager, and team.\", \"input_schema\": {\"type\": \"object\", \"properties\": {\"full_name\": {\"type\": \"string\", \"description\": \"Full name, for example Farhana Akter.\"}}, \"required\": [\"full_name\"]}}\n]\n\nRules: If a tool can help, reply with ONLY a JSON object like {\"tool\": \"name\", \"input\": {...}}. If you are not sure which tool is right, reply with one sentence that says why you are not sure. Do not answer the question yourself.\n\nUser question: \"Who does Farhana Akter report to?\""
+            }
+          ],
+          "lookFor": [
+            "With Prompt A, many models say they are not sure, or they pick a tool by guessing. The name and description give no clue.",
+            "With Prompt B, most models pick <code>get_employee</code> and fill in the full name exactly.",
+            "The question did not change. Only the tool text changed."
+          ],
+          "check": {
+            "question": "Which three parts of a tool description made Prompt B easier for the model?",
+            "answer": "A verb_noun name such as get_employee, a description that says what the tool does and when to use it, and a described parameter with an example. The model reads this text before it decides, so it works like a contract."
+          },
+          "challenge": "Edit Prompt B so both tools say only \"Looks things up.\" Keep the clear names. Does the model still choose well? Which part carries more weight, the name or the description?"
+        },
+        {
+          "title": "Spot which tool calls can run together",
+          "goal": "See that independent tool calls can go in one turn, while dependent calls must wait for a result.",
+          "steps": [
+            "Start a <strong>new</strong> chat for each prompt. Send Prompt A. Count the tool calls in the reply.",
+            "In a new chat, send Prompt B. Count the calls. Ask yourself why the list is short.",
+            "In a new chat, send Prompt C. Mark which call is in the list and which call is missing."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "You can use these tools:\n[\n  {\"name\": \"get_weather\", \"description\": \"Get the current weather for one city. Use when the user asks about weather. Returns temperature in Celsius and a short summary.\", \"input_schema\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\"}}, \"required\": [\"city\"]}},\n  {\"name\": \"get_exchange_rate\", \"description\": \"Get the exchange rate between two currencies. Use for money conversion. Returns one number.\", \"input_schema\": {\"type\": \"object\", \"properties\": {\"from\": {\"type\": \"string\", \"description\": \"Currency code, e.g. USD\"}, \"to\": {\"type\": \"string\", \"description\": \"Currency code, e.g. BDT\"}}, \"required\": [\"from\", \"to\"]}},\n  {\"name\": \"get_user_city\", \"description\": \"Get the home city of a user by user ID. Returns a city name.\", \"input_schema\": {\"type\": \"object\", \"properties\": {\"user_id\": {\"type\": \"string\"}}, \"required\": [\"user_id\"]}}\n]\n\nRules: Reply with ONLY a JSON list of tool calls, for example [{\"tool\": \"name\", \"input\": {...}}]. Put in the list every call you can make right now. If a call needs the result of another call, leave it out. Write no other text.\n\nUser question: \"What is the weather in Tokyo, and how many BDT is 1 USD?\""
+            },
+            {
+              "label": "Prompt B",
+              "text": "You can use these tools:\n[\n  {\"name\": \"get_weather\", \"description\": \"Get the current weather for one city. Use when the user asks about weather. Returns temperature in Celsius and a short summary.\", \"input_schema\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\"}}, \"required\": [\"city\"]}},\n  {\"name\": \"get_exchange_rate\", \"description\": \"Get the exchange rate between two currencies. Use for money conversion. Returns one number.\", \"input_schema\": {\"type\": \"object\", \"properties\": {\"from\": {\"type\": \"string\", \"description\": \"Currency code, e.g. USD\"}, \"to\": {\"type\": \"string\", \"description\": \"Currency code, e.g. BDT\"}}, \"required\": [\"from\", \"to\"]}},\n  {\"name\": \"get_user_city\", \"description\": \"Get the home city of a user by user ID. Returns a city name.\", \"input_schema\": {\"type\": \"object\", \"properties\": {\"user_id\": {\"type\": \"string\"}}, \"required\": [\"user_id\"]}}\n]\n\nRules: Reply with ONLY a JSON list of tool calls, for example [{\"tool\": \"name\", \"input\": {...}}]. Put in the list every call you can make right now. If a call needs the result of another call, leave it out. Write no other text.\n\nUser question: \"What is the weather in the city where user U-77 lives?\""
+            },
+            {
+              "label": "Prompt C",
+              "text": "You can use these tools:\n[\n  {\"name\": \"get_weather\", \"description\": \"Get the current weather for one city. Use when the user asks about weather. Returns temperature in Celsius and a short summary.\", \"input_schema\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\"}}, \"required\": [\"city\"]}},\n  {\"name\": \"get_exchange_rate\", \"description\": \"Get the exchange rate between two currencies. Use for money conversion. Returns one number.\", \"input_schema\": {\"type\": \"object\", \"properties\": {\"from\": {\"type\": \"string\", \"description\": \"Currency code, e.g. USD\"}, \"to\": {\"type\": \"string\", \"description\": \"Currency code, e.g. BDT\"}}, \"required\": [\"from\", \"to\"]}},\n  {\"name\": \"get_user_city\", \"description\": \"Get the home city of a user by user ID. Returns a city name.\", \"input_schema\": {\"type\": \"object\", \"properties\": {\"user_id\": {\"type\": \"string\"}}, \"required\": [\"user_id\"]}}\n]\n\nRules: Reply with ONLY a JSON list of tool calls, for example [{\"tool\": \"name\", \"input\": {...}}]. Put in the list every call you can make right now. If a call needs the result of another call, leave it out. Write no other text.\n\nUser question: \"Compare the weather in Tokyo with the weather in the city where user U-77 lives.\""
+            }
+          ],
+          "lookFor": [
+            "Prompt A: most models return two calls in one list, because neither call needs the other.",
+            "Prompt B: most models return only <code>get_user_city</code>. The weather call needs the city first.",
+            "Prompt C: a good reply has two calls, <code>get_weather</code> for Tokyo and <code>get_user_city</code> for U-77. The second weather call waits."
+          ],
+          "check": {
+            "question": "Why is parallel tool calling a big latency win, and when can you not use it?",
+            "answer": "Independent calls can run at the same time, so the total wait is the slowest call, not the sum of all calls. If one call needs the output of another, it must wait for the next turn."
+          },
+          "challenge": "Write a question that needs three calls: two that can run together and one that must wait. Test it in a new chat. Does the model split the calls correctly?"
+        },
+        {
+          "title": "Sort an MCP server's features",
+          "goal": "Learn the three MCP primitives (tools, resources, prompts) by sorting real examples, then see why MCP saves work.",
+          "steps": [
+            "Read the eight features in Prompt A. Before you send anything, write your own sort: tool, resource, or prompt.",
+            "Start a <strong>new</strong> chat. Send Prompt A. Compare the table with your own sort. Note each difference.",
+            "In the <strong>same</strong> chat, send Prompt B. Check the numbers by hand.",
+            "For each difference from step 2, decide who is right. Use the three definitions in Prompt A."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "An MCP server for a Postgres database offers these features:\n1. run_query: runs a SQL query and returns the rows\n2. The list of all tables and columns, readable at the address db://schema\n3. A saved template called \"weekly-sales-report\" that the user picks by name from a menu\n4. insert_row: adds a new row to a table\n5. A read-only CSV file of yesterday's orders, at the address db://exports/orders-yesterday\n6. A template called \"explain-this-slow-query\" that fills in a query the user gives\n7. delete_old_logs: deletes log rows older than 90 days\n8. The text of one customer record, at the address db://customers/1042\n\nMCP has three primitives:\n- Tool: a function the model can call to do an action.\n- Resource: read-only data the client can fetch on demand.\n- Prompt: a named prompt template the user can pick.\n\nSort each feature into one primitive. Reply with a table: number, primitive, and a reason in 10 words or fewer."
+            },
+            {
+              "label": "Prompt B",
+              "text": "We have 3 apps (an IDE, a chat app, and a custom agent) and 4 data sources (Postgres, a wiki, GitHub, and a file store). How many custom integrations do we write without MCP? How many pieces do we write with MCP (one client per app, one server per source)? Show the formula and explain in 2 sentences why the numbers differ."
+            }
+          ],
+          "lookFor": [
+            "Features 1, 4, and 7 are actions, so they are tools. Features 2, 5, and 8 are read-only data at an address, so they are resources. Features 3 and 6 are templates, so they are prompts.",
+            "Features that change data (insert, delete) are always tools. Read-only data is a resource, even when it is large.",
+            "Prompt B: without MCP you write 3 × 4 = 12 integrations. With MCP you write 3 + 4 = 7 pieces."
+          ],
+          "check": {
+            "question": "Why is delete_old_logs a tool and not a resource?",
+            "answer": "A resource is read-only data the client fetches. Deleting rows is an action, and actions are the tool primitive. Because the server speaks the open MCP standard, any compatible client (the host) can use it without custom code."
+          },
+          "challenge": "Add a ninth feature of your own to Prompt A that is hard to sort, for example a read-only data feed that also needs a parameter. Ask the model and argue with its answer."
+        }
       ]
     }
   ],

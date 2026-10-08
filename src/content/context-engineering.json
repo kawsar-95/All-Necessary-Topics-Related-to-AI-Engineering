@@ -142,6 +142,39 @@
           "channel": "Standarity",
           "lang": "en"
         }
+      ],
+      "practice": [
+        {
+          "title": "Budget an 8,000-token context window",
+          "goal": "See that fixed costs and reserved output shrink the room for history and retrieval, and that a plan can overflow the window.",
+          "steps": [
+            "Do the sum yourself first. Add all six items from Prompt A on paper. Write your total.",
+            "Send Prompt A in a <strong>new</strong> chat. Compare the total of the AI with your total.",
+            "In the <strong>same</strong> chat, send Prompt B. Check that the new plan really fits in 8,000 tokens.",
+            "Add the numbers of the new plan yourself. Look for any error in the arithmetic of the AI."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "A chat app has a context window of 8,000 tokens.\nFixed costs:\n- System prompt: 1,500 tokens\n- Tool definitions: 2,000 tokens\n- Current user turn: 300 tokens\n- Reserved for the answer: 1,000 tokens\nThe team wants to add:\n- Chat history: 2,500 tokens\n- Retrieved chunks: 6 chunks of 700 tokens each\n\nTask:\n1. Show a table with every item and the total.\n2. Say if the plan fits. Say how many tokens it is over or under.\n3. If history stays at 2,500 tokens, how many 700-token chunks fit?\nShow your arithmetic."
+            },
+            {
+              "label": "Prompt B",
+              "text": "Now make a plan that fits. Rules: keep the 1,000-token answer reserve, keep 3 chunks of 700 tokens, and load only 1,000 tokens of tool definitions (the rest load lazily). Shrink the history by summarizing. Give a new table with the maximum history size and the headroom."
+            }
+          ],
+          "lookFor": [
+            "The first plan is about 3,500 tokens over the window. Most people do not expect such a big overflow.",
+            "Only one 700-token chunk fits if history and the fixed costs stay as they are.",
+            "The fix needs several changes at once: a smaller history, lazy tools, and fewer chunks. One change is not enough.",
+            "Models sometimes make a small arithmetic error. Your own sum is the check."
+          ],
+          "check": {
+            "question": "Why must you subtract the reserved output tokens before you decide how much retrieval fits?",
+            "answer": "The window holds the input and the answer together. If you do not reserve output tokens, the answer gets cut off, and this fails silently. So the retrieval budget is the window minus system, tools, current turn, and reserved output."
+          },
+          "challenge": "Change the window in Prompt A to 32,000 tokens and ask which of the five claimants you would still limit first. Say why."
+        }
       ]
     },
     {
@@ -316,6 +349,39 @@
           "title": "Memory in LangChain | Deep dive (python)",
           "channel": "Eden Marco",
           "lang": "en"
+        }
+      ],
+      "practice": [
+        {
+          "title": "Compare a naive and a structured summary",
+          "goal": "See which facts a vague summary drops, and how a fixed schema keeps them.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. Copy the summary.",
+            "Send Prompt B in another <strong>new</strong> chat. Copy the summary.",
+            "Count how many of these 6 facts each summary keeps: 85,000 tk, bKash, new only, under 1.6 kg, 16 GB RAM, call Friday after 5 pm.",
+            "Find the one open question in the chat. Check if each summary shows it."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Summarise this conversation in 2 sentences.\n\nUser: I want a laptop for my son. He studies computer science in Chittagong.\nAssistant: What is your budget?\nUser: Maximum 85,000 tk. I will pay by bKash, so the shop must accept it.\nAssistant: Do you prefer a new or a used laptop?\nUser: New only. Used ones gave us problems before.\nAssistant: Do you need a big screen?\nUser: No. He carries it every day. Lighter than 1.6 kg please.\nAssistant: I suggest 16 GB RAM and a 512 GB SSD.\nUser: OK, 16 GB RAM. I am not sure about 512 GB. Ask me again later.\nAssistant: Noted. I will check shops in Agrabad and send you a list.\nUser: Good. Call me on Friday after 5 pm. My number is 01700-000000."
+            },
+            {
+              "label": "Prompt B",
+              "text": "Summarise this conversation as JSON with exactly these keys: user_goal (one sentence), decisions_made (list), open_questions (list), key_facts_learned (list), entities (list of names, ids, numbers), user_preferences (list), tool_results_to_remember (list). Keep exact numbers. Do not add facts.\n\nUser: I want a laptop for my son. He studies computer science in Chittagong.\nAssistant: What is your budget?\nUser: Maximum 85,000 tk. I will pay by bKash, so the shop must accept it.\nAssistant: Do you prefer a new or a used laptop?\nUser: New only. Used ones gave us problems before.\nAssistant: Do you need a big screen?\nUser: No. He carries it every day. Lighter than 1.6 kg please.\nAssistant: I suggest 16 GB RAM and a 512 GB SSD.\nUser: OK, 16 GB RAM. I am not sure about 512 GB. Ask me again later.\nAssistant: Noted. I will check shops in Agrabad and send you a list.\nUser: Good. Call me on Friday after 5 pm. My number is 01700-000000."
+            }
+          ],
+          "lookFor": [
+            "The 2-sentence summary often keeps the goal but drops exact numbers, the payment method, or the call time.",
+            "The schema forces a slot for each kind of fact, so the numbers and the open question usually survive.",
+            "The structured summary is longer. It trades some tokens for less loss.",
+            "Check the JSON for invented facts. A summary can add errors too."
+          ],
+          "check": {
+            "question": "Why is a summary a bad source of truth for an exact number such as a budget?",
+            "answer": "Summarisation is lossy compression. Exact numbers, decisions, and quoted text disappear first. Use the summary as an index, and keep key facts in a structured slot or in the original log."
+          },
+          "challenge": "Add 4 more turns to the chat that change the budget to 90,000 tk. Summarise again with Prompt B. Does the summary show the new value and not the old one?"
         }
       ]
     },
@@ -552,6 +618,39 @@
           "channel": "Coev",
           "lang": "en"
         }
+      ],
+      "practice": [
+        {
+          "title": "Predict cache hits for two prompt layouts",
+          "goal": "See that a cache covers only the unchanged start of a prompt, so the order of the parts decides the cost.",
+          "steps": [
+            "Read Layout X and Layout Y in Prompt A. Guess which layout is cheaper for Request 2. Write your guess.",
+            "Send Prompt A in a <strong>new</strong> chat. Compare the numbers with your guess.",
+            "In the <strong>same</strong> chat, send Prompt B. See what one typo does to the cache.",
+            "Check the cost sums yourself. Models can make arithmetic errors."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Prefix caching rule: the cache covers only the longest run of identical lines from the top of the prompt. The first line that differs, and every line after it, is a cache miss. A cached token costs 0.1 units. An uncached token costs 1 unit.\n\nLayout X (same lines in Request 1 and Request 2, except the ones marked CHANGES):\nLine 1: Current time (15 tokens) - CHANGES each request\nLine 2: System rules (1,800 tokens)\nLine 3: Tool schemas (2,200 tokens)\nLine 4: User question (100 tokens) - CHANGES each request\n\nLayout Y:\nLine 1: System rules (1,800 tokens)\nLine 2: Tool schemas (2,200 tokens)\nLine 3: Current time (15 tokens) - CHANGES each request\nLine 4: User question (100 tokens) - CHANGES each request\n\nFor Request 2 in each layout, give a table: cached tokens, uncached tokens, and cost in units. Then say which layout is cheaper and by what percent."
+            },
+            {
+              "label": "Prompt B",
+              "text": "Now a developer fixes one typo inside the System rules in Layout Y, between Request 1 and Request 2. The typo fix changes 1 character. What are the cached tokens, uncached tokens, and cost for Request 2 now? Explain in 2 sentences."
+            }
+          ],
+          "lookFor": [
+            "In Layout X the time is on line 1, so almost nothing is cached. Request 2 costs about 4,115 units.",
+            "In Layout Y about 4,000 tokens are cached. Request 2 costs about 515 units, which is close to 87% less.",
+            "After the typo fix, the System rules differ, so the cache misses from that line down. The cost goes back to a full-price call.",
+            "The two layouts hold the same words. Only the order changed."
+          ],
+          "check": {
+            "question": "Where should changing content go in a prompt that uses caching, and why?",
+            "answer": "Put stable parts first (system prompt, tools, static documents) and changing parts last (time, user message). The cache keeps only an identical prefix, and a one-character change busts the cache for everything after it."
+          },
+          "challenge": "Ask the AI to rewrite Layout Y for an app that also retrieves new news articles on every call. Where do the articles go, and should they be cached?"
+        }
       ]
     },
     {
@@ -727,6 +826,39 @@
           "title": "MemGPT (Memory GPT) - Towards LLMs as Operating Systems",
           "channel": "Shweta Lodha",
           "lang": "en"
+        }
+      ],
+      "practice": [
+        {
+          "title": "Sort memories into four layers",
+          "goal": "See how different kinds of information belong to different memory layers, and how an old memory can be wrong.",
+          "steps": [
+            "Before you send anything, sort the 8 items of Prompt A into layers yourself. Use the five layers named in the prompt.",
+            "Send Prompt A in a <strong>new</strong> chat. Compare the AI sort with yours. Note each difference.",
+            "Send Prompt B in another <strong>new</strong> chat. Read what the AI does with each stored memory.",
+            "Check the new memory records: do they have a date and a confidence?"
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "An AI support agent uses hierarchical memory with five places: Working memory (the current prompt), Short-term (this session, in a session store), Long-term (user facts, in a vector store and database), Episodic (lessons from past sessions), and External (documents and databases read on demand).\n\nFor each item, choose one place, say where it is stored, and say when it is updated:\n1. The current user question: 'My router light is red.'\n2. The last 6 turns of this chat.\n3. The user prefers answers in Bangla.\n4. A 40-page router manual in PDF.\n5. Lesson from last week: 'Step-by-step answers with photos solved this user's problem fast.'\n6. Result of a tool call 2 turns ago: line status = up.\n7. The user's name and city.\n8. The company's price database.\nAnswer in a table. Mark any item that could fit two places."
+            },
+            {
+              "label": "Prompt B",
+              "text": "You are the memory manager of a cooking assistant. Today is 2026-06-01.\nStored memories:\nM1 (saved 2025-01-10, confidence 0.9): The user is vegetarian.\nM2 (saved 2025-02-02, confidence 0.9): The user lives in Sylhet.\nNew user message: 'Plan a dinner for my friends tomorrow. I started eating fish last month, and I moved to Dhaka in April.'\n\nFor M1 and M2, choose: keep, update, or ask the user to confirm. Give a reason. Then write the new memory records with a date and a confidence."
+            }
+          ],
+          "lookFor": [
+            "The current question goes to working memory. The router manual and the price database go to External. They are fetched on demand, not stored in the prompt.",
+            "Some items are ambiguous, for example the tool result (short-term or working) and the lesson (episodic or long-term). Your sort may differ from the AI sort, and both can be reasonable.",
+            "The AI should see that both M1 and M2 are stale, and that the new message contradicts them.",
+            "Good answers add timestamps and a confidence to every memory, so old facts can be weighed or checked."
+          ],
+          "check": {
+            "question": "Why does a long-term memory need a timestamp and a confidence score?",
+            "answer": "Long-term memories drift: a fact from an old session can be contradicted by what the user says now. A timestamp and a confidence let the system weight by recency, or ask the user to confirm a possibly stale memory."
+          },
+          "challenge": "Send Prompt B again, but make the new message vague: 'I eat differently now.' Does the AI ask a question or does it guess?"
         }
       ]
     },
@@ -936,6 +1068,39 @@
           "channel": "LangChain",
           "lang": "en"
         }
+      ],
+      "practice": [
+        {
+          "title": "Prune chunks, then compress a paragraph",
+          "goal": "See how pruning removes irrelevant or duplicate chunks, and how compression shortens text while it keeps the key facts.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. Note which chunks the AI keeps and which it drops.",
+            "Check the dropped chunks yourself. Did the AI remove a duplicate? Did it keep a chunk that has the answer?",
+            "Send Prompt B in a <strong>new</strong> chat. Compare the compressed text with the original.",
+            "Check that every number and the word 'not' survive in the compressed text."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Question: How long does standard delivery take in Dhaka?\n\nRetrieved chunks:\nC1: Standard delivery in Dhaka takes 2 working days. Express delivery arrives the same day if you order before 12:00.\nC2: Standard delivery inside Dhaka city takes 2 working days.\nC3: Our office is closed on Fridays and public holidays.\nC4: Delivery outside Dhaka takes 4 to 6 working days.\nC5: The company was founded in 2014 and has 120 staff.\nC6: Returns are accepted within 7 days if the box is sealed.\n\nTask:\n1. Give each chunk a relevance score from 0 to 10.\n2. Mark near-duplicate chunks and keep only the best one.\n3. The prompt budget allows about 40 tokens of context. Choose the chunks to keep, in order of score, until the budget is full.\n4. Answer the question using only the kept chunks."
+            },
+            {
+              "label": "Prompt B",
+              "text": "Compress the paragraph below to about half of its length. Remove low-information words. Keep every number, every name, and every negation such as 'not'. Then answer the question using only your compressed text.\n\nParagraph: Thank you for your order. We would like to tell you that the Basic plan costs 500 tk per month, and the Pro plan costs 1,200 tk per month. You can cancel the Pro plan at any time, but we do not give a refund for a month that has already started. If you pay for a full year, you get 2 months free.\n\nQuestion: How much does a full year of the Pro plan cost, and can I get a refund in the middle of a month?"
+            }
+          ],
+          "lookFor": [
+            "The AI should drop C5 and C6 (not relevant) and one of C1 or C2 (duplicate). Models differ on which duplicate to keep.",
+            "C3 and C4 are real text but they do not answer the question. Pruning removes them when the budget is tight.",
+            "The compressed paragraph reads like telegraph text, but the numbers (500, 1,200, 2 months) usually stay.",
+            "The year price needs a calculation: 10 months at 1,200 tk is 12,000 tk. Check if the AI keeps the facts needed for it."
+          ],
+          "check": {
+            "question": "What is the difference between pruning and compression?",
+            "answer": "Pruning removes whole parts that are not relevant or are duplicates, so information density stays high. Compression shrinks all the text by removing low-information tokens. They are complementary."
+          },
+          "challenge": "In Prompt A, change the question to 'When is the office open?' Does the AI now keep C3? What does this show about task-aware pruning?"
+        }
       ]
     },
     {
@@ -1134,6 +1299,39 @@
           "title": "Context Engineering for AI Agents with LangChain and Manus",
           "channel": "LangChain",
           "lang": "en"
+        }
+      ],
+      "practice": [
+        {
+          "title": "Break a blind cut, then page a result",
+          "goal": "See that a hard cap can cut a key fact in half, and that a small slice with a cursor is safer.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. This tool result is cut by a hard cap. Read the answer.",
+            "Send Prompt B in another <strong>new</strong> chat. This tool result is a small page with a cursor.",
+            "Compare the two answers. Which one is certain? Which one guesses?",
+            "Look at where Prompt A is cut. Say what number could follow the cut."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "You are a support agent. You have a tool search_docs(query, cursor). You called search_docs('refund policy'). The tool result was cut by a hard cap, and this is all you received:\n\n{\"results\": [{\"id\": \"d1\", \"text\": \"Monthly plans can be refunded within 14 days of payment.\"}, {\"id\": \"d2\", \"text\": \"Annual plans can be refunded within 3\n[...truncated...]\n\nUser question: How many days do I have to ask for a refund on an annual plan? Answer from the tool result only. If you are not sure, say what you would do next."
+            },
+            {
+              "label": "Prompt B",
+              "text": "You are a support agent. You have a tool search_docs(query, cursor). You called search_docs('refund policy'). The tool returned one page:\n\n{\"results\": [{\"id\": \"d1\", \"text\": \"Monthly plans can be refunded within 14 days of payment.\"}, {\"id\": \"d2\", \"text\": \"Annual plans can be refunded within 30 days of payment.\"}, {\"id\": \"d3\", \"text\": \"Refunds go back to the original payment method.\"}, {\"id\": \"d4\", \"text\": \"Gift cards cannot be refunded.\"}, {\"id\": \"d5\", \"text\": \"Refund requests are handled by the billing team.\"}], \"next_cursor\": \"c_02\", \"total\": 5234}\n\nUser question: How many days do I have to ask for a refund on an annual plan? Answer from the tool result only. Say if you need the next page."
+            }
+          ],
+          "lookFor": [
+            "With Prompt A, the number is cut after '3'. It could be 3, 30, or 365. A good model says it is not sure and asks for more. A weaker answer guesses.",
+            "The JSON in Prompt A is broken: it has no closing quote or brace. A real parser would fail here.",
+            "With Prompt B, the answer is complete. The page is small, and the total (5,234) shows that more results exist.",
+            "The cursor gives the agent a choice: stop now, or fetch more. The cost stays bounded."
+          ],
+          "check": {
+            "question": "Why is structure-aware truncation, or paging, better than a hard cap?",
+            "answer": "A hard cap can cut a fact or a JSON object in the middle, which breaks parsing and can silently change the meaning. A small slice with a cursor and a total keeps results whole and lets the agent fetch more only when it needs it."
+          },
+          "challenge": "Send Prompt B again, but change the question to 'Which team handles a refund for a gift card?' Does the AI ask for the next page? Is that the right choice?"
         }
       ]
     },
@@ -1362,6 +1560,39 @@
           "title": "Context Rot: When Long Context Fails",
           "channel": "Hamel Husain",
           "lang": "en"
+        }
+      ],
+      "practice": [
+        {
+          "title": "Test rules buried in the middle",
+          "goal": "See whether rules in the middle of a list get less attention than the same rules placed at the start and the end.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. Check three rules: under 60 words, no exclamation marks, last line Ref: KX-482.",
+            "Send Prompt B in another <strong>new</strong> chat. Check the same three rules.",
+            "Count how many of the 3 rules each email follows. Count the words of each email.",
+            "Press the regenerate button 2 times for each prompt, if the chat has one. Count again."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "You write short customer emails. Follow ALL rules.\n\nRules:\n1. Write in English.\n2. Use a polite tone.\n3. Greet the customer by name.\n4. Say sorry one time only.\n5. Mention the order number.\n6. Do not promise a delivery date.\n7. Keep the email under 60 words.\n8. Never use exclamation marks.\n9. The last line of the email must be exactly: Ref: KX-482\n10. Do not use emojis.\n11. Do not mention other customers.\n12. Use plain words.\n13. Put the signature 'Support Team' before the Ref line.\n\nTask: Write an email to Mina Akter. Her order #5521 is 2 days late. Offer a 10% discount on her next order."
+            },
+            {
+              "label": "Prompt B",
+              "text": "MOST IMPORTANT RULES: the email has under 60 words, has no exclamation marks, and its last line is exactly: Ref: KX-482\n\nYou write short customer emails. Follow ALL rules.\n\nRules:\n1. Write in English.\n2. Use a polite tone.\n3. Greet the customer by name.\n4. Say sorry one time only.\n5. Mention the order number.\n6. Do not promise a delivery date.\n7. Keep the email under 60 words.\n8. Never use exclamation marks.\n9. The last line of the email must be exactly: Ref: KX-482\n10. Do not use emojis.\n11. Do not mention other customers.\n12. Use plain words.\n13. Put the signature 'Support Team' before the Ref line.\n\nTask: Write an email to Mina Akter. Her order #5521 is 2 days late. Offer a 10% discount on her next order.\n\nBefore you answer, check again: under 60 words, no exclamation marks, last line exactly 'Ref: KX-482'."
+            }
+          ],
+          "lookFor": [
+            "Most modern models follow both prompts well, because this context is short. A mistake in Prompt A is a sign of the effect, but its absence does not disprove it.",
+            "If a mistake happens, it is often a rule from the middle: too many words, an exclamation mark, or a wrong last line.",
+            "Prompt B states the key rules at both ends. This sandwich is cheap and often more reliable.",
+            "The effect grows when the context is longer. Here you only have about 150 words."
+          ],
+          "check": {
+            "question": "Where do you place a rule that the model must not miss, and why?",
+            "answer": "Place it at the start and repeat it at the end of the prompt. Models recall the start and the end of a long context best, and they are weaker in the middle (the 'Lost in the Middle' U-curve)."
+          },
+          "challenge": "Add 30 more filler rules to the middle of Prompt A, and run it again. Does the model now miss more of the 3 rules? Does the sandwich in Prompt B still help?"
         }
       ]
     }

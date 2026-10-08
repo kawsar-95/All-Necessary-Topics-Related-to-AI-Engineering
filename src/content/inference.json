@@ -463,6 +463,122 @@
           "channel": "AI Engineer",
           "lang": "en"
         }
+      ],
+      "practice": [
+        {
+          "title": "Decide: hosted API or self-host",
+          "goal": "Do the cost math for a real-looking scenario and see when self-hosting starts to pay off.",
+          "steps": [
+            "Read the scenario in Prompt A. On paper, work out the monthly cost of both options and guess the break-even traffic.",
+            "Start a <strong>new</strong> chat. Send Prompt A. Compare the model's numbers with yours. Fix any mistake by hand.",
+            "In the <strong>same</strong> chat, send Prompt B. Read the new recommendation and the reasons it gives."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Scenario (all numbers are invented):\nA small company, ShopLink, runs a customer-support chatbot. It uses 2 billion tokens per month.\n\nOption 1, hosted API: 0.50 USD per 1 million tokens.\nOption 2, self-host: rent 2 GPUs at 3 USD per hour each, 730 hours per month, plus a half-time ML engineer at 3,000 USD per month. Ignore the small per-token cost of electricity and storage.\n\nTasks:\n1. Compute the monthly cost of each option. Show the arithmetic.\n2. Compute the break-even: how many tokens per month make both options cost the same?\n3. List 3 hidden costs of self-hosting that I did not include.\nReply with a short table, then a bullet list."
+            },
+            {
+              "label": "Prompt B",
+              "text": "Now the situation changes. ShopLink grows to 20 billion tokens per month. A new customer also says the chat text must never leave ShopLink's own servers. Using the same prices, and assuming the same 2 GPUs can handle the load, what do you recommend now, and why? Give the monthly cost of both options and answer in under 120 words."
+            }
+          ],
+          "lookFor": [
+            "Hosted: 2,000 million tokens × 0.50 = 1,000 USD. Self-host: 2 × 3 × 730 = 4,380 USD for GPUs, plus 3,000 USD for the engineer, so 7,380 USD. At this traffic the hosted API is cheaper.",
+            "Break-even is about 14.8 billion tokens per month. Check whether the model got this right.",
+            "In Prompt B, the larger bill and the privacy rule both point to self-hosting. Most models say so."
+          ],
+          "check": {
+            "question": "Why do most teams start with a hosted API and move to self-hosting later?",
+            "answer": "A hosted API gives a fast time to first token and the vendor handles scaling. Self-hosting has fixed costs (GPUs and an engineer), so it pays off only when the token bill is large, or when data privacy or full control matters."
+          },
+          "challenge": "Change one number in Prompt A, for example make the GPUs idle half of the month, or use a 5 USD hosted price. Does the break-even move up or down? Predict first."
+        },
+        {
+          "title": "Calculate model memory at 16, 8, 4 bits",
+          "goal": "See with simple math why quantization lets a big model fit on one GPU or a small model fit on a laptop.",
+          "steps": [
+            "Before you ask, compute by hand: a 70 billion parameter model needs how many GB of weights at 16-bit, 8-bit, and 4-bit?",
+            "Start a <strong>new</strong> chat. Send Prompt A. Compare the model's table with your numbers.",
+            "In the <strong>same</strong> chat, send Prompt B. Decide yourself first, then read the answer.",
+            "Note what the model says about KV cache and quality. Is memory for weights the whole story?"
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "A language model has 70 billion parameters. Use this rule: weight memory in GB = parameters in billions × bits per weight ÷ 8.\n\nMake a table of weight memory at 16-bit, 8-bit, and 4-bit. Then say which of these fit on one GPU with 80 GB of memory. Finally, in one sentence, say what other memory the server needs at run time besides the weights."
+            },
+            {
+              "label": "Prompt B",
+              "text": "I want to run an 8 billion parameter model on my laptop. The laptop has 16 GB of RAM, and about 8 GB of it is free for the model. Using the same rule, which precision (16-bit, 8-bit, or 4-bit) can I use? Give the memory for each. Then tell me one risk of using the smallest precision."
+            }
+          ],
+          "lookFor": [
+            "70B model: 140 GB at 16-bit, 70 GB at 8-bit, 35 GB at 4-bit. Only 8-bit and 4-bit fit in 80 GB, and 8-bit leaves very little room.",
+            "8B model: 16 GB at 16-bit, 8 GB at 8-bit, 4 GB at 4-bit. The 4-bit one fits with room to spare.",
+            "The model should mention the KV cache and a small quality loss. Weights are not the whole memory use."
+          ],
+          "check": {
+            "question": "What does quantization change, and what is the trade-off?",
+            "answer": "It lowers the precision of the weights, for example from 16-bit to 4-bit, so the model needs about 2–4× less memory and runs faster. The cost is a small quality loss for most workloads."
+          },
+          "challenge": "Ask the model to suggest a 5-question test you could use to compare a 16-bit and a 4-bit version of the same model. Which kinds of questions would show a quality drop first?"
+        },
+        {
+          "title": "Estimate savings from prefix caching",
+          "goal": "Calculate how much a shared system prompt costs with and without prefix caching, and see what breaks the cache.",
+          "steps": [
+            "Read Prompt A. Guess the saving: more than 50%, or less? Write your guess.",
+            "Start a <strong>new</strong> chat. Send Prompt A. Check the arithmetic by hand.",
+            "Before you send Prompt B, predict what goes wrong. Then send it in the <strong>same</strong> chat.",
+            "Compare the model's explanation with your prediction."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "A support bot gets 10,000 requests per day (all numbers are invented). Every request starts with the same system prompt of 3,000 tokens. The user message adds 100 tokens. Input tokens cost 1 USD per 1 million. Cached input tokens cost 0.10 USD per 1 million (a 90% discount).\n\nCompute the daily input cost (1) without prefix caching and (2) with prefix caching, where the system prompt is cached. Show the arithmetic. Then give the saving as a percentage."
+            },
+            {
+              "label": "Prompt B",
+              "text": "The team now changes the system prompt. The first line becomes: \"Today is {current date and time}. The user's name is {name}.\" The rest stays the same 3,000 tokens. Prefix caching stops working well. Explain in 3 short sentences why, and show how to change the prompt so the cache works again."
+            }
+          ],
+          "lookFor": [
+            "Without caching: 31 million tokens per day, so 31 USD. With caching: 3 USD for the cached part plus 1 USD for the new part, so 4 USD. The saving is about 87%.",
+            "Prompt B: the date and name change on every request, so the start of the prompt is never the same. The server cannot reuse the cached prefix.",
+            "The fix is to keep the fixed text first and put the changing text last."
+          ],
+          "check": {
+            "question": "Why must the shared part of the prompt come first?",
+            "answer": "Prefix caching hashes the start of the prompt and reuses the stored KV cache only when the start matches exactly. Any change early in the prompt makes the whole prefix new, so there is no cache hit."
+          },
+          "challenge": "Try 1,000 requests per day instead of 10,000. How does the daily saving change in USD? When is prefix caching not worth the effort?"
+        },
+        {
+          "title": "Match symptoms to inference metrics",
+          "goal": "Practise reading latency symptoms (TTFT, TPS, throughput, p99) and choosing the right fix.",
+          "steps": [
+            "Read the four symptoms in Prompt A. On paper, name the metric and one fix for each.",
+            "Start a <strong>new</strong> chat. Send Prompt A. Compare each answer with yours.",
+            "Mark where you and the model differ. Decide who is right, using the table of metrics in the section."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "I run an LLM inference server. For each symptom, name the main metric that is bad (TTFT, TPS per request, aggregate throughput, or p99 latency) and choose ONE best fix from this list: prefix caching, continuous batching, speculative decoding, a shorter prompt, a smaller or quantized model, or more GPU capacity.\n\nSymptoms:\n1. Users send a 20,000-token document. They wait 6 seconds before the first word appears. After that, text streams fast.\n2. Even with only one user on the server, text appears at 8 tokens per second, which feels slow.\n3. The GPU is idle about 60% of the time. The server finishes one request completely before it starts the next. Total tokens per second for all users is low.\n4. Most requests are fast, but the slowest 1% take 40 seconds when the queue is long.\n\nReply with a table: symptom number, metric, fix, and a reason in 12 words or fewer."
+            }
+          ],
+          "lookFor": [
+            "Symptom 1 is TTFT (long prefill). A shorter prompt or prefix caching fits. Symptom 2 is per-request TPS. Speculative decoding or a smaller or quantized model fits.",
+            "Symptom 3 is aggregate throughput. Continuous batching is the standard fix. Symptom 4 is p99 latency from queue depth. More capacity fits.",
+            "Some symptoms allow more than one good fix. Look at whether the model gives a reason that matches the metric."
+          ],
+          "check": {
+            "question": "Why can a server have good throughput and still feel slow to one user?",
+            "answer": "Throughput counts tokens per second for all users together. A user feels TTFT and per-request TPS, and the worst users feel p99. Heavy batching can raise throughput while some single requests wait longer."
+          },
+          "challenge": "Make up a fifth symptom with two possible fixes. Ask the model which fix to try first and why. Do you agree with the order?"
+        }
       ]
     }
   ],

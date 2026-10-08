@@ -253,6 +253,144 @@
           "channel": "solo.io",
           "lang": "en"
         }
+      ],
+      "practice": [
+        {
+          "title": "Measure time to first word",
+          "goal": "See why streaming makes an AI app feel fast, and learn which transport fits which feature.",
+          "steps": [
+            "Start a stopwatch on your phone. Send Prompt A in a <strong>new</strong> chat. Stop at the first word. Note the time. Then note the time at the last word.",
+            "Imagine the app showed nothing until the end. Write what the user would feel during that wait.",
+            "Read the three features in Prompt B. Write your own transport for each feature.",
+            "Send Prompt B in a <strong>new</strong> chat. Compare its choices with yours."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Write a story of about 400 words. A bus driver in Chattogram finds a lost bag on the last trip of the night. Start the story right away, with no introduction."
+            },
+            {
+              "label": "Prompt B",
+              "text": "Pick one transport for each feature: SSE (Server-Sent Events), WebSockets, or HTTP chunked transfer. Give one reason for each.\nFeature 1: An AI chat answer appears word by word. Data only goes from server to browser. The route is a normal HTTP proxy.\nFeature 2: A voice call where the user and the AI can talk at the same time.\nFeature 3: A fallback for an old company proxy that removes the SSE headers.\nThen list one cost of WebSockets compared to SSE."
+            }
+          ],
+          "lookFor": [
+            "The first word usually appears in about a second, but the last word comes much later.",
+            "With no streaming, the wait for the first word would be the full time.",
+            "Most models choose SSE for Feature 1, WebSockets for Feature 2, and HTTP chunked for Feature 3.",
+            "WebSockets are two-way but heavier to set up."
+          ],
+          "check": {
+            "question": "The total time to make the answer does not change with streaming. Why does the app still feel faster?",
+            "answer": "Streaming shows tokens as the model writes them, so the user sees progress after the first token and starts to read at once. SSE is the simplest way to do this because the data only flows from server to client."
+          },
+          "challenge": "Ask for a 1,000-word story and measure again. Does the time to the first word change much? What does that tell you about time to first token?"
+        },
+        {
+          "title": "Play a job queue server",
+          "goal": "See how a job_id and polling keep a long agent task from blocking a request.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. The model now plays an API server.",
+            "In the <strong>same</strong> chat, send Prompt B. Check that the reply comes fast and has a job_id.",
+            "In the same chat, send Prompt C. Then send it again with elapsed times of 120, 200, and 245 seconds.",
+            "Ask: <em>What would the user see if the server held the request for the full 4 minutes?</em>"
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Act as the API server of a research agent. Reply only with an HTTP status line and a JSON body. No other text.\nRules:\n- POST /jobs starts a job. Reply at once with 202 and a JSON body with job_id and status \"queued\". The job itself takes about 245 seconds.\n- GET /jobs/{job_id} gives the status. Statuses are queued, running, done, and failed.\n- When running, show the current step and progress. The steps are: 1 search sources, 2 read 12 sources, 3 write the report.\n- When done, show a result field with a short fake report title.\n- I will tell you the elapsed time in seconds in each GET request. Use it to decide the status.\nSay READY if you understand."
+            },
+            {
+              "label": "Prompt B",
+              "text": "POST /jobs\n{\"topic\": \"Mobile payment use in rural Bangladesh\"}"
+            },
+            {
+              "label": "Prompt C",
+              "text": "GET /jobs/job_001\nelapsed: 40 seconds"
+            }
+          ],
+          "lookFor": [
+            "The reply to Prompt B comes at once and contains only a job_id and a status, not a result.",
+            "Each poll shows more progress: a step name, then the next step, then done.",
+            "The client can leave the page and come back later with the job_id.",
+            "A blocked request for 4 minutes would be cut by many proxies and would show the user nothing."
+          ],
+          "check": {
+            "question": "Why should a task of more than about 10 seconds return a job_id instead of the result?",
+            "answer": "A long task should not block an HTTP request, because connections time out and the user sees nothing. A queue runs the work in the background, and the client polls or subscribes for updates, which is a big UX win for long agent runs."
+          },
+          "challenge": "Send a poll with <code>elapsed: 100 seconds</code> and a rule that step 2 failed. What status and message should the server return, and should the client retry?"
+        },
+        {
+          "title": "Test idempotency and resume",
+          "goal": "See how an idempotency key stops double billing and how checkpoints save work after a failure.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. The model plays a billing API with idempotency keys.",
+            "In the <strong>same</strong> chat, send Prompt B. Check the total money charged after the three requests.",
+            "In the same chat, send Prompt C. Compare the cost with and without checkpoints.",
+            "Ask yourself: what would happen to a user who clicks Pay twice if the server had no key?"
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Act as an API server for report generation. Each new run costs 0.40 USD. Reply only with JSON for each request I send.\nRules:\n- Every request has an idempotency_key and a body.\n- A new key makes a new run with a new run_id (run_1, run_2, ...). Reply with charged: 0.40 and replayed: false.\n- The same key with the same body returns the stored response again, with replayed: true and charged: 0. No new run.\n- The same key with a different body returns the error code 422 with a short message.\nSay READY if you understand."
+            },
+            {
+              "label": "Prompt B",
+              "text": "Handle these three requests in order. After the third, add a line with the total USD charged.\n1. idempotency_key: k-1001, body: {\"report\": \"monthly sales\"}\n2. idempotency_key: k-1001, body: {\"report\": \"monthly sales\"} (the user refreshed the page)\n3. idempotency_key: k-1001, body: {\"report\": \"yearly sales\"}"
+            },
+            {
+              "label": "Prompt C",
+              "text": "Now a long run. Run run_77 has 5 steps. Each step costs 0.10 USD. Steps 1, 2, and 3 finished and the server saved a checkpoint after each one. Step 4 failed with a network error. The client retries with the same idempotency_key.\n1. Which steps do you run now, and what do you charge?\n2. What would the retry cost if there were no checkpoints?\n3. Name one thing the checkpoint must contain."
+            }
+          ],
+          "lookFor": [
+            "Request 2 is a replay: same run_id, replayed true, no new charge.",
+            "Request 3 gives an error, so the key cannot be used for a different request.",
+            "With checkpoints a resume runs only steps 4 and 5.",
+            "Without checkpoints all 5 steps run again, so the cost is higher."
+          ],
+          "check": {
+            "question": "A user refreshes the page and the client sends the same request again. How does an idempotency key protect them?",
+            "answer": "The server stores the response under the key, and a retry with the same key returns the same response without a new run or a new charge. Checkpoints go one step further: a resume replays only the failed steps, not the whole agent run."
+          },
+          "challenge": "Ask the model what should happen if two requests with the same key arrive at the same moment, before the first one finishes."
+        },
+        {
+          "title": "Simulate a provider fallback chain",
+          "goal": "See how a gateway routes around provider errors, and how a degraded prompt keeps the answer useful.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. This is the normal prompt for a provider that has tools.",
+            "Send Prompt B in another <strong>new</strong> chat. This is the degraded prompt for a provider with no tools. Compare the two answers.",
+            "Send Prompt C in a <strong>new</strong> chat. The model plays a gateway and handles a log of errors.",
+            "Check each route in the answer against the rules in Prompt C."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "You can use one tool: get_weather(city: string), which returns live weather.\nUser question: Do I need an umbrella in Sylhet today?\nReply ONLY with the tool call as JSON, in the form {\"tool\": ..., \"arguments\": {...}}. Do not answer the question yet."
+            },
+            {
+              "label": "Prompt B",
+              "text": "You have no tools and no live data. Answer from general knowledge only. Say clearly that you cannot check today's weather, and give the most useful advice you can.\nUser question: Do I need an umbrella in Sylhet today?"
+            },
+            {
+              "label": "Prompt C",
+              "text": "Act as an LLM gateway. The fallback chain is: Provider 1 (has tools), then Provider 2 (has tools), then Provider 3 (no tools, so use a degraded prompt that says: you have no tools, answer from general knowledge).\nRules: on a 503 or 429 error, go to the next provider. On success, stop. Record the provider that answered, the number of attempts, and the cost.\nCosts per call: Provider 1 0.010 USD, Provider 2 0.006 USD, Provider 3 0.002 USD. Failed calls cost 0.\nThree requests came in:\nRequest X: Provider 1 returns 200.\nRequest Y: Provider 1 returns 503, Provider 2 returns 200.\nRequest Z: Provider 1 returns 503, Provider 2 returns 429, Provider 3 returns 200.\nGive a table with: request, provider used, attempts, prompt used (normal or degraded), cost. Then add the total cost."
+            }
+          ],
+          "lookFor": [
+            "Prompt A gives only a tool call, with no final answer.",
+            "Prompt B gives honest general advice and says it cannot see live weather.",
+            "In the table, X costs 0.010, Y costs 0.006, and Z costs 0.002, so the total is 0.018 USD.",
+            "A gateway is a fallback router plus cost tracking."
+          ],
+          "check": {
+            "question": "Why does a fallback chain use a different prompt for a provider that has no tool use?",
+            "answer": "Providers differ in what they support, so the same prompt can fail on a fallback provider. A degraded prompt, such as you have no tools, answer anyway, keeps the answer useful, while the gateway handles the routing and the cost tracking."
+          },
+          "challenge": "Add a rule: if the user is on a free plan, skip Provider 1. Ask how a feature flag could turn this rule on for 10 percent of users first."
+        }
       ]
     }
   ],

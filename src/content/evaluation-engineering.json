@@ -315,6 +315,124 @@
           "channel": "Toronto Machine Learning Society (TMLS)",
           "lang": "en"
         }
+      ],
+      "practice": [
+        {
+          "title": "Catch a regression with a golden set",
+          "goal": "See that a small prompt change can fix one case and break another, and that only a fixed test set shows it.",
+          "steps": [
+            "Read the 9 tickets in Prompt A. This is your <strong>golden set</strong>. Correct labels: BILLING, BUG, ACCOUNT, OTHER, BILLING, BUG, ACCOUNT, OTHER, BUG.",
+            "Send Prompt A in a <strong>new</strong> chat. Count how many labels match the golden set.",
+            "Send Prompt B in another <strong>new</strong> chat. It is the same task with one new rule. Count the matches again.",
+            "Compare the two scores ticket by ticket. Find which ticket got better and which got worse."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "You are a support ticket classifier. Give each ticket exactly one label: BILLING, BUG, ACCOUNT, or OTHER.\nReply with a numbered list. Write only the number and the label.\n\nTickets:\n1. I was charged twice for my March plan.\n2. The export button shows a blank page on Firefox.\n3. I forgot my password and I cannot log in.\n4. Do you have an office in Dhaka?\n5. My invoice shows the wrong company name.\n6. The app crashes when I upload a file larger than 10 MB.\n7. Please change the email address on my profile.\n8. I love the new dashboard!\n9. The confirmation email never arrived after I paid."
+            },
+            {
+              "label": "Prompt B",
+              "text": "You are a support ticket classifier. Give each ticket exactly one label: BILLING, BUG, ACCOUNT, or OTHER.\nRule: if a ticket mentions email, always label it BUG, because email problems are usually delivery bugs.\nReply with a numbered list. Write only the number and the label.\n\nTickets:\n1. I was charged twice for my March plan.\n2. The export button shows a blank page on Firefox.\n3. I forgot my password and I cannot log in.\n4. Do you have an office in Dhaka?\n5. My invoice shows the wrong company name.\n6. The app crashes when I upload a file larger than 10 MB.\n7. Please change the email address on my profile.\n8. I love the new dashboard!\n9. The confirmation email never arrived after I paid."
+            }
+          ],
+          "lookFor": [
+            "Prompt B probably labels ticket 7 as BUG, which is wrong. The new rule was meant to fix email bugs, but it broke a ticket that was fine before.",
+            "Ticket 9 may be right in both versions. Then the rule gave no gain and only a loss.",
+            "Without the fixed list of 9 tickets, you would test only the email case and miss the new error."
+          ],
+          "check": {
+            "question": "Why do teams keep a golden dataset and run it on every prompt change?",
+            "answer": "A golden dataset is a fixed set of (input, expected output) pairs. Running it after each change shows regressions that a single manual test misses, so CI can block a release when accuracy drops."
+          },
+          "challenge": "Add two more tickets that you got wrong in real life, such as a mixed ticket about a refund bug. Run Prompt A and B again. Does the score change?"
+        },
+        {
+          "title": "Test an LLM judge for bias",
+          "goal": "See how a pairwise judge and a rubric judge behave, and check whether the judge is biased by answer order or length.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. Note which answer the judge picks and why.",
+            "Send Prompt B in a <strong>new</strong> chat. It has the same two answers in swapped order. Does the winner stay the same?",
+            "Send Prompt C in a <strong>new</strong> chat. Read the rubric scores. Did the judge find the wrong claim in Answer 2?",
+            "Decide: which answer do you think is better? Compare your view with the judge."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "You are a judge. A beginner asked: \"What is an API key?\"\nCompare the two answers. Say which one is better, Answer 1 or Answer 2, and explain in two sentences.\n\nAnswer 1:\nAn API key is a secret string that a program sends with each request. The service uses it to know who is calling, and to apply limits and billing. Keep it private, and never put it in public code.\n\nAnswer 2:\nGreat question! An API key is an incredibly powerful and versatile credential that is fundamentally essential to modern software engineering. It works just like a shared team password, so you should send it to all of your teammates in a group chat so that everyone can log in easily. It also makes your application faster and more secure in every possible way."
+            },
+            {
+              "label": "Prompt B",
+              "text": "You are a judge. A beginner asked: \"What is an API key?\"\nCompare the two answers. Say which one is better, Answer 1 or Answer 2, and explain in two sentences.\n\nAnswer 1:\nGreat question! An API key is an incredibly powerful and versatile credential that is fundamentally essential to modern software engineering. It works just like a shared team password, so you should send it to all of your teammates in a group chat so that everyone can log in easily. It also makes your application faster and more secure in every possible way.\n\nAnswer 2:\nAn API key is a secret string that a program sends with each request. The service uses it to know who is calling, and to apply limits and billing. Keep it private, and never put it in public code."
+            },
+            {
+              "label": "Prompt C",
+              "text": "You are a judge. A beginner asked: \"What is an API key?\"\nScore the answer below from 0 to 5 on each criterion. Give one short reason for each score.\nCriteria: 1) Factual accuracy, 2) Clarity for a beginner, 3) Safe advice, 4) Conciseness.\nEnd with the total score out of 20.\n\nAnswer:\nGreat question! An API key is an incredibly powerful and versatile credential that is fundamentally essential to modern software engineering. It works just like a shared team password, so you should send it to all of your teammates in a group chat so that everyone can log in easily. It also makes your application faster and more secure in every possible way."
+            }
+          ],
+          "lookFor": [
+            "Most judges prefer the short, correct answer in both orders. If your judge changes its pick when you swap the order, that is position bias.",
+            "The rubric in Prompt C usually gives low marks for accuracy and safe advice, and shows why the long answer is bad.",
+            "Some judges praise the friendly, long text. That is a sign to compare the judge with human labels."
+          ],
+          "check": {
+            "question": "Why swap the order of the answers, and why check the judge against human labels?",
+            "answer": "A judge model can have biases, such as a preference for the first answer or for longer text. Swapping the order and comparing with human labels shows whether the LLM-as-judge is reliable before you trust its scores."
+          },
+          "challenge": "Write a better Answer 2 that is long but correct. Run Prompt A again. Does the judge still prefer the short answer?"
+        },
+        {
+          "title": "Score a RAG answer with four metrics",
+          "goal": "Practise the four RAG metrics (faithfulness, answer relevance, context precision, context recall) on one real-looking example.",
+          "steps": [
+            "Read the question, the three retrieved chunks, and the answer in Prompt A. Guess which problems you can find before you send it.",
+            "Send Prompt A in a <strong>new</strong> chat. Compare the four scores with your guesses.",
+            "Ask the chat in the same chat: <em>Which exact words in the answer are not supported by the chunks?</em>",
+            "Decide which part to fix first: the retriever or the generator."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "You are a RAG evaluator. Score the system on four metrics, each from 0 to 1, with one sentence of reasoning:\n1) Faithfulness: does the answer only use facts in the retrieved chunks?\n2) Answer relevance: does the answer address the question?\n3) Context precision: are the retrieved chunks mostly relevant?\n4) Context recall: do the chunks contain everything needed for a full answer? (A fact needed for a full answer is listed under Ground truth.)\n\nQuestion: Can I carry over unused leave days to next year, how many, and what happens to the rest?\n\nRetrieved chunks:\n[1] Employees may carry over up to 5 unused annual leave days into the next calendar year. Carried days expire on 31 March.\n[2] The office canteen is open from 8:00 to 16:00 on working days.\n[3] Sick leave does not carry over to the next year.\n\nAnswer: Yes. You can carry over up to 10 days until 31 March. HR pays the remaining days in cash at the end of the year.\n\nGround truth: Up to 5 days carry over until 31 March. Days above the limit are lost, and there is no cash payment."
+            }
+          ],
+          "lookFor": [
+            "Faithfulness is low: the answer says 10 days and a cash payment, but the chunks do not say that.",
+            "Answer relevance is often high. The answer is on topic, even though it is wrong. A high score on one metric does not mean the system is good.",
+            "Context precision is low (only one of three chunks helps), and context recall is low (the rule for the extra days is missing)."
+          ],
+          "check": {
+            "question": "The answer is on topic but wrong. Which metrics catch this, and which one does not?",
+            "answer": "Faithfulness catches it, because the answer adds facts that are not in the retrieved chunks. Answer relevance does not catch it, because it only asks whether the answer addresses the question. Low context recall points to a retrieval problem."
+          },
+          "challenge": "Fix the retrieval by adding a fourth chunk: <em>Days above the limit are lost. No cash payment is made.</em> Ask the chat to re-score. Which metrics change?"
+        },
+        {
+          "title": "Grade an agent's path, not only its result",
+          "goal": "See that an agent can reach a correct final result by a bad path, and learn to score task success, tool-call accuracy, and step efficiency.",
+          "steps": [
+            "Read the agent log in Prompt A. Count the steps. Write the minimum number of steps you think are needed.",
+            "Send Prompt A in a <strong>new</strong> chat. Read the scores.",
+            "Check the judge: did it find the wrong date in step 3 and the extra search in step 2?",
+            "Decide: would you ship this agent? Why or why not?"
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "You are an agent evaluator. Below is a task and the log of an agent run. Score the run on:\n1) Task success (yes/no): is the final outcome correct?\n2) Tool-call accuracy: for each tool call, say whether the arguments were right.\n3) Trajectory: did the agent take a reasonable path?\n4) Step efficiency: steps used vs the minimum needed.\nGive a short verdict at the end.\n\nTask: Book the cheapest flight from Dhaka (DAC) to Chattogram (CGP) on 12 Nov 2026. The budget is 5000 BDT.\n\nTools: search_flights(from, to, date), book_flight(flight_id)\n\nAgent log:\nStep 1: search_flights(from=\"DAC\", to=\"CGP\", date=\"2026-11-12\") -> F1: 5200 BDT, F2: 4800 BDT, F3: 4300 BDT\nStep 2: search_flights(from=\"DAC\", to=\"CGP\", date=\"2026-11-12\") -> F1: 5200 BDT, F2: 4800 BDT, F3: 4300 BDT\nStep 3: search_flights(from=\"DAC\", to=\"CGP\", date=\"2026-12-11\") -> F4: 4100 BDT, F5: 4600 BDT\nStep 4: book_flight(flight_id=\"F2\") -> Booked F2 for 12 Nov 2026\nFinal answer: I booked the cheapest flight under your budget."
+            }
+          ],
+          "lookFor": [
+            "The judge should say task success is questionable: F2 is under budget, but F3 is cheaper, so the agent did not book the cheapest flight.",
+            "Step 2 is a repeated call, and step 3 has a wrong date. The tool-call accuracy is below 100%.",
+            "The minimum path is two steps (one search, one booking of F3). The agent used four."
+          ],
+          "check": {
+            "question": "Why is checking only the final answer not enough for an agent?",
+            "answer": "An agent can look successful while it wastes steps, uses wrong arguments, or picks a wrong option. Agent evals also track trajectory match, tool-call accuracy, and step efficiency, so you see how the agent got the result."
+          },
+          "challenge": "Change step 4 to book F3 and keep the other steps. Ask the chat to score again. Which scores go up, and which stay low?"
+        }
       ]
     }
   ],

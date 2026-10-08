@@ -203,6 +203,41 @@
           "channel": "Bangla Coding Tutor",
           "lang": "bn"
         }
+      ],
+      "practice": [
+        {
+          "title": "Cut prompt tokens, keep the answer",
+          "goal": "See that a shorter prompt gives the same answer, then count how much money fewer tokens save.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. Note the answer.",
+            "Send Prompt B in another <strong>new</strong> chat. Compare the answer and the length of the two prompts.",
+            "Send Prompt C in the same chat as Prompt B. Check the maths yourself with a calculator."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Hello! I hope you are having a wonderful day. I am working on a customer support system and I would really appreciate your kind help with a small task. Below you will find a customer ticket. Could you please read the ticket very carefully and then tell me which one of the following categories it belongs to? The categories are: billing, shipping, defect, account. Please choose only one category. When you answer, please do not write any explanation, any greeting, or any extra sentence. Just write the single category word. Thank you so much for your help!\n\nTicket: My order #48213 arrived yesterday and the screen is cracked. I want my money back."
+            },
+            {
+              "label": "Prompt B",
+              "text": "Classify the ticket as one of: billing, shipping, defect, account. Reply with the category only.\n\nTicket: My order #48213 arrived yesterday and the screen is cracked. I want my money back."
+            },
+            {
+              "label": "Prompt C",
+              "text": "A support bot sends 800 input tokens per call. A shorter prompt sends 200 input tokens per call. The price is $0.50 per 1 million input tokens. The bot makes 2 million calls per month. Calculate the monthly input cost for each prompt, and the percentage saved. Show each step."
+            }
+          ],
+          "lookFor": [
+            "Both chats usually give the same one-word answer, even though Prompt A is about four times longer.",
+            "Every extra word in Prompt A is extra tokens, and you pay for every one of them on every call.",
+            "Prompt C gives about $800 for the long prompt and $200 for the short one: a 75% saving."
+          ],
+          "check": {
+            "question": "Why does the length of a prompt matter for cost, if the answer stays the same?",
+            "answer": "APIs charge per token, and the model reads every input token on every call. A prompt with 75% fewer tokens costs 75% less in input cost and has less prefill work, so it also responds faster."
+          },
+          "challenge": "Shorten Prompt B even more, without changing the answer. Then try a prompt in another language, such as Bengali, and ask if it is likely to use more tokens for the same meaning."
+        }
       ]
     },
     {
@@ -393,6 +428,37 @@
           "channel": "IBM Technology",
           "lang": "en"
         }
+      ],
+      "practice": [
+        {
+          "title": "Match a model to the workload",
+          "goal": "Practise choosing a model by trade-off, not by the word best, and see why a MoE model needs more memory.",
+          "steps": [
+            "Read the three workloads in Prompt A. <strong>Before</strong> you send it, write your own choice of model for each.",
+            "Send Prompt A in a <strong>new</strong> chat. Compare the AI choices with yours. Note any difference.",
+            "Send Prompt B in the same chat. Compare its answer with your first guess."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "I must pick one model for each workload. The three models are made-up.\n\nModel X: large, very strong at reasoning, slow, expensive per token, closed API.\nModel Y: small, fast, cheap per token, good at simple tasks, closed API.\nModel Z: medium, open weights, you run it on your own servers, you must pay for GPUs and operations.\n\nWorkloads:\n1. A chat helper that sorts 5 million short support tickets per month into 4 categories.\n2. A coding agent that fixes hard bugs across many files. Only 200 tasks per day.\n3. A hospital in a country where patient data must never leave the building. Medium difficulty questions.\n\nFor each workload, choose X, Y or Z. Give one sentence on the trade-off. Then say why 'which model is the best' is the wrong question."
+            },
+            {
+              "label": "Prompt B",
+              "text": "A Mixture-of-Experts model has 671B total parameters but only 37B active per token. A dense model has 70B parameters, and all of them are active on every token. Which model needs more GPU memory to load? Which model does less computing per token? Answer in 3 short sentences."
+            }
+          ],
+          "lookFor": [
+            "Most models pick Y for the high-volume tickets, X for the hard coding tasks, and Z for the data-residency case.",
+            "The AI usually names a different trade-off for each workload: cost, capability, or data control.",
+            "For Prompt B, the MoE model needs more memory, but does less computing per token."
+          ],
+          "check": {
+            "question": "Why does a MoE model use more memory than a 70B dense model but less compute per token?",
+            "answer": "All experts must be loaded in memory, so the total parameters decide the memory. Each token is routed to only a few experts, so only the active parameters do the compute."
+          },
+          "challenge": "Change workload 1 to only 500 tickets per month. Ask the AI if the choice changes, and why."
+        }
       ]
     },
     {
@@ -538,6 +604,37 @@
           "title": "Should You Use Open Source Large Language Models?",
           "channel": "IBM Technology",
           "lang": "en"
+        }
+      ],
+      "practice": [
+        {
+          "title": "Find the break-even for self-hosting",
+          "goal": "Work out when an open-weight model on your own GPU is cheaper than a closed API, and when it is not.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. Check the break-even number with a calculator.",
+            "Send Prompt B in the same chat. Write your own choice for each company first.",
+            "Compare your choices with the AI choices. Find one case where you disagree and decide who is right."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Compare two options for the same text task.\n\nOption 1, closed API: $3 per 1 million tokens (input and output mixed). No other cost.\nOption 2, open-weight model on our own server: $2,200 per month for the GPU server plus $1,500 per month for engineer time. It can serve up to 2 billion tokens per month. No per-token fee.\n\nAt how many tokens per month do both options cost the same? Show the formula and the steps. Which option is cheaper at 200 million tokens per month? Which at 1.8 billion?"
+            },
+            {
+              "label": "Prompt B",
+              "text": "For each company below, choose: closed API, open-weight self-host, or hybrid (route easy queries to a small local model, hard queries to a frontier API). Give one sentence of reason each.\n\nCompany 1: A small start-up with 50,000 queries per month, no ML engineers.\nCompany 2: A bank that must keep all customer text inside its own data centre. It also has a team that can run GPUs.\nCompany 3: A shopping app with 100 million queries per month. 80% are simple, and 20% need top quality.\nCompany 4: A team that must use the strongest coding agent available today."
+            }
+          ],
+          "lookFor": [
+            "The break-even is about 1.23 billion tokens per month: ($2,200 + $1,500) divided by $3 per million.",
+            "At 200 million tokens the API is far cheaper. At 1.8 billion tokens self-hosting is cheaper.",
+            "Most models pick closed for company 1 and 4, open-weight for company 2, and hybrid for company 3."
+          ],
+          "check": {
+            "question": "Why can a closed API be cheaper for a small team even if open-weight models have no per-token fee?",
+            "answer": "With open weights you pay a fixed cost for GPUs and operations, whatever the volume. At low volume that fixed cost is spread over few tokens, so the per-token API price is lower. Open-weight wins when volume, data residency, or fine-tuning needs are high."
+          },
+          "challenge": "Ask Prompt A again with a server that costs $6,000 per month and handles 5 billion tokens. Where is the new break-even, and is it still inside the server capacity?"
         }
       ]
     },
@@ -703,6 +800,41 @@
           "channel": "Afran Sarkar",
           "lang": "bn"
         }
+      ],
+      "practice": [
+        {
+          "title": "See a sharp and a flat distribution",
+          "goal": "See that a model has a probability for many next words: sharp for facts, flat for creative text, and that sampling picks from them.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. Then send Prompt B in the same chat. Compare the two probability lists.",
+            "Send Prompt C in three <strong>new</strong> chats. Write down the three words.",
+            "Compare: which prompt has one dominant word, and which has many close words?"
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Estimate the next-word probabilities for this sentence start. List the 5 most likely next words, each with a percentage. The percentages must add up to about 100%. Reply with the list only.\n\nThe capital of France is"
+            },
+            {
+              "label": "Prompt B",
+              "text": "Estimate the next-word probabilities for this sentence start. List the 5 most likely next words, each with a percentage. The percentages must add up to about 100%. Reply with the list only.\n\nOnce upon a time, there was a little"
+            },
+            {
+              "label": "Prompt C",
+              "text": "Complete this sentence with one word only. Reply with the word and nothing else.\n\nOnce upon a time, there was a little"
+            }
+          ],
+          "lookFor": [
+            "For Prompt A, one word (Paris) usually has almost all of the probability.",
+            "For Prompt B, the percentages are spread over several words, such as girl, boy, fox, or rabbit.",
+            "In the three chats of Prompt C, the word often changes. The AI's percentages are its own estimate, not the real logits."
+          ],
+          "check": {
+            "question": "If the model always picked the single most likely word, what would change for Prompt C?",
+            "answer": "It would give the same word every time. This is greedy decoding, like temperature near 0 or top_k=1. Sampling picks from the whole distribution, so a flat distribution gives different words, and a higher temperature flattens it more."
+          },
+          "challenge": "Ask for the same list for the sentence start <em>2 + 2 equals</em>. Is it sharper than Prompt A or flatter than Prompt B? Why?"
+        }
       ]
     },
     {
@@ -840,6 +972,41 @@
           "channel": "Hussein Nasser",
           "lang": "en"
         }
+      ],
+      "practice": [
+        {
+          "title": "Time the first word and the last",
+          "goal": "Measure that streaming shows the first word fast while the full answer takes the same total time, and see why partial output is a problem for pipelines.",
+          "steps": [
+            "Start a stopwatch as you send Prompt A in a <strong>new</strong> chat. Note the time of the first word and of the last word.",
+            "Send Prompt B in a <strong>new</strong> chat. Note the time to the full answer.",
+            "Send Prompt C in a <strong>new</strong> chat. Press Stop after about two seconds, if a Stop button shows. Read the partial text."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Write a story of about 400 words about a rickshaw driver in Dhaka who finds a lost umbrella during the monsoon."
+            },
+            {
+              "label": "Prompt B",
+              "text": "Reply with only the word OK."
+            },
+            {
+              "label": "Prompt C",
+              "text": "Return only a JSON object, with no other text and no code fence. The object has these fields: id, name, email, city, plan, signup_date, last_login, tags (an array of 5 strings), and notes (a 2 sentence string). Use made-up values."
+            }
+          ],
+          "lookFor": [
+            "For Prompt A, the first words appear after a short wait, and the rest comes word by word. The total time is long.",
+            "Prompt B is so short that the first word and the full answer arrive at almost the same time.",
+            "The partial text from Prompt C is not valid JSON: the closing brace is missing, so a program could not parse it yet."
+          ],
+          "check": {
+            "question": "Why is streaming good for a chat window but often bad for a step in a data pipeline?",
+            "answer": "Streaming does not make generation faster. It shows tokens as they arrive, so the user sees progress sooner. A pipeline step that must parse or validate JSON needs the complete response, so it should wait for the non-streaming result."
+          },
+          "challenge": "Ask for a 1,000 word story. Does the time to the first word change much, compared with the 400 word story? What does this tell you about perceived latency?"
+        }
       ]
     },
     {
@@ -969,6 +1136,37 @@
           "title": "1. Structured Output Generation with Llama 3.2 using Ollama (Bangla Tutorial) | NLP Series",
           "channel": "Tasnim Ahmed",
           "lang": "bn"
+        }
+      ],
+      "practice": [
+        {
+          "title": "Compare loose and strict JSON output",
+          "goal": "See that a clear schema in the prompt gives cleaner, typed output than a loose request, and why prompts alone give no guarantee.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. Look at the output: is it clean JSON that a program could parse?",
+            "Send Prompt B in another <strong>new</strong> chat. Compare the format, the types, and the missing age.",
+            "Paste each output into a free online JSON validator, or check by eye: only double quotes, no text outside the JSON."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Put the people from this note into JSON.\n\nNote: Hi team, please welcome Rahim Uddin, who joined us last week as our new data engineer. He is thirty-four. Also, Sadia Akter (QA lead) starts on Monday. I do not have her age yet."
+            },
+            {
+              "label": "Prompt B",
+              "text": "Extract the people from the note. Reply with JSON only. No text before or after it. No markdown code fence.\n\nThe JSON must be an array. Each item must follow this schema:\n{\"name\": string, \"age\": integer or null, \"role\": string}\nUse a number for age, not words. Use null if the age is not in the note. Do not add any other fields.\n\nNote: Hi team, please welcome Rahim Uddin, who joined us last week as our new data engineer. He is thirty-four. Also, Sadia Akter (QA lead) starts on Monday. I do not have her age yet."
+            }
+          ],
+          "lookFor": [
+            "Prompt A often adds a sentence before the JSON, uses a code fence, or invents its own field names.",
+            "Prompt B usually gives age 34 as a number and age null for Sadia. Prompt A might write 'thirty-four' or guess an age.",
+            "Even a good Prompt B result is only likely to be valid. Nothing in the chat forces it."
+          ],
+          "check": {
+            "question": "How is schema-constrained generation different from asking for JSON in a prompt?",
+            "answer": "A prompt only asks the model to follow the format, so it can still fail. With schema-constrained generation the provider compiles the schema into a grammar and masks every token that would break it, so the output is parseable by construction."
+          },
+          "challenge": "Add a third person with a role the schema does not expect, such as two roles. Ask the model to follow the schema and see how it handles the conflict."
         }
       ]
     },
@@ -1119,6 +1317,37 @@
           "title": "Function Calls in OpenAI: How They Work and the Opportunities They Open (Bangla)",
           "channel": "AI Defusion",
           "lang": "bn"
+        }
+      ],
+      "practice": [
+        {
+          "title": "Play the tool in a function-calling loop",
+          "goal": "Do the tool loop by hand: the model asks for a tool call, you run the tool, and the model uses your result.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. The model should reply with a JSON tool call only. Check the function name and the arguments.",
+            "You are the tool. Send Prompt B in the <strong>same</strong> chat. It holds a fake result.",
+            "Read the final answer. Check that it uses your fake numbers and not real weather."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "You can use these tools. You cannot run them yourself. To use a tool, reply with ONLY a JSON object: {\"tool\": name, \"arguments\": {...}}. No other text.\n\nTools:\n[\n  {\"name\": \"get_weather\", \"description\": \"Get the current weather for a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}}, \"required\": [\"location\"]}},\n  {\"name\": \"search_flights\", \"description\": \"Search flights between two airports.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"origin\": {\"type\": \"string\"}, \"destination\": {\"type\": \"string\"}, \"depart_date\": {\"type\": \"string\"}}, \"required\": [\"origin\", \"destination\", \"depart_date\"]}}\n]\n\nUser question: Is it hot in Dhaka right now? Should I wear a jacket?"
+            },
+            {
+              "label": "Prompt B",
+              "text": "Tool result for your call:\n{\"location\": \"Dhaka\", \"temp_c\": 38, \"condition\": \"humid and sunny\"}\n\nNow answer the user question in two sentences, using only this result."
+            }
+          ],
+          "lookFor": [
+            "The first reply is only a JSON call to get_weather with location Dhaka. It is not an answer, and the model did not look up any weather.",
+            "The final answer uses your fake 38 degrees. The model trusts the tool result you gave it.",
+            "The model chose get_weather and not search_flights. The tool names and descriptions guided the choice."
+          ],
+          "check": {
+            "question": "In function calling, who runs the tool: the model or your code?",
+            "answer": "Your code runs the tool. The model only decides which tool to call and with what arguments, then reads the result you append to the conversation. This loop of call, run, append, repeat is the base of every LLM agent."
+          },
+          "challenge": "Replace the get_weather description with just <em>Get data</em> and run Prompt A in a new chat. Does the call get worse? What does this say about tool descriptions?"
         }
       ]
     },
@@ -1310,6 +1539,34 @@
           "channel": "AI Engineer",
           "lang": "en"
         }
+      ],
+      "practice": [
+        {
+          "title": "Test vision on sharp and tiny text",
+          "goal": "See that a vision model can read a clear table, but makes mistakes on tiny text, so it is not a perfect OCR engine.",
+          "steps": [
+            "Open the capability comparison table in this section. Take a screenshot of it at normal size. Use only the table, with no private data.",
+            "Send the screenshot with Prompt A in a <strong>new</strong> chat. Your chat must allow image upload.",
+            "Zoom your browser out to about 30%. Take a new screenshot of the same table. Send it with Prompt A in another <strong>new</strong> chat.",
+            "Compare the two copies against the real table. Count the mistakes."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Look at the attached image. Copy the table into text, one row per line, with the exact words and symbols. After the copy, list every cell where you are not sure of the text."
+            }
+          ],
+          "lookFor": [
+            "The clear screenshot is usually copied well, with few or no mistakes.",
+            "The tiny screenshot often has missing rows, wrong words, or guessed cells.",
+            "Models often write the guessed text with the same confidence as the correct text, unless you ask which cells are unsure."
+          ],
+          "check": {
+            "question": "Why does the model get worse when the text in the image is tiny?",
+            "answer": "An image is encoded into a sequence of embedding vectors that the transformer reads like tokens. Tiny text has too little detail in those vectors, so the model guesses. For exact text such as invoices or IDs, a dedicated OCR engine is more reliable."
+          },
+          "challenge": "Take a photo of a short handwritten note, or write one on paper. Send it with Prompt A and check which words the model reads wrong."
+        }
       ]
     },
     {
@@ -1491,6 +1748,37 @@
           "title": "What Are Embeddings? The Foundation of RAG & AI Search (Bangla)",
           "channel": "Jack Pritom Soren",
           "lang": "bn"
+        }
+      ],
+      "practice": [
+        {
+          "title": "Judge meaning, not matching words",
+          "goal": "See that similarity depends on meaning, not shared words, and that a second step that reads query and document together picks better answers.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. Look at the scores for each pair.",
+            "Send Prompt B in the <strong>same</strong> chat. Look at which documents get the top scores.",
+            "Find a document that shares many words with the query but scores low. Say why."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "Rate how similar the meaning of each pair is, from 0 (unrelated) to 1 (same meaning). Reply with one line per pair: the pair number and the score only.\n\n1. 'How do I reset my password?' / 'Steps to recover access to my account when I forgot my login secret'\n2. 'The bank was flooded after heavy rain.' / 'I deposited money at the bank this morning.'\n3. 'How do I reset my password?' / 'How do I reset my router?'\n4. 'How do I reset my password?' / 'Best street food in Old Dhaka'"
+            },
+            {
+              "label": "Prompt B",
+              "text": "Query: Can I return a laptop after 40 days?\n\nDocuments:\nD1: Laptops can be returned within 14 days of delivery if the box is unopened.\nD2: Laptop deals: save 20% on laptops this week, with free delivery on every laptop.\nD3: Standard items can be returned within 30 days. Electronics have a shorter window.\nD4: How to pack a laptop for a return shipment: use the original box and two layers of tape.\nD5: Every laptop has a 12 month warranty. Defective laptops can be repaired or replaced at any time in that period.\n\nScore each document from 0 to 10 for how well it helps answer the query. Then list the documents from best to worst. Give one short reason for each."
+            }
+          ],
+          "lookFor": [
+            "Pair 1 gets a high score even with few shared words. Pairs 2 and 3 get low scores even with shared words.",
+            "Pair 4 gets a score near 0.",
+            "D2 and D4 repeat the word laptop many times, but they usually score low. D1 and D3 usually rank highest, because they answer the return question."
+          ],
+          "check": {
+            "question": "Why do an embedding model and a reranker form a two-stage pipeline?",
+            "answer": "A bi-encoder embeds each text alone, so it can search millions of vectors fast, but its precision is lower. A cross-encoder reranker reads the query and document together, which is more accurate but slow, so it re-scores only the top candidates."
+          },
+          "challenge": "Add a document D6 that answers the question perfectly but uses very different words, such as <em>Items bought online may be sent back for a refund up to two weeks after arrival</em>. Where does it rank?"
         }
       ]
     },
@@ -1745,6 +2033,41 @@
           "title": "Deep Dive into LLMs like ChatGPT",
           "channel": "Andrej Karpathy",
           "lang": "en"
+        }
+      ],
+      "practice": [
+        {
+          "title": "Compare quick answers with step-by-step thinking",
+          "goal": "See that thinking steps help on multi-step problems, and that on easy questions they only add length and cost.",
+          "steps": [
+            "Send Prompt A in a <strong>new</strong> chat. Note the number. Work the correct answer out yourself with a calculator.",
+            "Send Prompt B in another <strong>new</strong> chat. Compare the result, and the length of the answer.",
+            "Send Prompt C in a <strong>new</strong> chat. Compare its length with a plain question and answer."
+          ],
+          "prompts": [
+            {
+              "label": "Prompt A",
+              "text": "A bakery bakes 8 trays with 25 buns each. 12% of all buns are burnt and thrown away. The rest are sold in full boxes of 6 buns at $4.50 per box. Buns that do not fill a box are given away free. How much money does the bakery earn? Reply with the final amount only. Do not show any working."
+            },
+            {
+              "label": "Prompt B",
+              "text": "A bakery bakes 8 trays with 25 buns each. 12% of all buns are burnt and thrown away. The rest are sold in full boxes of 6 buns at $4.50 per box. Buns that do not fill a box are given away free. How much money does the bakery earn? Think step by step. Then give the final line as: Answer: $amount"
+            },
+            {
+              "label": "Prompt C",
+              "text": "Think step by step, then answer: What is the capital of Japan?"
+            }
+          ],
+          "lookFor": [
+            "The correct answer is $130.50. Many modern models get it right even in Prompt A, but fast answers fail more often on multi-step problems.",
+            "Prompt B shows each step: 200 buns, 24 burnt, 176 left, 29 full boxes, then the money. This makes errors easy to see.",
+            "Prompt C gives a long answer to a one-word question. This is the waste that reasoning adds on easy tasks."
+          ],
+          "check": {
+            "question": "Why do reasoning models use 5 to 50 times more tokens, and when is it worth it?",
+            "answer": "They spend extra compute at inference time by writing thinking tokens before the final answer. This helps on hard math, code, and planning tasks, but it adds cost and latency, so for simple chat or extraction a standard model is better."
+          },
+          "challenge": "If your chat has a Think or Reasoning mode, turn it on and send Prompt A again. Does the answer change, and does the response take longer?"
         }
       ]
     }

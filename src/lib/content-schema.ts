@@ -24,6 +24,20 @@ export type Video = {
   lang: "en" | "bn";
 };
 
+/** A prompt for the reader to copy into any AI chat. Plain text. */
+export type PracticePrompt = { label: string; text: string };
+
+/** A hands-on task that a reader does in any free AI chat. */
+export type Practice = {
+  title: string;
+  goal: Inline;
+  steps: Inline[];
+  prompts: PracticePrompt[];
+  lookFor: Inline[];
+  check: { question: Inline; answer: Inline };
+  challenge: Inline;
+};
+
 export type Section = {
   id: string;
   num: string;
@@ -33,6 +47,7 @@ export type Section = {
   layman: Block[];
   bangla: Block[];
   videos?: Video[];
+  practice?: Practice[];
 };
 
 export type Source = { n: number; url: string; text: string };
@@ -126,6 +141,22 @@ const VideoSchema = z.strictObject({
   lang: z.enum(["en", "bn"]),
 });
 
+const FilledInlineSchema = InlineSchema.refine((s) => s.trim().length > 0, {
+  message: "Expected non-empty text",
+});
+
+const PracticeSchema = z.strictObject({
+  title: z.string().trim().min(1),
+  goal: FilledInlineSchema,
+  steps: z.array(FilledInlineSchema).min(1),
+  prompts: z
+    .array(z.strictObject({ label: z.string().trim().min(1), text: z.string().trim().min(1) }))
+    .min(1),
+  lookFor: z.array(FilledInlineSchema).min(1),
+  check: z.strictObject({ question: FilledInlineSchema, answer: FilledInlineSchema }),
+  challenge: FilledInlineSchema,
+});
+
 export const SectionSchema: z.ZodType<Section> = z.strictObject({
   id: z.string(),
   num: z.string(),
@@ -135,6 +166,7 @@ export const SectionSchema: z.ZodType<Section> = z.strictObject({
   layman: z.array(BlockSchema),
   bangla: z.array(BlockSchema),
   videos: z.array(VideoSchema).optional(),
+  practice: z.array(PracticeSchema).min(1).optional(),
 });
 
 const SourceSchema = z.strictObject({

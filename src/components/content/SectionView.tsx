@@ -5,6 +5,7 @@ import type { CSSProperties } from "react";
 import type { Block, Section } from "@/lib/content-schema";
 import { videosForVoice } from "@/lib/videos";
 import { Inline } from "./Inline";
+import { PracticeList } from "./PracticeList";
 import { ProseBlocks } from "./ProseBlocks";
 import { VideoList } from "./VideoList";
 import { VOICE_COLOR, VoiceSwitcher } from "./VoiceSwitcher";
@@ -207,6 +208,7 @@ export function SectionView({ section }: { section: Section }) {
             blocks={section.bangla}
           />
         )}
+        <PracticeList sectionId={section.id} practice={section.practice} />
         <VideoList sectionId={section.id} videos={videosForVoice(section.videos, voice)} />
       </div>
     </section>
