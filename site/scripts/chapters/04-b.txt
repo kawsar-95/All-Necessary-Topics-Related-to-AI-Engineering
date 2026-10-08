@@ -1,0 +1,207 @@
+=== Replay and debugging of failed runs
+@sub When an agent fails in production you need to reproduce the exact run: the same inputs, prompt version, model, parameters and tool results. Then you can fix it, prove the fix, and keep the case as a regression test.
+@icon 🎬
+
+## Capture enough to replay
+A replayable trace stores the full model inputs (system prompt, messages, tool definitions), the parameters, the exact model id, every tool result, and the prompt and agent versions. Tool results matter most: re-running live tools during a replay changes the world, or returns data that has since changed, so a replay should feed back the **recorded** results.
+
+## Why replays are not perfectly deterministic
+Even at temperature 0, providers do not promise bit-identical outputs, because batching and hardware non-determinism affect floating-point results. Treat a replay as "reproduce the situation", then judge the new output with your evals rather than expecting identical text.
+
+## Fork from a step
+Agent frameworks with checkpointing let you resume from any recorded step with modified state — change one tool result or one instruction and see what the agent does next. LangGraph exposes this through its persistence layer and its "time travel" feature [@langgraph].
+
+```python
+def replay(trace, system_override=None, model=None):
+    """Re-run the failing model call with optional changes. Tools are NOT re-executed."""
+    call = trace.llm_calls[-1]                  # the step that went wrong
+    return client.messages.create(
+        model=model or call.model,
+        system=system_override or call.system,
+        messages=call.messages,                 # includes the recorded tool_result blocks
+        tools=call.tools,
+        max_tokens=call.max_tokens,
+        temperature=call.temperature,
+    )
+```
+
+## Close the loop
+Every production failure you debug should become a test: save the trace's inputs and the expected behaviour into your eval dataset (chapter 05), so the same bug cannot quietly return. Practitioners who have shipped many LLM products put "look at your data" — reading real traces regularly — at the centre of this loop [@hamel-evals][@oreilly-year].
+
+@layman
+**When the AI gets something wrong, you want to watch exactly what happened, step by step.** That means the record has to include everything it saw: the instructions, the conversation, and what each lookup returned at that moment.
+
+**You replay the moment with the recorded lookups, not fresh ones,** because the world has moved on since. Then you try a fix and check whether the AI now does the right thing.
+
+**Each mistake you fix becomes a permanent test,** so it can't sneak back in later.
+
+>> **The instant replay analogy:** a referee reviewing a disputed goal watches the recorded footage from every camera angle, frame by frame — not a re-enactment by the players. Once the decision is made, the clip goes into the training reel for future referees.
+
+@bangla
+Production-এ agent ব্যর্থ হলে ঠিক সেই run আবার তৈরি করতে হয়: একই input, prompt version, মডেল id, parameter ও tool result।
+- Replay-তে live tool আবার চালাবেন না; **রেকর্ড করা** tool result ব্যবহার করুন, কারণ ইতোমধ্যে ডেটা বদলে গেছে।
+- Temperature 0 হলেও provider হুবহু একই output-এর নিশ্চয়তা দেয় না; তাই হুবহু মিল নয়, eval দিয়ে নতুন output বিচার করুন।
+- Checkpoint-যুক্ত framework (যেমন LangGraph-এর time travel) দিয়ে যেকোনো ধাপ থেকে পরিবর্তিত state নিয়ে আবার চালানো যায় [@langgraph]।
+- প্রতিটি ঠিক করা ব্যর্থতা eval dataset-এ test হিসেবে যোগ করুন; নিয়মিত আসল trace পড়ার অভ্যাসই এই চক্রের কেন্দ্র [@hamel-evals]।
+
+>> **খেলার ইনস্ট্যান্ট রিপ্লের উপমা:** বিতর্কিত গোল দেখতে রেফারি প্রতিটি ক্যামেরার রেকর্ড করা ফুটেজ ফ্রেম ধরে দেখেন — খেলোয়াড়দের দিয়ে আবার অভিনয় করান না। সিদ্ধান্তের পর ক্লিপটি ভবিষ্যৎ রেফারিদের প্রশিক্ষণে রাখা হয়।
+
+=== Drift detection (model upgrades silently changing behavior)
+@sub Your prompt didn't change, your code didn't change, and yet quality did. Drift comes from provider model updates, serving bugs, and shifts in what users ask. You catch it only by measuring continuously.
+@icon 🛞
+
+## It really happens
+A Stanford and UC Berkeley study compared the March and June 2023 versions of GPT-4 and GPT-3.5 and found large behaviour changes; for example, GPT-4's accuracy at identifying prime versus composite numbers fell from 84% to 51% [@chatgpt-drift]. Drift also comes from serving infrastructure: Anthropic's September 2025 postmortem described three overlapping bugs — a context-window routing error, output corruption, and an approximate top-k XLA:TPU miscompilation — that intermittently degraded Claude's responses [@anth-postmortem].
+
+## Three kinds of drift
+| Kind | Cause | Detect with |
+|---|---|---|
+| Model drift | the provider updates a model or moves an alias | scheduled canary evals on a fixed set |
+| Serving drift | infrastructure bugs, quantization or configuration changes | canary evals plus output statistics |
+| Input drift | users start asking different things | topic and embedding-distribution monitoring |
+
+## Canary evals on a schedule
+Run a fixed, representative eval set against the production configuration every few hours and on every deploy, and alert when the pass rate falls outside its normal variance.
+
+!diagram
+<svg viewBox="0 0 1100 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Canary eval pass rate over 14 days with a drop below the alert threshold">
+  <text x="40" y="24" font-family="JetBrains Mono, monospace" font-size="12" fill="#a8b5c8">canary eval pass rate, every 6 hours (illustrative)</text>
+  <line x1="80" y1="40" x2="80" y2="260" stroke="#334155"/>
+  <line x1="80" y1="260" x2="1040" y2="260" stroke="#334155"/>
+  <text x="70" y="44" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">100%</text>
+  <text x="70" y="154" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">90%</text>
+  <text x="70" y="264" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">80%</text>
+  <line x1="80" y1="128" x2="1040" y2="128" stroke="#fb7185" stroke-dasharray="5 5"/>
+  <text x="1036" y="120" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11" fill="#fb7185">alert threshold 92%</text>
+  <polyline fill="none" stroke="#22d3ee" stroke-width="2.5" points="80,95 152,84 224,100 296,89 368,95 440,84 512,97 584,93 656,172 728,177 800,170 872,96 944,92 1016,95"/>
+  <circle cx="656" cy="172" r="6" fill="#fb7185"/>
+  <text x="672" y="212" font-family="JetBrains Mono, monospace" font-size="12" fill="#fb7185">day 9: 88% · alert fires</text>
+  <text x="672" y="232" font-family="JetBrains Mono, monospace" font-size="11" fill="#94a3b8">provider-side model update</text>
+  <circle cx="872" cy="96" r="6" fill="#34d399"/>
+  <text x="884" y="70" font-family="JetBrains Mono, monospace" font-size="12" fill="#34d399">day 12: previous</text>
+  <text x="884" y="86" font-family="JetBrains Mono, monospace" font-size="12" fill="#34d399">snapshot pinned</text>
+  <text x="80" y="284" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">day 1</text>
+  <text x="1016" y="284" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">day 14</text>
+</svg>
+!caption An illustrative canary chart: quality is stable for eight days, drops below threshold when the provider changes the model behind an alias, and recovers after the team pins the previous snapshot.
+!caption-bn কাল্পনিক canary চার্ট: আট দিন মান স্থির ছিল, provider alias-এর পেছনের মডেল বদলানোয় সীমার নিচে নেমে যায়, আর আগের snapshot pin করার পর আবার ঠিক হয়।
+!end
+
+## Output statistics are cheap early warnings
+Between eval runs, watch distributions you can compute on every response: answer length, refusal rate, tool-call rate, JSON-validity rate, response language, and judge scores on a sample. A sudden shift in any of them is a reason to look. Libraries such as Evidently compute drift statistics for both classic ML features and LLM outputs [@evidently].
+
+## Defences
+- **Pin model versions** and upgrade deliberately, with your eval suite as the gate (see versioning above).
+- **Canary new models** on a small share of traffic before switching over completely.
+- **Keep a rollback path:** the previous model id and configuration, still deployable.
+
+@layman
+**Sometimes an AI gets worse without anyone touching your product.** The company behind the model updates it, a server bug slips in, or customers start asking new kinds of questions.
+
+**You only notice if you keep testing.** A fixed set of known questions gets asked every few hours; if the score suddenly drops, an alarm goes off. Simple running checks — are answers suddenly longer, more often refusing, more often broken? — give early hints between those tests.
+
+**The defence is to lock to one specific model version and change it on purpose,** after testing, with the old one kept ready to switch back to.
+
+>> **The wheel alignment analogy:** a car's alignment drifts so gradually that you don't notice until the tyres are worn. Regular checks catch it early, and a mechanic's measurement — not a vague feeling — tells you when to act.
+
+@bangla
+Prompt বা কোড না বদলালেও মান বদলাতে পারে — একে বলে **drift**।
+- **Model drift:** provider মডেল আপডেট করে। গবেষণায় দেখা গেছে, মার্চ থেকে জুন ২০২৩-এর মধ্যে GPT-4-এর মৌলিক সংখ্যা চেনার নির্ভুলতা ৮৪% থেকে ৫১%-এ নেমেছিল [@chatgpt-drift]।
+- **Serving drift:** infrastructure-এর bug; Anthropic-এর সেপ্টেম্বর ২০২৫-এর postmortem-এ তিনটি bug-এর কারণে Claude-এর উত্তরের মান মাঝেমধ্যে খারাপ হওয়ার বিবরণ আছে [@anth-postmortem]।
+- **Input drift:** ব্যবহারকারীরা নতুন ধরনের প্রশ্ন করতে শুরু করেন।
+
+সমাধান: নির্দিষ্ট সময় পরপর একটি স্থির eval set চালান (canary eval); উত্তরের দৈর্ঘ্য, প্রত্যাখ্যানের হার, tool-call হার ও JSON-এর বৈধতা নজরে রাখুন [@evidently]; model snapshot pin করুন, নতুন মডেল আগে অল্প traffic-এ চালান, আর rollback-এর পথ খোলা রাখুন।
+
+>> **চাকার অ্যালাইনমেন্টের উপমা:** গাড়ির চাকার অ্যালাইনমেন্ট এত ধীরে সরে যে টায়ার ক্ষয় না হওয়া পর্যন্ত বোঝা যায় না। নিয়মিত পরীক্ষাই আগেভাগে ধরে, আর অনুভূতি নয়, মিস্ত্রির মাপই বলে দেয় কখন ব্যবস্থা নিতে হবে।
+
+=== Feedback loops (thumbs up/down → eval datasets)
+@sub User feedback is the cheapest source of real failure cases you will ever get. The loop that matters: capture signals, triage the bad ones, label them, add them to the eval set, fix, and verify the fix.
+@icon 🗺️
+
+## Explicit, implicit and outcome signals
+| Signal | Examples | Strength and weakness |
+|---|---|---|
+| Explicit | thumbs up/down, star rating, written comment | clear intent, but sparse and skewed toward unhappy users |
+| Implicit | copy, retry, regenerate, edit before sending, abandon, escalate to a human | plentiful, but noisy and needs interpretation |
+| Outcome | ticket resolved, purchase completed, code merged | closest to business value, but delayed |
+
+Eugene Yan's survey of LLM product patterns treats collecting user feedback as a core pattern precisely because it turns usage into evaluation and training data [@llm-patterns].
+
+!diagram
+<svg viewBox="0 0 1100 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Feedback flywheel from production traces to eval set and back">
+  <defs><marker id="arr-c04c" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L6,4 L0,8 Z" fill="#94a3b8"/></marker></defs>
+  <rect x="40" y="40" width="280" height="76" rx="10" fill="#0f172a" stroke="#22d3ee"/>
+  <text x="60" y="70" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#22d3ee">1 · Production</text>
+  <text x="60" y="94" font-family="JetBrains Mono, monospace" font-size="11" fill="#cfd8e6">traces + user feedback</text>
+  <rect x="410" y="40" width="280" height="76" rx="10" fill="#0f172a" stroke="#fbbf24"/>
+  <text x="430" y="70" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#fbbf24">2 · Triage queue</text>
+  <text x="430" y="94" font-family="JetBrains Mono, monospace" font-size="11" fill="#cfd8e6">thumbs-down, retries, escalations</text>
+  <rect x="780" y="40" width="280" height="76" rx="10" fill="#0f172a" stroke="#a78bfa"/>
+  <text x="800" y="70" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#a78bfa">3 · Label</text>
+  <text x="800" y="94" font-family="JetBrains Mono, monospace" font-size="11" fill="#cfd8e6">what should have happened?</text>
+  <rect x="780" y="190" width="280" height="76" rx="10" fill="#0f172a" stroke="#34d399"/>
+  <text x="800" y="220" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#34d399">4 · Golden eval set</text>
+  <text x="800" y="244" font-family="JetBrains Mono, monospace" font-size="11" fill="#cfd8e6">the case becomes a test</text>
+  <rect x="410" y="190" width="280" height="76" rx="10" fill="#0f172a" stroke="#fb7185"/>
+  <text x="430" y="220" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#fb7185">5 · Fix + gate release</text>
+  <text x="430" y="244" font-family="JetBrains Mono, monospace" font-size="11" fill="#cfd8e6">ship only if the evals pass</text>
+  <line x1="320" y1="78" x2="406" y2="78" stroke="#94a3b8" marker-end="url(#arr-c04c)"/>
+  <line x1="690" y1="78" x2="776" y2="78" stroke="#94a3b8" marker-end="url(#arr-c04c)"/>
+  <line x1="920" y1="116" x2="920" y2="186" stroke="#94a3b8" marker-end="url(#arr-c04c)"/>
+  <line x1="780" y1="228" x2="694" y2="228" stroke="#94a3b8" marker-end="url(#arr-c04c)"/>
+  <polyline fill="none" stroke="#94a3b8" points="410,228 180,228 180,120" marker-end="url(#arr-c04c)"/>
+</svg>
+!caption The feedback flywheel: every negative signal is a candidate test case. The loop only works if step 3 — a person deciding what correct looks like — actually happens.
+!caption-bn Feedback flywheel: প্রতিটি নেতিবাচক signal একটি সম্ভাব্য test case। ধাপ ৩ — একজন মানুষ ঠিক করবেন সঠিক উত্তর কী — না হলে চক্রটি কাজ করে না।
+!end
+
+## Turning feedback into tests
+1. Route negative and ambiguous signals into a triage queue, with the full trace attached.
+2. Have a person — ideally a domain expert — write what the correct behaviour would have been: a reference answer, a rubric, or a pass/fail criterion.
+3. Add the case to the golden dataset, tagged by failure category.
+4. Fix, then require the new case and the rest of the suite to pass before release (chapter 05).
+
+## Watch the biases
+Thumbs are given mostly by unhappy users; some people click thumbs-down to mean "I don't like the policy" rather than "the answer was wrong"; and feedback on refusals is often a user wanting something you shouldn't provide. Read before you act, and weight feedback by category. Hamel Husain's widely shared essay makes the same point: the leverage comes from systematically looking at the data, not from the thumbs counter itself [@hamel-evals].
+
+@layman
+**Every thumbs-down is a free bug report.** So are quieter signals: the person who clicks "try again", rewrites the answer before sending it, or gives up and asks for a human.
+
+**The useful habit is a loop:** collect those moments, have someone decide what the right answer should have been, add that example to the test collection, fix the AI, and check the fix passes before releasing it.
+
+**Don't take every thumbs-down literally,** though. Sometimes people dislike a correct answer — like being told a refund isn't allowed.
+
+>> **The traffic app analogy:** a navigation app gets better because drivers report jams, closures and accidents as they drive. The app checks the reports, confirms the real ones, and updates the map for everyone — and learns to ignore the driver who reports every red light as "traffic".
+
+@bangla
+ব্যবহারকারীর feedback হলো বাস্তব ব্যর্থতার সবচেয়ে সস্তা উৎস।
+- **Explicit:** thumbs up/down, রেটিং, মন্তব্য — স্পষ্ট কিন্তু সংখ্যায় কম, আর মূলত অসন্তুষ্ট ব্যবহারকারীরাই দেন।
+- **Implicit:** কপি, আবার চেষ্টা, পাঠানোর আগে উত্তর সম্পাদনা, মাঝপথে ছেড়ে যাওয়া, মানুষের কাছে escalation — সংখ্যায় বেশি, তবে ব্যাখ্যা করতে হয়।
+- **Outcome:** টিকিট সমাধান, কেনাকাটা সম্পন্ন — ব্যবসার মূল্যের সবচেয়ে কাছে, কিন্তু দেরিতে আসে।
+
+চক্র: খারাপ signal triage queue-তে পাঠান → একজন বিশেষজ্ঞ লিখুন সঠিক উত্তর কী হওয়া উচিত ছিল → উদাহরণটি golden eval set-এ যোগ করুন → ঠিক করুন, আর eval পাস না করা পর্যন্ত release করবেন না [@llm-patterns][@hamel-evals]।
+
+সতর্কতা: প্রতিটি thumbs-down আক্ষরিক অর্থে নেবেন না — অনেক সময় মানুষ সঠিক কিন্তু অপছন্দের উত্তরেও (যেমন refund নিষেধ) thumbs-down দেন।
+
+>> **ট্রাফিক অ্যাপের উপমা:** নেভিগেশন অ্যাপ ভালো হয় কারণ চালকেরা চলার পথেই জ্যাম, রাস্তা বন্ধ বা দুর্ঘটনার খবর দেন। অ্যাপ সেগুলো যাচাই করে সবার মানচিত্র হালনাগাদ করে — আর শেখে, যে চালক প্রতিটি লাল বাতিকে "জ্যাম" বলেন, তাঁকে উপেক্ষা করতে।
+
+@sources
+otel-genai | https://opentelemetry.io/docs/specs/semconv/registry/attributes/gen-ai/ | OpenTelemetry — Gen AI attribute registry (semantic conventions)
+otel-genai-repo | https://github.com/open-telemetry/semantic-conventions-genai | OpenTelemetry — GenAI semantic conventions repository
+openinference | https://github.com/Arize-ai/openinference | Arize — OpenInference: OpenTelemetry instrumentation for AI observability
+openllmetry | https://github.com/traceloop/openllmetry | Traceloop — OpenLLMetry: open-source observability for LLM applications
+langfuse | https://langfuse.com/docs | Langfuse — documentation
+langsmith | https://docs.langchain.com/langsmith/observability | LangChain — LangSmith observability documentation
+helicone | https://docs.helicone.ai/getting-started/quick-start | Helicone — quickstart (open-source LLM observability)
+phoenix | https://github.com/Arize-ai/phoenix | Arize Phoenix — AI observability and evaluation
+braintrust | https://www.braintrust.dev/docs | Braintrust — documentation
+langfuse-prompts | https://langfuse.com/docs/prompt-management/overview | Langfuse — Prompt management
+claude-models | https://platform.claude.com/docs/en/models/overview | Anthropic — Models overview (aliases and snapshots)
+experimentguide | https://experimentguide.com/ | Kohavi, Tang & Xu — Trustworthy Online Controlled Experiments (book site)
+langgraph | https://docs.langchain.com/oss/python/langgraph/overview | LangGraph — overview (persistence and time travel)
+hamel-evals | https://hamel.dev/blog/posts/evals/ | Hamel Husain — "Your AI Product Needs Evals"
+oreilly-year | https://www.oreilly.com/radar/what-we-learned-from-a-year-of-building-with-llms-part-i/ | Yan, Bischof, Frye, Husain, Liu & Shankar — "What We Learned from a Year of Building with LLMs (Part I)", O'Reilly
+chatgpt-drift | https://arxiv.org/abs/2307.09009 | Chen, Zaharia & Zou, "How is ChatGPT's behavior changing over time?" (2023)
+anth-postmortem | https://www.anthropic.com/engineering/a-postmortem-of-three-recent-issues | Anthropic Engineering — "A postmortem of three recent issues" (Sep 2025)
+evidently | https://github.com/evidentlyai/evidently | Evidently — open-source ML and LLM observability
+llm-patterns | https://eugeneyan.com/writing/llm-patterns/ | Eugene Yan — "Patterns for Building LLM-based Systems & Products"

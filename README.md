@@ -1,6 +1,6 @@
 # All Necessary Topics Related to AI Engineering
 
-Four single-file HTML reference guides on the fundamentals every applied AI engineer needs. Each guide is **multi-voice**: a technical version (with diagrams, code, and cited primary research) and a layman's version (plain English with analogies) at the bottom of every topic. Every topic also ends with a **Bangla explanation (বাংলা ব্যাখ্যা)** panel.
+Five single-file HTML reference guides on the fundamentals every applied AI engineer needs. Each guide is **multi-voice**: a technical version (with diagrams, code, and cited primary research) and a layman's version (plain English with analogies) at the bottom of every topic. Every topic also ends with a **Bangla explanation (বাংলা ব্যাখ্যা)** panel.
 
 ## Guides
 
@@ -10,8 +10,9 @@ Four single-file HTML reference guides on the fundamentals every applied AI engi
 | **Prompt Engineering** | 8 | [`prompt-engineering.html`](prompt-engineering.html) | ~90 KB |
 | **Context Engineering** | 7 | [`context-engineering.html`](context-engineering.html) | ~80 KB |
 | **RAG & Knowledge Systems** | 10 | [`rag-knowledge-systems.html`](rag-knowledge-systems.html) | ~290 KB |
+| **Agents & Agentic Systems** | 9 | [`agents-agentic-systems.html`](agents-agentic-systems.html) | ~180 KB |
 
-An **index page** that links all four: [`index.html`](index.html).
+An **index page** that links all five: [`index.html`](index.html).
 
 ## How to view
 
@@ -39,6 +40,9 @@ How to fit an infinite task into a finite window — context window budgeting, c
 ### RAG & Knowledge Systems
 How retrieval-augmented systems find, rank, and ground knowledge — chunking strategies (fixed, semantic, structural, late), vector databases (Qdrant, Pinecone, Weaviate, pgvector, Chroma, Milvus), hybrid search and reciprocal rank fusion, query rewriting / expansion / HyDE, multi-hop and agentic retrieval, reranking (Cohere, BGE, Voyage), metadata filtering and structured retrieval, GraphRAG, document parsing pipelines (Unstructured, LlamaParse, Docling), and multimodal RAG. Includes 30+ SVG diagrams.
 
+### Agents & Agentic Systems
+How LLM agents plan, act, remember, and recover — agent loops (ReAct, Plan-and-Execute, Reflexion, ReWOO), single- vs multi-agent orchestration, state machines and workflow graphs (LangGraph, Mastra, Inngest), agent memory (scratchpad, semantic, episodic, procedural), human-in-the-loop checkpoints and approvals, subagents and delegation, error recovery and self-correction, long-running agents with durable execution (Temporal, Restate), and browser and computer-use agents. Each section adds a **"Learn visually"** box with curated videos, docs, and demos.
+
 ## Source quality
 
 All citations resolve to:
@@ -56,11 +60,12 @@ Each citation ID was fetched and verified against the publisher's `citation_titl
 
 ```
 .
-├── index.html                  ← landing page linking all three guides
+├── index.html                  ← landing page linking all five guides
 ├── llm-fundamentals.html       ← LLM Fundamentals (10 topics)
 ├── prompt-engineering.html     ← Prompt Engineering (8 topics)
 ├── context-engineering.html    ← Context Engineering (7 topics)
 ├── rag-knowledge-systems.html  ← RAG & Knowledge Systems (10 topics)
+├── agents-agentic-systems.html ← Agents & Agentic Systems (9 topics)
 ├── README.md                   ← this file
 └── LICENSE                     ← MIT
 ```

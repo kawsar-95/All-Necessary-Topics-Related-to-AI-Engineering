@@ -1,0 +1,1053 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LLMOps &amp; observability — An Engineer's Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bn: 'Noto Sans Bengali','Inter',system-ui,sans-serif;
+  --bg: #0b0f17;
+  --bg-card: #111827;
+  --bg-card-2: #0f172a;
+  --grid: rgba(148, 163, 184, 0.06);
+  --border: #1f2937;
+  --border-strong: #334155;
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-faint: #64748b;
+  --accent: #22d3ee;
+  --accent-2: #a78bfa;
+  --accent-3: #34d399;
+  --accent-warn: #fbbf24;
+  --accent-danger: #fb7185;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  --sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+body {
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.shell { max-width: 1200px; margin: 0 auto; padding: 32px 32px 96px; }
+.hero { padding: 64px 0 48px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+.hero .eyebrow {
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 16px;
+}
+.hero h1 {
+  font-size: clamp(34px, 5vw, 56px);
+  font-weight: 800; margin: 0 0 16px;
+  letter-spacing: -0.02em; line-height: 1.05;
+}
+.hero h1 .gradient {
+  background: linear-gradient(120deg, var(--accent) 0%, var(--accent-2) 100%);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+}
+.hero .lede { font-size: 17px; color: var(--text-dim); max-width: 720px; margin: 0; }
+.hero .meta {
+  margin-top: 24px;
+  display: flex; flex-wrap: wrap; gap: 12px 24px;
+  font-family: var(--mono); font-size: 12px;
+  color: var(--text-faint);
+}
+.hero .meta span { display: inline-flex; align-items: center; gap: 8px; }
+.hero .meta .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-3); box-shadow: 0 0 8px var(--accent-3); }
+
+.toc {
+  position: sticky; top: 0;
+  background: rgba(11, 15, 23, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 0 0 40px;
+  z-index: 10;
+}
+.toc-title {
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--text-faint); margin-bottom: 12px;
+}
+.toc ol {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 4px 12px; margin: 0; padding: 0; list-style: none;
+  counter-reset: toc;
+}
+.toc li { counter-increment: toc; }
+.toc a {
+  display: flex; gap: 10px; align-items: baseline;
+  padding: 6px 8px; color: var(--text-dim);
+  text-decoration: none; border-radius: 6px;
+  font-size: 13px; transition: all 0.15s;
+}
+.toc a:hover { background: var(--bg-card); color: var(--text); }
+.toc a::before {
+  content: counter(toc, decimal-leading-zero);
+  font-family: var(--mono); font-size: 11px;
+  color: var(--accent); min-width: 22px;
+}
+
+section { margin: 56px 0; padding-top: 16px; }
+.section-head {
+  display: flex; align-items: baseline; gap: 16px; margin-bottom: 8px;
+}
+.section-num {
+  font-family: var(--mono); font-size: 13px;
+  color: var(--accent);
+  background: rgba(34, 211, 238, 0.08);
+  border: 1px solid rgba(34, 211, 238, 0.25);
+  padding: 2px 10px; border-radius: 4px;
+}
+section h2 {
+  font-size: 32px; font-weight: 700;
+  letter-spacing: -0.015em; margin: 0 0 8px;
+}
+section .sub {
+  color: var(--text-dim); font-size: 16px;
+  margin: 0 0 28px; max-width: 760px;
+}
+section h3 {
+  font-size: 19px; font-weight: 600;
+  letter-spacing: -0.01em; margin: 32px 0 12px;
+}
+section h4 {
+  font-size: 14px; font-weight: 600;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--text-faint); font-family: var(--mono);
+  margin: 24px 0 10px;
+}
+p { margin: 0 0 14px; }
+strong { color: var(--text); font-weight: 600; }
+code {
+  font-family: var(--mono); font-size: 0.88em;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 1px 6px; border-radius: 4px;
+  color: var(--accent);
+}
+a { color: var(--accent); }
+.cite {
+  font-size: 0.78em; vertical-align: super;
+  color: var(--accent); text-decoration: none;
+  font-family: var(--mono); padding: 0 1px;
+}
+.cite:hover { text-decoration: underline; }
+
+.diagram {
+  background: var(--bg-card-2);
+  border: 1px solid var(--border);
+  border-radius: 12px; padding: 24px;
+  margin: 20px 0 24px; overflow: hidden; position: relative;
+}
+.diagram svg { display: block; width: 100%; height: auto; }
+.diagram-caption {
+  margin-top: 14px; font-size: 12px;
+  color: var(--text-faint); font-style: italic;
+}
+
+pre {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px 18px;
+  overflow-x: auto;
+  font-family: var(--mono); font-size: 13px;
+  line-height: 1.55; margin: 16px 0 24px;
+}
+pre code {
+  background: transparent; border: none; padding: 0;
+  color: var(--text); font-size: 13px;
+}
+.kw { color: var(--accent-2); }
+.str { color: var(--accent-3); }
+.num { color: var(--accent-warn); }
+.com { color: var(--text-faint); font-style: italic; }
+.fn { color: var(--accent); }
+
+table {
+  width: 100%; border-collapse: collapse;
+  margin: 20px 0 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden; font-size: 13px;
+}
+th, td {
+  text-align: left; padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+th {
+  background: var(--bg-card-2);
+  font-weight: 600; color: var(--text);
+  font-size: 12px; letter-spacing: 0.04em;
+  text-transform: uppercase; font-family: var(--mono);
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.015); }
+
+.callout {
+  border-left: 3px solid var(--accent);
+  background: rgba(34, 211, 238, 0.04);
+  padding: 14px 18px;
+  border-radius: 0 8px 8px 0;
+  margin: 18px 0; font-size: 14px;
+}
+.callout.warn { border-left-color: var(--accent-warn); background: rgba(251, 191, 36, 0.04); }
+.callout.warn strong { color: var(--accent-warn); }
+.callout.danger { border-left-color: var(--accent-danger); background: rgba(251, 113, 133, 0.04); }
+.callout.danger strong { color: var(--accent-danger); }
+.callout.good { border-left-color: var(--accent-3); background: rgba(52, 211, 153, 0.04); }
+.callout.good strong { color: var(--accent-3); }
+
+.pill-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px; margin: 16px 0 24px;
+}
+.pill {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 14px;
+}
+.pill .label {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--text-faint);
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+.pill .val {
+  font-family: var(--mono); font-size: 18px;
+  color: var(--accent); margin-top: 4px; font-weight: 600;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px; margin: 16px 0 24px;
+}
+@media (max-width: 720px) { .two-col { grid-template-columns: 1fr; } }
+.two-col .panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px 18px;
+}
+.two-col .panel h4 { margin-top: 0; }
+
+.layman {
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.05), rgba(251, 191, 36, 0.02));
+  border: 1px dashed rgba(251, 191, 36, 0.35);
+  border-radius: 12px; padding: 18px 22px;
+  margin: 18px 0 8px;
+}
+.layman-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.layman-head .icon {
+  font-size: 18px; width: 32px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  border-radius: 8px; flex-shrink: 0;
+}
+.layman-head .label {
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--accent-warn); font-weight: 600;
+}
+.layman-head .label small {
+  display: block; color: var(--text-faint);
+  letter-spacing: 0.04em; text-transform: none;
+  font-size: 11px; margin-top: 2px; font-weight: 400;
+}
+.layman p { margin: 0 0 12px; font-size: 15px; color: var(--text); line-height: 1.7; }
+.layman p:last-child { margin-bottom: 0; }
+.layman strong { color: #fde68a; }
+.layman code {
+  background: rgba(251, 191, 36, 0.08);
+  border-color: rgba(251, 191, 36, 0.25);
+  color: #fde68a;
+}
+.layman .analogy {
+  margin-top: 12px; padding: 10px 14px;
+  background: rgba(251, 191, 36, 0.06);
+  border-left: 3px solid var(--accent-warn);
+  border-radius: 0 8px 8px 0;
+  font-size: 13px; color: var(--text-dim);
+}
+.layman .analogy::before { content: "🍳 "; }
+
+.bangla {
+  background: linear-gradient(180deg, rgba(52, 211, 153, 0.06), rgba(52, 211, 153, 0.02));
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  border-radius: 12px; padding: 18px 22px;
+  margin: 18px 0 8px; font-family: var(--bn);
+}
+.bangla-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.bangla-head .icon {
+  font-size: 18px; width: 32px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(52, 211, 153, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  border-radius: 8px; flex-shrink: 0;
+}
+.bangla-head .label {
+  font-family: var(--bn); font-size: 14px;
+  letter-spacing: 0.02em; color: var(--accent-3); font-weight: 700;
+}
+.bangla-head .label small {
+  display: block; color: var(--text-faint);
+  letter-spacing: 0.02em; font-size: 12px;
+  margin-top: 2px; font-weight: 400;
+}
+.bangla p { margin: 0 0 12px; font-family: var(--bn); font-size: 15px; color: var(--text); line-height: 1.9; }
+.bangla p:last-child { margin-bottom: 0; }
+.bangla strong { color: #6ee7b7; }
+.bangla code {
+  background: rgba(52, 211, 153, 0.08);
+  border-color: rgba(52, 211, 153, 0.25);
+  color: #6ee7b7;
+}
+.bangla ul { margin: 0 0 12px; padding-left: 22px; }
+.bangla li { font-family: var(--bn); font-size: 15px; color: var(--text); line-height: 1.9; margin-bottom: 4px; }
+.bangla .analogy {
+  margin-top: 12px; padding: 10px 14px;
+  background: rgba(52, 211, 153, 0.06);
+  border-left: 3px solid var(--accent-3);
+  border-radius: 0 8px 8px 0;
+  font-family: var(--bn); font-size: 14px;
+  line-height: 1.9; color: var(--text-dim);
+}
+.bangla .analogy::before { content: "💡 "; }
+
+.sources {
+  margin-top: 80px; padding-top: 32px;
+  border-top: 1px solid var(--border);
+}
+.sources h2 { font-size: 22px; margin-bottom: 16px; }
+.sources ol { margin: 0; padding-left: 24px; font-size: 13px; color: var(--text-dim); }
+.sources li { margin-bottom: 8px; word-break: break-word; }
+.sources a { color: var(--text-dim); text-decoration: none; }
+.sources a:hover { color: var(--accent); }
+
+.inter-nav { margin-top: 64px; padding: 18px 22px; background: var(--bg-card-2); border: 1px solid var(--border); border-radius: 12px; }
+.inter-nav .toc-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 12px; }
+.inter-nav-list { font-size: 13px; line-height: 1.8; color: var(--text-dim); }
+.inter-nav-list a { color: var(--text-dim); text-decoration: none; padding: 2px 4px; border-radius: 4px; }
+.inter-nav-list a:hover { background: var(--bg-card); color: var(--accent); }
+.inter-nav-list a.current { color: var(--accent); background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.25); }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 720px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+sup { font-size: 0.75em; }
+html { scroll-behavior: smooth; }
+section[id] { scroll-margin-top: 150px; }
+@media (max-width: 720px) { section[id] { scroll-margin-top: 16px; } }
+.shell { padding-left: clamp(16px, 4vw, 32px); padding-right: clamp(16px, 4vw, 32px); }
+.section-head { display: flex; align-items: center; gap: 14px; }
+.section-head h2 { margin: 0; line-height: 1.25; }
+.section-num { flex-shrink: 0; }
+.diagram { box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 8px 24px rgba(0,0,0,0.25); }
+.diagram-caption { line-height: 1.55; text-align: left; }
+.diagram-caption-bn {
+  margin-top: 6px; font-family: var(--bn);
+  font-size: 13px; line-height: 1.8;
+  color: var(--accent-3); font-style: normal;
+  padding-left: 10px;
+  border-left: 2px solid rgba(52, 211, 153, 0.45);
+}
+.diagram-caption-bn::before { content: "বাংলা: "; font-weight: 600; }
+table { box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+tbody tr:nth-child(even) td { background: rgba(148, 163, 184, 0.035); }
+tbody tr:hover td { background: rgba(34, 211, 238, 0.05); }
+.toc a { transition: background .15s, color .15s; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.bangla, .layman { overflow-wrap: break-word; }
+.bangla p, .bangla li { text-align: left; }
+.bangla ul { padding-left: 22px; margin: 0 0 12px; }
+.bangla li { margin-bottom: 6px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+@media (max-width: 720px) {
+  table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
+  th, td { min-width: 110px; vertical-align: top; }
+  section, .two-col .panel, .layman, .bangla { min-width: 0; }
+  p code, li code, td code { overflow-wrap: anywhere; word-break: break-word; }
+  .two-col { grid-template-columns: minmax(0, 1fr); }
+  .toc { position: static; }
+}
+
+.diagram { padding: 18px; cursor: zoom-in; border-color: var(--border-strong, #334155); }
+.diagram::after {
+  content: "🔍 Click to enlarge";
+  position: absolute; top: 8px; right: 12px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.04em;
+  color: var(--text-dim); background: rgba(11, 15, 23, 0.85);
+  border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px;
+  opacity: 0.85; pointer-events: none;
+}
+.diagram:hover::after, .diagram:focus-visible::after { opacity: 1; color: var(--accent); border-color: var(--accent); }
+.diagram:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.diagram svg rect[stroke]:not([stroke="none"]) { stroke-width: 1.5; }
+.diagram svg text { paint-order: stroke; stroke: rgba(15, 23, 42, 0.55); stroke-width: 0.4px; }
+.diagram-caption { font-size: 13px; color: var(--text-dim); }
+@media (max-width: 720px) {
+  .diagram { overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 12px; }
+  .diagram svg { min-width: 780px; }
+  .diagram::after { content: "↔ Swipe · tap to enlarge"; }
+}
+.dz-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(5, 8, 14, 0.985);
+  display: flex; flex-direction: column; align-items: center;
+  overflow: auto; padding: 56px 16px 32px;
+  cursor: zoom-out;
+}
+.dz-overlay .dz-inner { width: max(1200px, 96vw); max-width: 2200px; flex-shrink: 0; }
+.dz-overlay svg { display: block; width: 100%; height: auto; background: var(--bg-card-2, #0f172a); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+.dz-overlay .diagram-caption { max-width: 1100px; margin-left: auto; margin-right: auto; font-size: 14px; }
+.dz-close {
+  position: fixed; top: 12px; right: 16px; z-index: 1001;
+  font-family: var(--mono); font-size: 12px; color: var(--text);
+  background: var(--bg-card); border: 1px solid var(--border-strong, #334155);
+  border-radius: 8px; padding: 6px 12px; cursor: pointer;
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<header class="hero">
+  <div class="eyebrow">Topic 08 of 13 · Chapter 04 of 9 · Agents &amp; Agentic Systems series</div>
+  <h1>LLMOps &amp; <span class="gradient">observability</span></h1>
+  <p class="lede">A traditional service is healthy when it returns 200 quickly. An LLM feature can return 200 quickly and still be wrong, rude, slow to stream, ten times over budget, or quietly worse than last week. LLMOps is the discipline of seeing all of that: tracing every step, metering tokens and cost per user, versioning prompts and agents, A/B testing changes, replaying failures, detecting drift, and turning user feedback into tests.</p>
+  <div class="meta">
+    <span><span class="dot"></span>7 subtopics · ~24 min read</span>
+    <span>19 sources, every link checked Oct 2026</span>
+    <span>3 diagrams · 5 code examples · 4 tables · technical + layman + বাংলা</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="toc-title">Contents</div>
+  <ol>
+    <li><a href="#s1">Tracing: Langfuse, LangSmith, Helicone, Arize Phoenix, Braintrust</a></li>
+    <li><a href="#s2">Token, cost, and latency tracking per request and per user</a></li>
+    <li><a href="#s3">Prompt and agent versioning</a></li>
+    <li><a href="#s4">A/B testing prompts and models in production</a></li>
+    <li><a href="#s5">Replay and debugging of failed runs</a></li>
+    <li><a href="#s6">Drift detection (model upgrades silently changing behavior)</a></li>
+    <li><a href="#s7">Feedback loops (thumbs up/down → eval datasets)</a></li>
+  </ol>
+</nav>
+
+<section id="s1">
+  <div class="section-head"><span class="section-num">01</span><h2>Tracing: Langfuse, LangSmith, Helicone, Arize Phoenix, Braintrust</h2></div>
+  <p class="sub">A trace records one user request as a tree of spans — the model calls, tool calls, retrievals and checks it caused — with inputs, outputs, tokens, cost and timing on each. Without traces, debugging an agent is guesswork.</p>
+
+  <h3>What a trace contains</h3>
+
+  <p>A trace is the full story of one request: a root span for the request, and child spans for each model call ("generation"), retrieval, tool call, guardrail and sub-agent. Each span records start and end time, inputs and outputs, model and parameters, token counts and errors. For agents, the trace is the only way to see *why* the agent did what it did.</p>
+
+  <div class="diagram">
+  <svg viewBox="0 0 1100 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A trace as a tree of spans with a timeline">
+    <text x="40" y="30" font-family="JetBrains Mono, monospace" font-size="12" fill="#a8b5c8">trace 7f2c… · user u_8421 · tenant acme · prompt support-answer@v14</text>
+    <line x1="460" y1="44" x2="460" y2="262" stroke="#1f2937"/>
+    <line x1="1055" y1="44" x2="1055" y2="262" stroke="#1f2937"/>
+    <text x="460" y="280" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">0 s</text>
+    <text x="1055" y="280" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">6.2 s</text>
+    <text x="40" y="66" font-family="JetBrains Mono, monospace" font-size="12" fill="#22d3ee">POST /support/chat · 6.2 s · $0.031</text>
+    <rect x="460" y="52" width="595" height="20" rx="4" fill="#0f172a" stroke="#22d3ee"/>
+    <text x="60" y="104" font-family="JetBrains Mono, monospace" font-size="12" fill="#a78bfa">├ llm.plan · 1.1 s · 1,240 in / 180 out</text>
+    <rect x="460" y="90" width="106" height="20" rx="4" fill="#0f172a" stroke="#a78bfa"/>
+    <text x="60" y="142" font-family="JetBrains Mono, monospace" font-size="12" fill="#34d399">├ tool.orders_search · 0.4 s · 3 rows</text>
+    <rect x="566" y="128" width="38" height="20" rx="4" fill="#0f172a" stroke="#34d399"/>
+    <text x="60" y="180" font-family="JetBrains Mono, monospace" font-size="12" fill="#34d399">├ retrieval.policy_docs · 0.3 s · 5 chunks</text>
+    <rect x="566" y="166" width="29" height="20" rx="4" fill="#0f172a" stroke="#34d399"/>
+    <text x="60" y="218" font-family="JetBrains Mono, monospace" font-size="12" fill="#a78bfa">├ llm.answer · 3.9 s · 3,980 in (2,900 cached) / 410 out</text>
+    <rect x="604" y="204" width="374" height="20" rx="4" fill="#0f172a" stroke="#a78bfa"/>
+    <text x="60" y="256" font-family="JetBrains Mono, monospace" font-size="12" fill="#fbbf24">└ guardrail.pii_scan · 0.2 s · pass</text>
+    <rect x="978" y="242" width="19" height="20" rx="4" fill="#0f172a" stroke="#fbbf24"/>
+    <text x="40" y="312" font-family="JetBrains Mono, monospace" font-size="11" fill="#94a3b8">Every span carries model, prompt version, tokens, cost, latency and status — the raw material for the rest of this chapter.</text>
+  </svg>
+    <div class="diagram-caption">One support request as a trace. The timeline shows the tool call and retrieval running in parallel, the answer generation dominating latency, and a large share of input tokens served from the prompt cache.</div>
+    <div class="diagram-caption diagram-caption-bn">একটি support request-এর trace। Timeline-এ দেখা যাচ্ছে tool call ও retrieval একসাথে চলেছে, উত্তর তৈরিতেই সবচেয়ে বেশি সময় লেগেছে, আর input token-এর বড় অংশ cache থেকে এসেছে।</div>
+  </div>
+
+  <h3>Standard attributes: OpenTelemetry GenAI conventions</h3>
+
+  <p>OpenTelemetry defines semantic conventions for generative AI so traces are portable between tools — attributes such as <code>gen_ai.provider.name</code>, <code>gen_ai.request.model</code>, <code>gen_ai.usage.input_tokens</code> and <code>gen_ai.usage.output_tokens</code> <a class="cite" href="#src1">[1]</a>, now maintained in a dedicated GenAI conventions repository <a class="cite" href="#src2">[2]</a>. OpenInference <a class="cite" href="#src3">[3]</a> and OpenLLMetry <a class="cite" href="#src4">[4]</a> add auto-instrumentation for popular SDKs and frameworks on top of OpenTelemetry.</p>
+
+  <pre><code><span class="kw">from</span> opentelemetry <span class="kw">import</span> trace
+  
+  tracer = trace.<span class="fn">get_tracer</span>(<span class="str">"support-bot"</span>)
+  
+  <span class="kw">def</span> <span class="fn">answer</span>(question: str, user_id: str) -&gt; str:
+      <span class="kw">with</span> tracer.<span class="fn">start_as_current_span</span>(<span class="str">"llm.answer"</span>) <span class="kw">as</span> span:
+          span.<span class="fn">set_attribute</span>(<span class="str">"gen_ai.provider.name"</span>, <span class="str">"anthropic"</span>)
+          span.<span class="fn">set_attribute</span>(<span class="str">"gen_ai.request.model"</span>, MODEL)
+          span.<span class="fn">set_attribute</span>(<span class="str">"app.user_id"</span>, user_id)
+          span.<span class="fn">set_attribute</span>(<span class="str">"app.prompt_version"</span>, <span class="str">"support-answer@v14"</span>)
+          resp = client.messages.<span class="fn">create</span>(model=MODEL, max_tokens=<span class="num">800</span>,
+                                        messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: question}])
+          span.<span class="fn">set_attribute</span>(<span class="str">"gen_ai.usage.input_tokens"</span>, resp.usage.input_tokens)
+          span.<span class="fn">set_attribute</span>(<span class="str">"gen_ai.usage.output_tokens"</span>, resp.usage.output_tokens)
+          <span class="kw">return</span> resp.content[<span class="num">0</span>].text</code></pre>
+
+  <h3>The tools</h3>
+
+  <table>
+    <thead><tr><th>Tool</th><th>Shape</th><th>Notable for</th></tr></thead>
+    <tbody>
+      <tr><td>Langfuse</td><td>open source and self-hostable; SDKs plus OpenTelemetry ingestion <a class="cite" href="#src5">[5]</a></td><td>traces, prompt management and evals in one place</td></tr>
+      <tr><td>LangSmith</td><td>managed platform from the LangChain team <a class="cite" href="#src6">[6]</a></td><td>deep integration with LangChain and LangGraph</td></tr>
+      <tr><td>Helicone</td><td>open-source observability that can sit in the request path <a class="cite" href="#src7">[7]</a></td><td>setup by changing the API base URL</td></tr>
+      <tr><td>Arize Phoenix</td><td>open source, built on OpenTelemetry and OpenInference <a class="cite" href="#src8">[8]</a></td><td>local-first tracing and evaluation</td></tr>
+      <tr><td>Braintrust</td><td>managed platform combining logs and evals <a class="cite" href="#src9">[9]</a></td><td>a tight loop between production logs and eval datasets</td></tr>
+    </tbody>
+  </table>
+
+  <h3>What to capture — and what not to</h3>
+
+  <p>Capture prompts, outputs, tool arguments and results, model and parameters, prompt version, user and tenant ids, token usage and errors. Never capture secrets, and decide deliberately about personal data: redact or hash before export (chapter 07), restrict who can read raw traces, and set a retention period.</p>
+
+  <div class="callout warn"><strong>A trace store is a production database.</strong> It holds what users typed and what your tools returned. Give it the same access control, retention rules and breach planning as your customer data.</div>
+
+  <aside class="layman">
+    <div class="layman-head"><span class="icon">📦</span><span class="label">Layman's version<small>plain English, no jargon</small></span></div>
+    <p><strong>A trace is the full receipt for one question someone asked your AI.</strong> It lists every step: what the AI was told, which tools it used, what it looked up, what it answered, how long each step took and what it cost.</p>
+  
+    <p><strong>Without it, problems are guesswork.</strong> When a customer says "the bot gave me a weird answer yesterday", you open their trace and see exactly where it went wrong — the lookup returned the wrong order, or an old version of the instructions was running.</p>
+  
+    <p><strong>Because traces contain what people typed, they need the same care as any customer database.</strong></p>
+  
+    <div class="analogy"><strong>The parcel tracking analogy:</strong> a parcel's tracking page shows every hop — picked up, sorted, loaded, out for delivery — each with a time. When a parcel goes missing you don't guess; you look at the last scan. A trace is the tracking page for one AI request.</div>
+  </aside>
+  <aside class="bangla">
+    <div class="bangla-head"><span class="icon">🇧🇩</span><span class="label">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>
+    <p><strong>Trace</strong> হলো একটি request-এর পুরো গল্প: মূল span-এর নিচে প্রতিটি LLM call, retrieval, tool call ও sub-agent-এর আলাদা span, আর প্রতিটিতে input, output, মডেল, token, খরচ ও সময়। Agent কেন একটি কাজ করল, তা বোঝার একমাত্র উপায় trace।</p>
+  
+    <p>OpenTelemetry-র GenAI semantic conventions (<code>gen_ai.request.model</code>, <code>gen_ai.usage.input_tokens</code> ইত্যাদি) trace-কে বিভিন্ন টুলের মধ্যে বহনযোগ্য করে <a class="cite" href="#src1">[1]</a>।</p>
+  
+    <p>টুল: Langfuse (open source, prompt management-সহ) <a class="cite" href="#src5">[5]</a>, LangSmith <a class="cite" href="#src6">[6]</a>, Helicone (request-এর পথে বসানো যায়) <a class="cite" href="#src7">[7]</a>, Arize Phoenix <a class="cite" href="#src8">[8]</a> ও Braintrust <a class="cite" href="#src9">[9]</a>।</p>
+  
+    <p>সতর্কতা: trace-এ ব্যবহারকারীর ডেটা থাকে — secret কখনো রাখবেন না, ব্যক্তিগত তথ্য redact করুন, আর access control ও retention নীতি ঠিক করুন।</p>
+  
+    <div class="analogy"><strong>পার্সেল ট্র্যাকিংয়ের উপমা:</strong> পার্সেলের ট্র্যাকিং পেজে প্রতিটি ধাপ সময়সহ দেখা যায় — সংগ্রহ, বাছাই, গাড়িতে ওঠা, ডেলিভারির পথে। পার্সেল হারালে অনুমান না করে শেষ স্ক্যানটি দেখা হয়। একটি AI request-এর জন্য trace হলো সেই ট্র্যাকিং পেজ।</div>
+  </aside>
+</section>
+
+<section id="s2">
+  <div class="section-head"><span class="section-num">02</span><h2>Token, cost, and latency tracking per request and per user</h2></div>
+  <p class="sub">Every model call should emit a usage record — tokens in and out, cached tokens, model, latency, cost — tagged with who and what caused it. Aggregated, those records answer every question finance and product will ask.</p>
+
+  <h3>The usage record</h3>
+
+  <table>
+    <thead><tr><th>Field</th><th>Why it matters</th></tr></thead>
+    <tbody>
+      <tr><td><code>input_tokens</code>, <code>output_tokens</code></td><td>the two numbers every price sheet is built on</td></tr>
+      <tr><td>cached input tokens</td><td>prompt-cache reads are billed at a fraction of normal input (chapter 06)</td></tr>
+      <tr><td>reasoning ("thinking") tokens</td><td>billed as output on reasoning models; can dominate cost</td></tr>
+      <tr><td><code>model</code> (exact id)</td><td>prices and behaviour differ between model versions</td></tr>
+      <tr><td>TTFT and total latency</td><td>the user experience (chapter 03)</td></tr>
+      <tr><td><code>tenant_id</code>, <code>user_id</code>, <code>feature</code>, <code>prompt_version</code></td><td>the dimensions you will group by</td></tr>
+      <tr><td>cost in currency</td><td>computed from a versioned price table, never hard-coded</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Compute cost from a versioned price table</h3>
+
+  <p>Prices change, and differ by model, region, batch versus real-time, and cache read versus write. Keep a table keyed by model and effective date, compute cost when you write the record, and never rewrite history — last quarter's cost must stay last quarter's.</p>
+
+  <pre><code><span class="com">-- Daily calls, tokens, cost and p95 latency per tenant and feature</span>
+  SELECT
+    <span class="fn">date_trunc</span>(<span class="str">'day'</span>, created_at)                            AS day,
+    tenant_id,
+    feature,
+    <span class="fn">count</span>(*)                                                 AS calls,
+    <span class="fn">sum</span>(input_tokens)                                        AS input_tokens,
+    <span class="fn">sum</span>(output_tokens)                                       AS output_tokens,
+    <span class="fn">round</span>(<span class="fn">sum</span>(cost_usd)::numeric, <span class="num">2</span>)                         AS cost_usd,
+    <span class="fn">percentile_cont</span>(<span class="num">0.95</span>) WITHIN <span class="fn">GROUP</span> (ORDER BY latency_ms) AS p95_latency_ms
+  FROM llm_usage
+  WHERE created_at &gt;= <span class="fn">now</span>() - interval <span class="str">'30 days'</span>
+  GROUP BY <span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>
+  ORDER BY cost_usd DESC;</code></pre>
+
+  <h3>The dashboards that pay for themselves</h3>
+
+  <ul style="margin: 0 0 14px 20px; line-height: 1.8;">
+    <li><strong>Cost per feature and per active user</strong> — finds the one feature eating the budget.</li>
+    <li><strong>Tokens per conversation over time</strong> — catches context bloat as histories grow.</li>
+    <li><strong>Cache hit rate</strong> — tells you whether restructuring prompts actually worked.</li>
+    <li><strong>p95 TTFT and error rate per model</strong> — the first place a provider incident shows up.</li>
+    <li><strong>Top users by spend</strong> — abuse, runaway agents and loops appear here first (chapter 07).</li>
+  </ul>
+
+  <div class="callout good"><strong>Alert on the rate of change, not only on thresholds.</strong> "Cost this hour is 3× the same hour last week" catches a looping agent within the hour; a monthly budget alert catches it on day 28.</div>
+
+  <aside class="layman">
+    <div class="layman-head"><span class="icon">🧾</span><span class="label">Layman's version<small>plain English, no jargon</small></span></div>
+    <p><strong>Every time the AI answers, it should leave a line on the bill:</strong> how much it read, how much it wrote, how long it took, what it cost, and who asked.</p>
+  
+    <p><strong>Added up, those lines answer the big questions:</strong> which feature costs the most, which customers use it heavily, whether a change made things cheaper, and whether something is running away overnight.</p>
+  
+    <p><strong>Prices change, so the bill should remember which price applied at the time</strong> — otherwise last month's numbers shift every time a vendor updates its rates.</p>
+  
+    <div class="analogy"><strong>The itemised phone bill analogy:</strong> a good phone bill doesn't just say "you owe 2,140 taka". It lists each call: who made it, to where, for how long, at what rate. That's how a family discovers that one teenager's international calls are the whole problem.</div>
+  </aside>
+  <aside class="bangla">
+    <div class="bangla-head"><span class="icon">🇧🇩</span><span class="label">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>
+    <p>প্রতিটি মডেল call একটি usage record রাখবে: input ও output token, cached token, reasoning token, মডেলের সঠিক id, TTFT ও মোট latency, খরচ, এবং <code>tenant_id</code>, <code>user_id</code>, <code>feature</code>, <code>prompt_version</code>।</p>
+  
+    <p>খরচ হিসাব করুন version-যুক্ত price table থেকে — দাম বদলায়, তাই পুরোনো রেকর্ড কখনো নতুন দামে বদলাবেন না।</p>
+  
+    <p>দরকারি dashboard:</p>
+  
+    <ul>
+      <li>feature ও সক্রিয় ব্যবহারকারীপ্রতি খরচ</li>
+      <li>কথোপকথনপ্রতি token-এর প্রবণতা</li>
+      <li>cache hit rate</li>
+      <li>মডেলভিত্তিক p95 TTFT ও error rate</li>
+      <li>সবচেয়ে বেশি খরচ করা ব্যবহারকারী</li>
+    </ul>
+  
+    <p>Alert দিন পরিবর্তনের হারে: "এই ঘণ্টার খরচ গত সপ্তাহের একই ঘণ্টার ৩ গুণ" — এতে loop-এ আটকে যাওয়া agent এক ঘণ্টার মধ্যেই ধরা পড়ে।</p>
+  
+    <div class="analogy"><strong>বিস্তারিত ফোন বিলের উপমা:</strong> ভালো ফোন বিল শুধু মোট টাকা বলে না; প্রতিটি কল আলাদা দেখায় — কে করেছে, কোথায়, কতক্ষণ, কোন রেটে। এভাবেই পরিবার বুঝতে পারে যে একজনের বিদেশি কলই আসল সমস্যা।</div>
+  </aside>
+</section>
+
+<section id="s3">
+  <div class="section-head"><span class="section-num">03</span><h2>Prompt and agent versioning</h2></div>
+  <p class="sub">An agent's behaviour is defined by more than code: the prompt text, the model id, sampling parameters, tool definitions and retrieval settings. Version them together, release them deliberately, and stamp the version on every trace.</p>
+
+  <h3>Version the whole configuration</h3>
+
+  <p>A "prompt change" that also swaps the model, or a model alias that silently moves to a new snapshot, makes regressions impossible to attribute. Treat the full configuration as one immutable, versioned artifact:</p>
+
+  <pre><code><span class="com"># agents/support-answer/v14.yaml — immutable once released</span>
+  id: support-answer
+  version: <span class="num">14</span>
+  model: <span class="str">"&lt;exact snapshot id from your provider, not a floating alias&gt;"</span>
+  temperature: <span class="num">0.2</span>
+  max_tokens: <span class="num">800</span>
+  system_prompt: prompts/support-answer/v14.md
+  tools: [orders_search, orders_refund, policy_lookup]
+  retrieval: {index: policies-<span class="num">2026</span>-<span class="num">10</span>, top_k: <span class="num">5</span>}
+  eval_gate: {suite: support-golden, min_pass_rate: <span class="num">0.95</span>}</code></pre>
+
+  <h3>Registry, labels and rollback</h3>
+
+  <p>Prompt-management tools store versions and attach labels such as <code>production</code> and <code>staging</code>; the application fetches "the production version" at runtime, so a rollback is moving a label rather than redeploying code <a class="cite" href="#src10">[10]</a>. If you keep prompts in git instead, get the same properties: review in pull requests, immutable tags, and a release record of which version is live.</p>
+
+  <h3>Pin model versions</h3>
+
+  <p>Providers publish both floating aliases and specific model snapshots, and document how aliases move to newer snapshots over time <a class="cite" href="#src11">[11]</a>. Production traffic should pin an exact id, so that "the model changed" is always a deliberate release rather than a surprise (see drift detection below).</p>
+
+  <h3>Stamp versions on every trace</h3>
+
+  <p>Put <code>prompt_version</code>, <code>agent_version</code> and the exact model id on every span. Then "quality dropped on Tuesday" becomes a query: which versions served Tuesday's bad traces?</p>
+
+  <div class="callout warn"><strong>Don't edit prompts in place in production.</strong> An admin-panel edit with no version history is a silent deploy that skips review, evals and rollback.</div>
+
+  <aside class="layman">
+    <div class="layman-head"><span class="icon">🎼</span><span class="label">Layman's version<small>plain English, no jargon</small></span></div>
+    <p><strong>An AI feature's behaviour comes from its written instructions, the exact model, and a handful of settings.</strong> Change any one of them and the behaviour changes. So the whole bundle gets a version number, like an app update.</p>
+  
+    <p><strong>Every answer is stamped with the version that produced it.</strong> When something goes wrong, you know exactly which bundle was running — and going back to the previous one is a single switch.</p>
+  
+    <p><strong>Nobody quietly edits the instructions on the live system,</strong> for the same reason nobody should edit a live website without keeping a copy.</p>
+  
+    <div class="analogy"><strong>The orchestra sheet music analogy:</strong> every musician must play from the same edition of the score. If a wrong note appears in a concert, the conductor checks which edition was on each stand. Printing a corrected edition — and keeping the old one in the archive — fixes it without chaos.</div>
+  </aside>
+  <aside class="bangla">
+    <div class="bangla-head"><span class="icon">🇧🇩</span><span class="label">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>
+    <p>Agent-এর আচরণ শুধু কোডে ঠিক হয় না — prompt-এর লেখা, মডেলের id, temperature-এর মতো parameter, tool definition ও retrieval সেটিং মিলে ঠিক হয়। এগুলো একসাথে একটি অপরিবর্তনীয়, version-যুক্ত configuration হিসেবে রাখুন।</p>
+  
+    <ul>
+      <li>Prompt registry-তে version ও label (<code>production</code>, <code>staging</code>) ব্যবহার করুন; rollback মানে শুধু label সরানো <a class="cite" href="#src10">[10]</a>।</li>
+      <li>Floating alias নয়, নির্দিষ্ট model snapshot id pin করুন <a class="cite" href="#src11">[11]</a>।</li>
+      <li>প্রতিটি trace-এ <code>prompt_version</code>, <code>agent_version</code> ও মডেল id লিখে রাখুন।</li>
+      <li>Production-এ সরাসরি prompt edit করবেন না — এটি review, eval ও rollback ছাড়াই গোপন deploy।</li>
+    </ul>
+  
+    <div class="analogy"><strong>অর্কেস্ট্রার স্বরলিপির উপমা:</strong> সব বাদককে একই সংস্করণের স্বরলিপি থেকে বাজাতে হয়। কনসার্টে ভুল সুর বাজলে কন্ডাক্টর দেখেন কোন stand-এ কোন সংস্করণ ছিল। সংশোধিত সংস্করণ ছাপিয়ে পুরোনোটি আর্কাইভে রাখাই সঠিক সমাধান।</div>
+  </aside>
+</section>
+
+<section id="s4">
+  <div class="section-head"><span class="section-num">04</span><h2>A/B testing prompts and models in production</h2></div>
+  <p class="sub">Offline evals tell you a change is safe; online experiments tell you whether it is better for real users. A/B tests on LLM features follow the same statistics as any product experiment, plus a few LLM-specific traps.</p>
+
+  <h3>The experiment design</h3>
+
+  <ol style="margin: 0 0 14px 20px; line-height: 1.8;">
+    <li>Gate with offline evals first (chapter 05) — never A/B test a variant that fails your golden set.</li>
+    <li>Randomise by <strong>user</strong>, not by request, so each person sees a consistent experience.</li>
+    <li>Choose one <strong>primary metric</strong> (task success, resolution rate) and several <strong>guardrail metrics</strong> (cost per conversation, p95 latency, escalation and complaint rates).</li>
+    <li>Size the test before starting; don't stop the moment the dashboard looks good.</li>
+    <li>Check for <strong>sample ratio mismatch</strong>: if a 50/50 split arrives as 53/47, assignment is broken and the result can't be trusted.</li>
+  </ol>
+
+  <p>Kohavi, Tang and Xu's book on online controlled experiments is the standard reference for these practices, including sample-ratio checks and the dangers of peeking <a class="cite" href="#src12">[12]</a>.</p>
+
+  <pre><code><span class="kw">import</span> hashlib
+  
+  <span class="kw">def</span> <span class="fn">variant</span>(user_id: str, experiment: str,
+              split=((<span class="str">"control"</span>, <span class="num">50</span>), (<span class="str">"treatment"</span>, <span class="num">50</span>))) -&gt; str:
+      <span class="str">"""Deterministic, sticky assignment: same user + experiment -&gt; same arm."""</span>
+      digest = hashlib.<span class="fn">sha256</span>(f<span class="str">"{experiment}:{user_id}"</span>.<span class="fn">encode</span>()).<span class="fn">hexdigest</span>()
+      bucket = <span class="fn">int</span>(digest, <span class="num">16</span>) % <span class="num">100</span>
+      edge = <span class="num">0</span>
+      <span class="kw">for</span> name, pct <span class="kw">in</span> split:
+          edge += pct
+          <span class="kw">if</span> bucket &lt; edge:
+              <span class="kw">return</span> name
+      <span class="kw">return</span> split[-<span class="num">1</span>][<span class="num">0</span>]</code></pre>
+
+  <h3>LLM-specific traps</h3>
+
+  <ul style="margin: 0 0 14px 20px; line-height: 1.8;">
+    <li><strong>Novelty and verbosity.</strong> Longer, more confident answers often win thumbs-ups in week one and lose trust later. Watch retention and repeat-contact rates, not just first impressions.</li>
+    <li><strong>Cost belongs in the decision.</strong> A variant that is 2% better but 40% more expensive may be a loss.</li>
+    <li><strong>Non-stationarity.</strong> A provider-side model update during the test affects both arms; pin model versions.</li>
+    <li><strong>Interference.</strong> Shared caches or rate limits can let one arm slow the other; isolate them where you can.</li>
+  </ul>
+
+  <div class="callout"><strong>Shadow first, then split.</strong> For risky changes, run the new variant in shadow mode — generate but don't show — and compare judge scores on real traffic before exposing any users.</div>
+
+  <aside class="layman">
+    <div class="layman-head"><span class="icon">🥤</span><span class="label">Layman's version<small>plain English, no jargon</small></span></div>
+    <p><strong>An A/B test shows two versions to two random groups of real users and measures which works better.</strong> Before that, the new version must pass your own internal checks — you never experiment on customers with something you already know is broken.</p>
+  
+    <p><strong>Each person stays in the same group,</strong> so their experience doesn't flip back and forth. You decide in advance what "better" means — more problems solved, fewer repeat complaints — and what must not get worse, like cost and speed.</p>
+  
+    <p><strong>And you wait for enough data before declaring a winner,</strong> because early results swing wildly.</p>
+  
+    <div class="analogy"><strong>The blind taste test analogy:</strong> two unlabelled cups of cola go to randomly chosen shoppers, and each shopper always tastes the same pair. You count preferences only after hundreds of tastings — and you also check that the "winning" recipe doesn't cost twice as much to make.</div>
+  </aside>
+  <aside class="bangla">
+    <div class="bangla-head"><span class="icon">🇧🇩</span><span class="label">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>
+    <p>Offline eval বলে পরিবর্তনটি নিরাপদ; online experiment বলে আসল ব্যবহারকারীর জন্য সেটি ভালো কি না।</p>
+  
+    <ul>
+      <li>আগে offline eval পাস করান (অধ্যায় ০৫)।</li>
+      <li>Request নয়, <strong>user</strong> ধরে randomise করুন, যাতে একজন সবসময় একই সংস্করণ দেখেন।</li>
+      <li>একটি প্রধান মেট্রিক (সমস্যা সমাধানের হার) আর কয়েকটি guardrail মেট্রিক (খরচ, p95 latency, অভিযোগ) ঠিক করুন।</li>
+      <li>আগেই sample size ঠিক করুন; ড্যাশবোর্ড ভালো দেখালেই থামবেন না।</li>
+      <li>Sample ratio mismatch পরীক্ষা করুন <a class="cite" href="#src12">[12]</a>।</li>
+    </ul>
+  
+    <p>LLM-এর বিশেষ ফাঁদ: লম্বা ও আত্মবিশ্বাসী উত্তর শুরুতে বেশি পছন্দ পায়; খরচকে সিদ্ধান্তের অংশ ধরুন; পরীক্ষা চলাকালে provider মডেল বদলালে দুই দলই প্রভাবিত হয়।</p>
+  
+    <div class="analogy"><strong>অন্ধ স্বাদ পরীক্ষার উপমা:</strong> লেবেলহীন দুই কাপ কোলা এলোমেলোভাবে বাছাই করা ক্রেতাদের দেওয়া হয়। শত শত মানুষের মত নেওয়ার পরেই ফল গোনা হয় — আর দেখা হয় "জয়ী" রেসিপি বানাতে দ্বিগুণ খরচ হয় কি না।</div>
+  </aside>
+</section>
+
+<section id="s5">
+  <div class="section-head"><span class="section-num">05</span><h2>Replay and debugging of failed runs</h2></div>
+  <p class="sub">When an agent fails in production you need to reproduce the exact run: the same inputs, prompt version, model, parameters and tool results. Then you can fix it, prove the fix, and keep the case as a regression test.</p>
+
+  <h3>Capture enough to replay</h3>
+
+  <p>A replayable trace stores the full model inputs (system prompt, messages, tool definitions), the parameters, the exact model id, every tool result, and the prompt and agent versions. Tool results matter most: re-running live tools during a replay changes the world, or returns data that has since changed, so a replay should feed back the <strong>recorded</strong> results.</p>
+
+  <h3>Why replays are not perfectly deterministic</h3>
+
+  <p>Even at temperature 0, providers do not promise bit-identical outputs, because batching and hardware non-determinism affect floating-point results. Treat a replay as "reproduce the situation", then judge the new output with your evals rather than expecting identical text.</p>
+
+  <h3>Fork from a step</h3>
+
+  <p>Agent frameworks with checkpointing let you resume from any recorded step with modified state — change one tool result or one instruction and see what the agent does next. LangGraph exposes this through its persistence layer and its "time travel" feature <a class="cite" href="#src13">[13]</a>.</p>
+
+  <pre><code><span class="kw">def</span> <span class="fn">replay</span>(trace, system_override=<span class="kw">None</span>, model=<span class="kw">None</span>):
+      <span class="str">"""Re-run the failing model call with optional changes. Tools are NOT re-executed."""</span>
+      call = trace.llm_calls[-<span class="num">1</span>]                  <span class="com"># the step that went wrong</span>
+      <span class="kw">return</span> client.messages.<span class="fn">create</span>(
+          model=model <span class="kw">or</span> call.model,
+          system=system_override <span class="kw">or</span> call.system,
+          messages=call.messages,                 <span class="com"># includes the recorded tool_result blocks</span>
+          tools=call.tools,
+          max_tokens=call.max_tokens,
+          temperature=call.temperature,
+      )</code></pre>
+
+  <h3>Close the loop</h3>
+
+  <p>Every production failure you debug should become a test: save the trace's inputs and the expected behaviour into your eval dataset (chapter 05), so the same bug cannot quietly return. Practitioners who have shipped many LLM products put "look at your data" — reading real traces regularly — at the centre of this loop <a class="cite" href="#src14">[14]</a><a class="cite" href="#src15">[15]</a>.</p>
+
+  <aside class="layman">
+    <div class="layman-head"><span class="icon">🎬</span><span class="label">Layman's version<small>plain English, no jargon</small></span></div>
+    <p><strong>When the AI gets something wrong, you want to watch exactly what happened, step by step.</strong> That means the record has to include everything it saw: the instructions, the conversation, and what each lookup returned at that moment.</p>
+  
+    <p><strong>You replay the moment with the recorded lookups, not fresh ones,</strong> because the world has moved on since. Then you try a fix and check whether the AI now does the right thing.</p>
+  
+    <p><strong>Each mistake you fix becomes a permanent test,</strong> so it can't sneak back in later.</p>
+  
+    <div class="analogy"><strong>The instant replay analogy:</strong> a referee reviewing a disputed goal watches the recorded footage from every camera angle, frame by frame — not a re-enactment by the players. Once the decision is made, the clip goes into the training reel for future referees.</div>
+  </aside>
+  <aside class="bangla">
+    <div class="bangla-head"><span class="icon">🇧🇩</span><span class="label">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>
+    <p>Production-এ agent ব্যর্থ হলে ঠিক সেই run আবার তৈরি করতে হয়: একই input, prompt version, মডেল id, parameter ও tool result।</p>
+  
+    <ul>
+      <li>Replay-তে live tool আবার চালাবেন না; <strong>রেকর্ড করা</strong> tool result ব্যবহার করুন, কারণ ইতোমধ্যে ডেটা বদলে গেছে।</li>
+      <li>Temperature 0 হলেও provider হুবহু একই output-এর নিশ্চয়তা দেয় না; তাই হুবহু মিল নয়, eval দিয়ে নতুন output বিচার করুন।</li>
+      <li>Checkpoint-যুক্ত framework (যেমন LangGraph-এর time travel) দিয়ে যেকোনো ধাপ থেকে পরিবর্তিত state নিয়ে আবার চালানো যায় <a class="cite" href="#src13">[13]</a>।</li>
+      <li>প্রতিটি ঠিক করা ব্যর্থতা eval dataset-এ test হিসেবে যোগ করুন; নিয়মিত আসল trace পড়ার অভ্যাসই এই চক্রের কেন্দ্র <a class="cite" href="#src14">[14]</a>।</li>
+    </ul>
+  
+    <div class="analogy"><strong>খেলার ইনস্ট্যান্ট রিপ্লের উপমা:</strong> বিতর্কিত গোল দেখতে রেফারি প্রতিটি ক্যামেরার রেকর্ড করা ফুটেজ ফ্রেম ধরে দেখেন — খেলোয়াড়দের দিয়ে আবার অভিনয় করান না। সিদ্ধান্তের পর ক্লিপটি ভবিষ্যৎ রেফারিদের প্রশিক্ষণে রাখা হয়।</div>
+  </aside>
+</section>
+
+<section id="s6">
+  <div class="section-head"><span class="section-num">06</span><h2>Drift detection (model upgrades silently changing behavior)</h2></div>
+  <p class="sub">Your prompt didn't change, your code didn't change, and yet quality did. Drift comes from provider model updates, serving bugs, and shifts in what users ask. You catch it only by measuring continuously.</p>
+
+  <h3>It really happens</h3>
+
+  <p>A Stanford and UC Berkeley study compared the March and June 2023 versions of GPT-4 and GPT-3.5 and found large behaviour changes; for example, GPT-4's accuracy at identifying prime versus composite numbers fell from 84% to 51% <a class="cite" href="#src16">[16]</a>. Drift also comes from serving infrastructure: Anthropic's September 2025 postmortem described three overlapping bugs — a context-window routing error, output corruption, and an approximate top-k XLA:TPU miscompilation — that intermittently degraded Claude's responses <a class="cite" href="#src17">[17]</a>.</p>
+
+  <h3>Three kinds of drift</h3>
+
+  <table>
+    <thead><tr><th>Kind</th><th>Cause</th><th>Detect with</th></tr></thead>
+    <tbody>
+      <tr><td>Model drift</td><td>the provider updates a model or moves an alias</td><td>scheduled canary evals on a fixed set</td></tr>
+      <tr><td>Serving drift</td><td>infrastructure bugs, quantization or configuration changes</td><td>canary evals plus output statistics</td></tr>
+      <tr><td>Input drift</td><td>users start asking different things</td><td>topic and embedding-distribution monitoring</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Canary evals on a schedule</h3>
+
+  <p>Run a fixed, representative eval set against the production configuration every few hours and on every deploy, and alert when the pass rate falls outside its normal variance.</p>
+
+  <div class="diagram">
+  <svg viewBox="0 0 1100 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Canary eval pass rate over 14 days with a drop below the alert threshold">
+    <text x="40" y="24" font-family="JetBrains Mono, monospace" font-size="12" fill="#a8b5c8">canary eval pass rate, every 6 hours (illustrative)</text>
+    <line x1="80" y1="40" x2="80" y2="260" stroke="#334155"/>
+    <line x1="80" y1="260" x2="1040" y2="260" stroke="#334155"/>
+    <text x="70" y="44" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">100%</text>
+    <text x="70" y="154" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">90%</text>
+    <text x="70" y="264" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">80%</text>
+    <line x1="80" y1="128" x2="1040" y2="128" stroke="#fb7185" stroke-dasharray="5 5"/>
+    <text x="1036" y="120" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11" fill="#fb7185">alert threshold 92%</text>
+    <polyline fill="none" stroke="#22d3ee" stroke-width="2.5" points="80,95 152,84 224,100 296,89 368,95 440,84 512,97 584,93 656,172 728,177 800,170 872,96 944,92 1016,95"/>
+    <circle cx="656" cy="172" r="6" fill="#fb7185"/>
+    <text x="672" y="212" font-family="JetBrains Mono, monospace" font-size="12" fill="#fb7185">day 9: 88% · alert fires</text>
+    <text x="672" y="232" font-family="JetBrains Mono, monospace" font-size="11" fill="#94a3b8">provider-side model update</text>
+    <circle cx="872" cy="96" r="6" fill="#34d399"/>
+    <text x="884" y="70" font-family="JetBrains Mono, monospace" font-size="12" fill="#34d399">day 12: previous</text>
+    <text x="884" y="86" font-family="JetBrains Mono, monospace" font-size="12" fill="#34d399">snapshot pinned</text>
+    <text x="80" y="284" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">day 1</text>
+    <text x="1016" y="284" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">day 14</text>
+  </svg>
+    <div class="diagram-caption">An illustrative canary chart: quality is stable for eight days, drops below threshold when the provider changes the model behind an alias, and recovers after the team pins the previous snapshot.</div>
+    <div class="diagram-caption diagram-caption-bn">কাল্পনিক canary চার্ট: আট দিন মান স্থির ছিল, provider alias-এর পেছনের মডেল বদলানোয় সীমার নিচে নেমে যায়, আর আগের snapshot pin করার পর আবার ঠিক হয়।</div>
+  </div>
+
+  <h3>Output statistics are cheap early warnings</h3>
+
+  <p>Between eval runs, watch distributions you can compute on every response: answer length, refusal rate, tool-call rate, JSON-validity rate, response language, and judge scores on a sample. A sudden shift in any of them is a reason to look. Libraries such as Evidently compute drift statistics for both classic ML features and LLM outputs <a class="cite" href="#src18">[18]</a>.</p>
+
+  <h3>Defences</h3>
+
+  <ul style="margin: 0 0 14px 20px; line-height: 1.8;">
+    <li><strong>Pin model versions</strong> and upgrade deliberately, with your eval suite as the gate (see versioning above).</li>
+    <li><strong>Canary new models</strong> on a small share of traffic before switching over completely.</li>
+    <li><strong>Keep a rollback path:</strong> the previous model id and configuration, still deployable.</li>
+  </ul>
+
+  <aside class="layman">
+    <div class="layman-head"><span class="icon">🛞</span><span class="label">Layman's version<small>plain English, no jargon</small></span></div>
+    <p><strong>Sometimes an AI gets worse without anyone touching your product.</strong> The company behind the model updates it, a server bug slips in, or customers start asking new kinds of questions.</p>
+  
+    <p><strong>You only notice if you keep testing.</strong> A fixed set of known questions gets asked every few hours; if the score suddenly drops, an alarm goes off. Simple running checks — are answers suddenly longer, more often refusing, more often broken? — give early hints between those tests.</p>
+  
+    <p><strong>The defence is to lock to one specific model version and change it on purpose,</strong> after testing, with the old one kept ready to switch back to.</p>
+  
+    <div class="analogy"><strong>The wheel alignment analogy:</strong> a car's alignment drifts so gradually that you don't notice until the tyres are worn. Regular checks catch it early, and a mechanic's measurement — not a vague feeling — tells you when to act.</div>
+  </aside>
+  <aside class="bangla">
+    <div class="bangla-head"><span class="icon">🇧🇩</span><span class="label">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>
+    <p>Prompt বা কোড না বদলালেও মান বদলাতে পারে — একে বলে <strong>drift</strong>।</p>
+  
+    <ul>
+      <li><strong>Model drift:</strong> provider মডেল আপডেট করে। গবেষণায় দেখা গেছে, মার্চ থেকে জুন ২০২৩-এর মধ্যে GPT-4-এর মৌলিক সংখ্যা চেনার নির্ভুলতা ৮৪% থেকে ৫১%-এ নেমেছিল <a class="cite" href="#src16">[16]</a>।</li>
+      <li><strong>Serving drift:</strong> infrastructure-এর bug; Anthropic-এর সেপ্টেম্বর ২০২৫-এর postmortem-এ তিনটি bug-এর কারণে Claude-এর উত্তরের মান মাঝেমধ্যে খারাপ হওয়ার বিবরণ আছে <a class="cite" href="#src17">[17]</a>।</li>
+      <li><strong>Input drift:</strong> ব্যবহারকারীরা নতুন ধরনের প্রশ্ন করতে শুরু করেন।</li>
+    </ul>
+  
+    <p>সমাধান: নির্দিষ্ট সময় পরপর একটি স্থির eval set চালান (canary eval); উত্তরের দৈর্ঘ্য, প্রত্যাখ্যানের হার, tool-call হার ও JSON-এর বৈধতা নজরে রাখুন <a class="cite" href="#src18">[18]</a>; model snapshot pin করুন, নতুন মডেল আগে অল্প traffic-এ চালান, আর rollback-এর পথ খোলা রাখুন।</p>
+  
+    <div class="analogy"><strong>চাকার অ্যালাইনমেন্টের উপমা:</strong> গাড়ির চাকার অ্যালাইনমেন্ট এত ধীরে সরে যে টায়ার ক্ষয় না হওয়া পর্যন্ত বোঝা যায় না। নিয়মিত পরীক্ষাই আগেভাগে ধরে, আর অনুভূতি নয়, মিস্ত্রির মাপই বলে দেয় কখন ব্যবস্থা নিতে হবে।</div>
+  </aside>
+</section>
+
+<section id="s7">
+  <div class="section-head"><span class="section-num">07</span><h2>Feedback loops (thumbs up/down → eval datasets)</h2></div>
+  <p class="sub">User feedback is the cheapest source of real failure cases you will ever get. The loop that matters: capture signals, triage the bad ones, label them, add them to the eval set, fix, and verify the fix.</p>
+
+  <h3>Explicit, implicit and outcome signals</h3>
+
+  <table>
+    <thead><tr><th>Signal</th><th>Examples</th><th>Strength and weakness</th></tr></thead>
+    <tbody>
+      <tr><td>Explicit</td><td>thumbs up/down, star rating, written comment</td><td>clear intent, but sparse and skewed toward unhappy users</td></tr>
+      <tr><td>Implicit</td><td>copy, retry, regenerate, edit before sending, abandon, escalate to a human</td><td>plentiful, but noisy and needs interpretation</td></tr>
+      <tr><td>Outcome</td><td>ticket resolved, purchase completed, code merged</td><td>closest to business value, but delayed</td></tr>
+    </tbody>
+  </table>
+
+  <p>Eugene Yan's survey of LLM product patterns treats collecting user feedback as a core pattern precisely because it turns usage into evaluation and training data <a class="cite" href="#src19">[19]</a>.</p>
+
+  <div class="diagram">
+  <svg viewBox="0 0 1100 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Feedback flywheel from production traces to eval set and back">
+    <defs><marker id="arr-c04c" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L6,4 L0,8 Z" fill="#94a3b8"/></marker></defs>
+    <rect x="40" y="40" width="280" height="76" rx="10" fill="#0f172a" stroke="#22d3ee"/>
+    <text x="60" y="70" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#22d3ee">1 · Production</text>
+    <text x="60" y="94" font-family="JetBrains Mono, monospace" font-size="11" fill="#cfd8e6">traces + user feedback</text>
+    <rect x="410" y="40" width="280" height="76" rx="10" fill="#0f172a" stroke="#fbbf24"/>
+    <text x="430" y="70" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#fbbf24">2 · Triage queue</text>
+    <text x="430" y="94" font-family="JetBrains Mono, monospace" font-size="11" fill="#cfd8e6">thumbs-down, retries, escalations</text>
+    <rect x="780" y="40" width="280" height="76" rx="10" fill="#0f172a" stroke="#a78bfa"/>
+    <text x="800" y="70" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#a78bfa">3 · Label</text>
+    <text x="800" y="94" font-family="JetBrains Mono, monospace" font-size="11" fill="#cfd8e6">what should have happened?</text>
+    <rect x="780" y="190" width="280" height="76" rx="10" fill="#0f172a" stroke="#34d399"/>
+    <text x="800" y="220" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#34d399">4 · Golden eval set</text>
+    <text x="800" y="244" font-family="JetBrains Mono, monospace" font-size="11" fill="#cfd8e6">the case becomes a test</text>
+    <rect x="410" y="190" width="280" height="76" rx="10" fill="#0f172a" stroke="#fb7185"/>
+    <text x="430" y="220" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#fb7185">5 · Fix + gate release</text>
+    <text x="430" y="244" font-family="JetBrains Mono, monospace" font-size="11" fill="#cfd8e6">ship only if the evals pass</text>
+    <line x1="320" y1="78" x2="406" y2="78" stroke="#94a3b8" marker-end="url(#arr-c04c)"/>
+    <line x1="690" y1="78" x2="776" y2="78" stroke="#94a3b8" marker-end="url(#arr-c04c)"/>
+    <line x1="920" y1="116" x2="920" y2="186" stroke="#94a3b8" marker-end="url(#arr-c04c)"/>
+    <line x1="780" y1="228" x2="694" y2="228" stroke="#94a3b8" marker-end="url(#arr-c04c)"/>
+    <polyline fill="none" stroke="#94a3b8" points="410,228 180,228 180,120" marker-end="url(#arr-c04c)"/>
+  </svg>
+    <div class="diagram-caption">The feedback flywheel: every negative signal is a candidate test case. The loop only works if step 3 — a person deciding what correct looks like — actually happens.</div>
+    <div class="diagram-caption diagram-caption-bn">Feedback flywheel: প্রতিটি নেতিবাচক signal একটি সম্ভাব্য test case। ধাপ ৩ — একজন মানুষ ঠিক করবেন সঠিক উত্তর কী — না হলে চক্রটি কাজ করে না।</div>
+  </div>
+
+  <h3>Turning feedback into tests</h3>
+
+  <ol style="margin: 0 0 14px 20px; line-height: 1.8;">
+    <li>Route negative and ambiguous signals into a triage queue, with the full trace attached.</li>
+    <li>Have a person — ideally a domain expert — write what the correct behaviour would have been: a reference answer, a rubric, or a pass/fail criterion.</li>
+    <li>Add the case to the golden dataset, tagged by failure category.</li>
+    <li>Fix, then require the new case and the rest of the suite to pass before release (chapter 05).</li>
+  </ol>
+
+  <h3>Watch the biases</h3>
+
+  <p>Thumbs are given mostly by unhappy users; some people click thumbs-down to mean "I don't like the policy" rather than "the answer was wrong"; and feedback on refusals is often a user wanting something you shouldn't provide. Read before you act, and weight feedback by category. Hamel Husain's widely shared essay makes the same point: the leverage comes from systematically looking at the data, not from the thumbs counter itself <a class="cite" href="#src14">[14]</a>.</p>
+
+  <aside class="layman">
+    <div class="layman-head"><span class="icon">🗺️</span><span class="label">Layman's version<small>plain English, no jargon</small></span></div>
+    <p><strong>Every thumbs-down is a free bug report.</strong> So are quieter signals: the person who clicks "try again", rewrites the answer before sending it, or gives up and asks for a human.</p>
+  
+    <p><strong>The useful habit is a loop:</strong> collect those moments, have someone decide what the right answer should have been, add that example to the test collection, fix the AI, and check the fix passes before releasing it.</p>
+  
+    <p><strong>Don't take every thumbs-down literally,</strong> though. Sometimes people dislike a correct answer — like being told a refund isn't allowed.</p>
+  
+    <div class="analogy"><strong>The traffic app analogy:</strong> a navigation app gets better because drivers report jams, closures and accidents as they drive. The app checks the reports, confirms the real ones, and updates the map for everyone — and learns to ignore the driver who reports every red light as "traffic".</div>
+  </aside>
+  <aside class="bangla">
+    <div class="bangla-head"><span class="icon">🇧🇩</span><span class="label">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>
+    <p>ব্যবহারকারীর feedback হলো বাস্তব ব্যর্থতার সবচেয়ে সস্তা উৎস।</p>
+  
+    <ul>
+      <li><strong>Explicit:</strong> thumbs up/down, রেটিং, মন্তব্য — স্পষ্ট কিন্তু সংখ্যায় কম, আর মূলত অসন্তুষ্ট ব্যবহারকারীরাই দেন।</li>
+      <li><strong>Implicit:</strong> কপি, আবার চেষ্টা, পাঠানোর আগে উত্তর সম্পাদনা, মাঝপথে ছেড়ে যাওয়া, মানুষের কাছে escalation — সংখ্যায় বেশি, তবে ব্যাখ্যা করতে হয়।</li>
+      <li><strong>Outcome:</strong> টিকিট সমাধান, কেনাকাটা সম্পন্ন — ব্যবসার মূল্যের সবচেয়ে কাছে, কিন্তু দেরিতে আসে।</li>
+    </ul>
+  
+    <p>চক্র: খারাপ signal triage queue-তে পাঠান → একজন বিশেষজ্ঞ লিখুন সঠিক উত্তর কী হওয়া উচিত ছিল → উদাহরণটি golden eval set-এ যোগ করুন → ঠিক করুন, আর eval পাস না করা পর্যন্ত release করবেন না <a class="cite" href="#src19">[19]</a><a class="cite" href="#src14">[14]</a>।</p>
+  
+    <p>সতর্কতা: প্রতিটি thumbs-down আক্ষরিক অর্থে নেবেন না — অনেক সময় মানুষ সঠিক কিন্তু অপছন্দের উত্তরেও (যেমন refund নিষেধ) thumbs-down দেন।</p>
+  
+    <div class="analogy"><strong>ট্রাফিক অ্যাপের উপমা:</strong> নেভিগেশন অ্যাপ ভালো হয় কারণ চালকেরা চলার পথেই জ্যাম, রাস্তা বন্ধ বা দুর্ঘটনার খবর দেন। অ্যাপ সেগুলো যাচাই করে সবার মানচিত্র হালনাগাদ করে — আর শেখে, যে চালক প্রতিটি লাল বাতিকে "জ্যাম" বলেন, তাঁকে উপেক্ষা করতে।</div>
+  </aside>
+</section>
+
+<section class="sources" id="sources">
+  <h2>Sources</h2>
+  <p style="color: var(--text-faint); font-size: 13px; margin-bottom: 16px;">Every link below was fetched on 8 October 2026. arXiv entries were matched against the paper's <code>citation_title</code> metadata; vendor and project pages were confirmed to resolve to the page described.</p>
+  <ol id="srcList">
+    <li id="src1"><a href="https://opentelemetry.io/docs/specs/semconv/registry/attributes/gen-ai/">OpenTelemetry — Gen AI attribute registry (semantic conventions)</a></li>
+    <li id="src2"><a href="https://github.com/open-telemetry/semantic-conventions-genai">OpenTelemetry — GenAI semantic conventions repository</a></li>
+    <li id="src3"><a href="https://github.com/Arize-ai/openinference">Arize — OpenInference: OpenTelemetry instrumentation for AI observability</a></li>
+    <li id="src4"><a href="https://github.com/traceloop/openllmetry">Traceloop — OpenLLMetry: open-source observability for LLM applications</a></li>
+    <li id="src5"><a href="https://langfuse.com/docs">Langfuse — documentation</a></li>
+    <li id="src6"><a href="https://docs.langchain.com/langsmith/observability">LangChain — LangSmith observability documentation</a></li>
+    <li id="src7"><a href="https://docs.helicone.ai/getting-started/quick-start">Helicone — quickstart (open-source LLM observability)</a></li>
+    <li id="src8"><a href="https://github.com/Arize-ai/phoenix">Arize Phoenix — AI observability and evaluation</a></li>
+    <li id="src9"><a href="https://www.braintrust.dev/docs">Braintrust — documentation</a></li>
+    <li id="src10"><a href="https://langfuse.com/docs/prompt-management/overview">Langfuse — Prompt management</a></li>
+    <li id="src11"><a href="https://platform.claude.com/docs/en/models/overview">Anthropic — Models overview (aliases and snapshots)</a></li>
+    <li id="src12"><a href="https://experimentguide.com/">Kohavi, Tang &amp; Xu — Trustworthy Online Controlled Experiments (book site)</a></li>
+    <li id="src13"><a href="https://docs.langchain.com/oss/python/langgraph/overview">LangGraph — overview (persistence and time travel)</a></li>
+    <li id="src14"><a href="https://hamel.dev/blog/posts/evals/">Hamel Husain — "Your AI Product Needs Evals"</a></li>
+    <li id="src15"><a href="https://www.oreilly.com/radar/what-we-learned-from-a-year-of-building-with-llms-part-i/">Yan, Bischof, Frye, Husain, Liu &amp; Shankar — "What We Learned from a Year of Building with LLMs (Part I)", O'Reilly</a></li>
+    <li id="src16"><a href="https://arxiv.org/abs/2307.09009">Chen, Zaharia &amp; Zou, "How is ChatGPT's behavior changing over time?" (2023)</a></li>
+    <li id="src17"><a href="https://www.anthropic.com/engineering/a-postmortem-of-three-recent-issues">Anthropic Engineering — "A postmortem of three recent issues" (Sep 2025)</a></li>
+    <li id="src18"><a href="https://github.com/evidentlyai/evidently">Evidently — open-source ML and LLM observability</a></li>
+    <li id="src19"><a href="https://eugeneyan.com/writing/llm-patterns/">Eugene Yan — "Patterns for Building LLM-based Systems &amp; Products"</a></li>
+  </ol>
+</section>
+
+<div class="inter-nav">
+  <div class="toc-title">All chapters in this series</div>
+  <div class="inter-nav-list">01. <a href="01-agents-and-agentic-systems.html">Agents &amp; agentic systems</a> · 02. <a href="02-tool-use-and-integrations.html">Tool use &amp; integrations</a> · 03. <a href="03-inference.html">Inference</a> · 04. <a class="current" href="04-llmops-and-observability.html">LLMOps &amp; observability</a> · 05. <a href="05-evaluation-engineering.html">Evaluation engineering</a> · 06. <a href="06-cost-and-performance-optimization.html">Cost &amp; performance optimisation</a> · 07. <a href="07-safety-security-and-guardrails.html">Safety, security &amp; guardrails</a> · 08. <a href="08-multimodal-engineering.html">Multimodal engineering</a> · 09. <a href="09-ai-application-architecture.html">AI application architecture</a></div>
+</div>
+
+<footer style="margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--border); color: var(--text-faint); font-size: 12px;">
+  Built as a single-file reference. Open in any browser. Generated from <code>site/scripts/chapters/04-*.txt</code> by <code>site/scripts/build-chapters.mjs</code>.
+</footer>
+
+</div>
+<script>
+(function () {
+  var open = null;
+  function close() { if (open) { open.remove(); open = null; document.body.style.overflow = ''; } }
+  function show(d) {
+    var svg = d.querySelector('svg'); if (!svg) return;
+    var o = document.createElement('div'); o.className = 'dz-overlay'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true');
+    var inner = document.createElement('div'); inner.className = 'dz-inner';
+    inner.appendChild(svg.cloneNode(true));
+    d.querySelectorAll('.diagram-caption').forEach(function (c) { inner.appendChild(c.cloneNode(true)); });
+    var b = document.createElement('button'); b.className = 'dz-close'; b.type = 'button'; b.textContent = 'Close ✕ (Esc)';
+    o.appendChild(inner); o.appendChild(b); o.addEventListener('click', close);
+    document.body.appendChild(o); document.body.style.overflow = 'hidden'; open = o; b.focus();
+  }
+  document.querySelectorAll('.diagram').forEach(function (d) {
+    d.setAttribute('tabindex', '0'); d.setAttribute('role', 'button'); d.setAttribute('aria-label', 'Enlarge diagram');
+    d.addEventListener('click', function () { show(d); });
+    d.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); show(d); } });
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+})();
+</script>
+</body>
+</html>

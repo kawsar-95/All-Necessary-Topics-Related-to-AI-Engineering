@@ -1,0 +1,265 @@
+@h1 Tool use &amp; <span class="gradient">integrations</span>
+@lede A model can only talk until you hand it **tools**: functions it may call to search, query, compute or act. This chapter covers how to design tool schemas the model picks correctly, how to run tool calls in parallel, how the Model Context Protocol (MCP) standardises the plumbing, how to run model-written code safely in a sandbox, how to wrap existing APIs, and how to format tool results so they help rather than flood the context window.
+@minutes 24
+
+=== Tool/function schema design
+@sub A tool definition is a contract written for a reader that cannot ask follow-up questions. The model sees only the name, the description and the JSON Schema — those three fields decide whether the right tool gets called with the right arguments.
+@icon 🎛️
+
+## Anatomy of a tool definition
+Every major API represents a tool the same way: a **name**, a natural-language **description**, and a **JSON Schema** for the arguments [@claude-tools][@oai-fc]. The model never sees your implementation. It reads these fields, which are injected into the context alongside the system prompt, and decides whether a call is warranted and what to pass. Your code executes the call and returns a result that the model reads on the next turn.
+
+```json
+{
+  "name": "orders_search",
+  "description": "Search a customer's orders by status or date. Use when the user asks about an existing order. Do NOT use for refunds (see orders_refund). Returns at most 20 orders, newest first, each with order_id, status, total and placed_at.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "customer_id": {"type": "string", "description": "Internal id from the session; never ask the user for it."},
+      "status": {"type": "string", "enum": ["pending", "shipped", "delivered", "cancelled"]},
+      "placed_after": {"type": "string", "format": "date", "description": "ISO date, e.g. 2026-09-01"}
+    },
+    "required": ["customer_id"],
+    "additionalProperties": false
+  }
+}
+```
+
+## Names and descriptions are prompt text
+Anthropic's guidance on writing tools for agents boils down to treating each definition as a small prompt: say what the tool does, when to use it, when not to, and what comes back [@anth-tools]. Two rules follow. **Namespace** related tools by service and resource (`asana_search`, `jira_search`, `asana_projects_search`) so the model can tell look-alikes apart [@anth-tools]. And **describe the boundary**, not only the happy path — the line "Do NOT use for refunds" above prevents a whole class of wrong calls.
+
+## Tight schemas reduce hallucinated arguments
+Loose types invite guesses. Use `enum` for closed sets, `format` hints for dates, `required` only for what truly is required, and `additionalProperties: false` so invented fields are rejected. OpenAI's function calling supports `strict: true`, which constrains generation to the schema [@oai-fc], and Anthropic offers strict tool use as well [@claude-tools]. JSON Schema is the shared vocabulary underneath both [@jsonschema].
+
+| Decision | Weak version | Strong version |
+|---|---|---|
+| Name | `search` | `orders_search` |
+| Description | "Searches orders." | what, when, when-not, what it returns |
+| Status argument | free-text string | `enum` of four values |
+| Unknown fields | silently ignored | `additionalProperties: false` |
+| Identifiers | ask the user for an id | take it from session context |
+
+## How many tools is too many?
+Selection accuracy drops as the catalogue grows and as tools overlap. Research has pushed the scale up — ToolLLM trained models on 16,000+ real-world APIs [@toolllm], and Gorilla showed that retrieving API documentation reduces hallucinated calls [@gorilla] — but production agents still do best with a small, distinct set. The Berkeley Function Calling Leaderboard is a public yardstick for how well models pick tools and fill arguments [@bfcl]. Three mitigations:
+
+- **Consolidate.** One `schedule_meeting` tool beats `list_users` + `list_calendars` + `create_event` chained by the model [@anth-tools].
+- **Search instead of listing.** For very large catalogues, Anthropic provides a tool-search server tool so definitions load on demand [@claude-tools].
+- **Route.** Give each sub-agent only its own domain's tools (chapter 01).
+
+> warn **Test descriptions like prompts.** A one-word change in a description can shift tool-selection accuracy. Keep definitions in version control and rerun your tool-selection evals (chapter 05) on every edit.
+
+@layman
+**A tool is a button the AI is allowed to press.** Out of the box, an AI can only write text. Give it a "look up order" button and it can check orders; give it a "send email" button and it can email. It decides which button to press purely by reading the label on each one.
+
+**So the label does all the work.** A button labelled "search" gets pressed at the wrong moments. A button labelled "look up this customer's existing orders — not for refunds — shows the 20 newest" gets pressed at the right moments, with the right details filled in.
+
+**Fewer, clearer buttons beat a wall of buttons.** If two buttons do nearly the same thing, the AI will mix them up. One "book a meeting" button is better than three smaller ones it has to chain together correctly.
+
+>> **The TV remote analogy:** a universal remote with sixty unlabelled buttons defeats even a clever person. Label each button clearly, remove the ones nobody needs, group related ones together — then anyone, or any AI, finds "volume up" on the first try.
+
+@bangla
+**Tool** হলো এমন একটি ফাংশন যা মডেল কল করতে পারে। মডেল আপনার কোড দেখে না; সে শুধু টুলের **name**, **description** আর **JSON Schema** পড়ে ঠিক করে কখন কোন টুল ডাকবে এবং কী argument দেবে [@claude-tools]।
+
+ভালো টুল ডিজাইনের মূল নিয়ম:
+- নাম অর্থবহ ও namespaced রাখুন, যেমন `orders_search`, `jira_search` — যাতে কাছাকাছি দেখতে টুলগুলো আলাদা করা যায় [@anth-tools]।
+- description-এ লিখুন টুলটি কী করে, কখন ব্যবহার করতে হবে, কখন **করা যাবে না**, আর কী ফেরত দেয়।
+- schema কড়া রাখুন: `enum`, `required`, `additionalProperties: false`; সম্ভব হলে strict mode চালু করুন [@oai-fc]।
+
+টুলের সংখ্যা বাড়লে ভুল টুল বাছাইয়ের সম্ভাবনাও বাড়ে। তাই কাছাকাছি কাজের টুলগুলো একত্র করুন, বড় ক্যাটালগে tool search ব্যবহার করুন, অথবা আলাদা sub-agent-এর মধ্যে টুল ভাগ করে দিন।
+
+>> **রিমোট কন্ট্রোলের উপমা:** ষাটটি লেবেলহীন বোতামের রিমোট বুদ্ধিমান মানুষকেও বিভ্রান্ত করে। প্রতিটি বোতামে স্পষ্ট লেবেল দিন, অপ্রয়োজনীয় বোতাম সরিয়ে দিন — তখন মানুষ বা AI প্রথম চেষ্টাতেই ঠিক বোতামটি খুঁজে পায়।
+
+=== Parallel tool calling
+@sub When a model needs several independent facts, it can request several tool calls in one turn. Running them concurrently turns the wait from the sum of the calls into roughly the slowest one.
+@icon ⚡
+
+## How it works on the wire
+Both major APIs let the model return more than one tool call in a single response. With OpenAI the model "may choose to call multiple functions in a single turn", and setting `parallel_tool_calls` to false limits it to zero or one call [@oai-fc]. With Anthropic the response contains several `tool_use` blocks; you execute them and send every `tool_result` back together in the next user message, and `disable_parallel_tool_use` turns the behaviour off [@claude-tools].
+
+!diagram
+<svg viewBox="0 0 1100 290" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Serial versus parallel tool execution timeline">
+  <text x="40" y="34" font-family="JetBrains Mono, monospace" font-size="12" fill="#a8b5c8">SERIAL — total = 0.8 + 1.2 + 0.5 = 2.5 s</text>
+  <rect x="40" y="48" width="256" height="36" rx="6" fill="#0f172a" stroke="#22d3ee"/>
+  <text x="168" y="71" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#22d3ee">weather 0.8 s</text>
+  <rect x="296" y="48" width="384" height="36" rx="6" fill="#0f172a" stroke="#a78bfa"/>
+  <text x="488" y="71" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#a78bfa">fx_rate 1.2 s</text>
+  <rect x="680" y="48" width="160" height="36" rx="6" fill="#0f172a" stroke="#34d399"/>
+  <text x="760" y="71" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#34d399">hotels 0.5 s</text>
+  <line x1="840" y1="40" x2="840" y2="96" stroke="#fb7185" stroke-dasharray="4 4"/>
+  <text x="852" y="72" font-family="JetBrains Mono, monospace" font-size="12" fill="#fb7185">user waits 2.5 s</text>
+  <text x="40" y="134" font-family="JetBrains Mono, monospace" font-size="12" fill="#a8b5c8">PARALLEL — total ≈ max(0.8, 1.2, 0.5) = 1.2 s</text>
+  <rect x="40" y="148" width="256" height="30" rx="6" fill="#0f172a" stroke="#22d3ee"/>
+  <text x="168" y="168" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#22d3ee">weather 0.8 s</text>
+  <rect x="40" y="186" width="384" height="30" rx="6" fill="#0f172a" stroke="#a78bfa"/>
+  <text x="232" y="206" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#a78bfa">fx_rate 1.2 s</text>
+  <rect x="40" y="224" width="160" height="30" rx="6" fill="#0f172a" stroke="#34d399"/>
+  <text x="120" y="244" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#34d399">hotels 0.5 s</text>
+  <line x1="424" y1="142" x2="424" y2="262" stroke="#fbbf24" stroke-dasharray="4 4"/>
+  <text x="436" y="206" font-family="JetBrains Mono, monospace" font-size="12" fill="#fbbf24">all three results go back in one message</text>
+</svg>
+!caption Three independent lookups. Run serially, the user waits for the sum; run in parallel, they wait for the slowest call, and all three results return to the model together.
+!caption-bn তিনটি স্বাধীন lookup। একটার পর একটা চালালে সময় যোগ হয়; একসাথে চালালে সবচেয়ে ধীর কলটির সমান সময় লাগে।
+!end
+
+## Executing a batch safely
+```python
+import asyncio
+
+async def run_tool_batch(tool_uses, registry, timeout_s=15):
+    """Run every tool_use block from one model turn concurrently."""
+    async def run_one(tu):
+        try:
+            result = await asyncio.wait_for(registry[tu.name](**tu.input), timeout_s)
+            return {"type": "tool_result", "tool_use_id": tu.id, "content": str(result)}
+        except Exception as exc:  # report the failure, don't crash the turn
+            return {"type": "tool_result", "tool_use_id": tu.id,
+                    "content": f"ERROR {type(exc).__name__}: {exc}"}
+    return await asyncio.gather(*(run_one(tu) for tu in tool_uses))
+```
+
+Three details matter: every result keeps its `tool_use_id` so the model can match answers to questions; a failing call becomes an error result instead of aborting the batch; and a per-call timeout stops one slow dependency from holding the whole turn hostage.
+
+## When not to parallelise
+- **Data dependencies.** "Find the customer, then email them" cannot run in parallel — the second call needs the first call's output.
+- **Side effects.** Two concurrent `issue_refund` calls can pay twice. Serialise writes, or make them idempotent (chapter 09).
+- **Rate limits.** Ten simultaneous calls to an API that allows five per second will fail. Wrap the batch in a semaphore.
+
+## Planning for parallelism
+You can push further by having the model plan every call up front and only then execute them. That is the idea behind ReWOO, which reported 5× token efficiency and a 4% accuracy gain on HotpotQA by separating reasoning from observations [@rewoo]. The trade-off is less ability to change course mid-flight.
+
+@layman
+**Ask for several things at once when they don't depend on each other.** If your assistant needs the weather, the exchange rate and a list of hotels, there's no reason to wait for the weather before asking about hotels. Send all three questions and wait only as long as the slowest answer takes.
+
+**Some things must still happen in order.** You can't email someone before you've looked up their address. And you never want two "refund this customer" requests flying at the same moment — both might go through.
+
+>> **The food court analogy:** you and two friends are hungry. Queueing at the noodle stall, then the pizza stall, then the drinks stall takes ages. Splitting up and meeting at the table takes only as long as the slowest queue. But nobody can buy dessert until you know how much money is left — that step has to wait.
+
+@bangla
+একটি turn-এ মডেল একাধিক tool call চাইতে পারে। কলগুলো যদি একে অপরের ওপর নির্ভরশীল না হয়, তবে একসাথে (concurrently) চালালে মোট সময় সব কলের যোগফল নয়, বরং সবচেয়ে ধীর কলটির সমান হয়। OpenAI-তে `parallel_tool_calls` এবং Anthropic-এ `disable_parallel_tool_use` দিয়ে এটি নিয়ন্ত্রণ করা যায় [@oai-fc][@claude-tools]।
+
+নিরাপদে চালানোর নিয়ম:
+- প্রতিটি ফলাফলের সাথে তার `tool_use_id` রাখুন।
+- একটি কল ব্যর্থ হলে পুরো batch থামাবেন না; error-টাই ফলাফল হিসেবে ফেরত দিন।
+- নির্ভরশীল কল (আগে খোঁজা, পরে ইমেল) আর টাকা-পয়সার মতো side effect-যুক্ত কল একসাথে চালাবেন না।
+- API-এর rate limit মানতে semaphore ব্যবহার করুন।
+
+>> **ফুড কোর্টের উপমা:** তিন বন্ধু তিনটি আলাদা দোকানের লাইনে দাঁড়ালে সবচেয়ে লম্বা লাইনের সমান সময় লাগে। কিন্তু কত টাকা বাকি আছে না জেনে ডেজার্ট কেনা যায় না — সেই কাজটির জন্য অপেক্ষা করতেই হবে।
+
+=== Model Context Protocol (MCP)
+@sub MCP is an open protocol for connecting AI applications to tools and data. Instead of a custom integration for every pairing of app and system, each side implements MCP once.
+@icon 📦
+
+## The N×M problem
+Before MCP, every AI application — an IDE, a chat app, an internal agent — needed its own connector for every system: GitHub, Postgres, Slack, the file system. Anthropic introduced MCP in November 2024 as an open standard to replace those one-off connectors [@mcp-news]. An app that speaks the protocol can use any MCP server, and a server written once works in every compliant app: N + M implementations instead of N × M.
+
+## Roles and primitives
+The specification defines a **host** (the AI application), which runs one **client** per connection, and **servers** that expose capabilities [@mcp-spec]. Capabilities are split by who controls them:
+
+| Primitive | Offered by | Controlled by | Example |
+|---|---|---|---|
+| Tools | server | the model decides to call | `create_issue`, `run_query` |
+| Resources | server | the application attaches as context | a file, a table schema, a ticket |
+| Prompts | server | the user picks a template | "summarise this pull request" |
+| Sampling | client | server asks the host's model for a completion | a server that needs an LLM but has no API key |
+| Roots | client | user and host scope the server's reach | only `~/projects/app` |
+| Elicitation | client | server asks the user for missing input | "staging or production?" |
+
+The current revision also describes optional extensions such as **Tasks**, for long-running asynchronous work with polling and durable handles [@mcp-spec].
+
+!diagram
+<svg viewBox="0 0 1100 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MCP host with one client per server, connected over stdio and Streamable HTTP">
+  <defs><marker id="arr-c02b" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L6,4 L0,8 Z" fill="#94a3b8"/></marker></defs>
+  <rect x="40" y="40" width="330" height="250" rx="12" fill="#0f172a" stroke="#22d3ee"/>
+  <text x="60" y="68" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#22d3ee">Host (IDE, chat app, agent)</text>
+  <text x="60" y="90" font-family="JetBrains Mono, monospace" font-size="11" fill="#a8b5c8">owns the model and user consent</text>
+  <rect x="70" y="110" width="270" height="40" rx="8" fill="#111827" stroke="#a78bfa"/>
+  <text x="205" y="135" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#a78bfa">client A</text>
+  <rect x="70" y="170" width="270" height="40" rx="8" fill="#111827" stroke="#a78bfa"/>
+  <text x="205" y="195" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#a78bfa">client B</text>
+  <rect x="70" y="230" width="270" height="40" rx="8" fill="#111827" stroke="#a78bfa"/>
+  <text x="205" y="255" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#a78bfa">client C</text>
+  <text x="620" y="70" font-family="JetBrains Mono, monospace" font-size="11" fill="#94a3b8">one client per server · JSON-RPC messages</text>
+  <rect x="620" y="86" width="420" height="58" rx="10" fill="#0f172a" stroke="#34d399"/>
+  <text x="640" y="110" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#34d399">Filesystem server (local)</text>
+  <text x="640" y="130" font-family="JetBrains Mono, monospace" font-size="11" fill="#cfd8e6">tools: read_file · resources: file:// · roots</text>
+  <rect x="620" y="160" width="420" height="58" rx="10" fill="#0f172a" stroke="#fbbf24"/>
+  <text x="640" y="184" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#fbbf24">Issue-tracker server (remote)</text>
+  <text x="640" y="204" font-family="JetBrains Mono, monospace" font-size="11" fill="#cfd8e6">tools: create_issue · prompts: triage · OAuth</text>
+  <rect x="620" y="234" width="420" height="58" rx="10" fill="#0f172a" stroke="#fb7185"/>
+  <text x="640" y="258" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#fb7185">Database server (remote)</text>
+  <text x="640" y="278" font-family="JetBrains Mono, monospace" font-size="11" fill="#cfd8e6">tools: run_query (read-only) · resources: schema</text>
+  <line x1="340" y1="130" x2="618" y2="115" stroke="#94a3b8" marker-end="url(#arr-c02b)"/>
+  <text x="430" y="112" font-family="JetBrains Mono, monospace" font-size="11" fill="#94a3b8">stdio</text>
+  <line x1="340" y1="190" x2="618" y2="189" stroke="#94a3b8" marker-end="url(#arr-c02b)"/>
+  <text x="430" y="182" font-family="JetBrains Mono, monospace" font-size="11" fill="#94a3b8">Streamable HTTP</text>
+  <line x1="340" y1="250" x2="618" y2="263" stroke="#94a3b8" marker-end="url(#arr-c02b)"/>
+  <text x="430" y="248" font-family="JetBrains Mono, monospace" font-size="11" fill="#94a3b8">Streamable HTTP</text>
+</svg>
+!caption The host runs one MCP client per server. Local servers usually run as a subprocess over stdio; remote servers use Streamable HTTP with OAuth-style authorization.
+!caption-bn Host প্রতিটি server-এর জন্য একটি করে client চালায়। Local server সাধারণত stdio-তে আর remote server Streamable HTTP-তে যুক্ত হয়।
+!end
+
+## Transports
+The specification defines two standard transports: **stdio**, where the host launches the server as a subprocess, and **Streamable HTTP** for remote servers [@mcp-spec]. The official Python SDK speaks both, plus the older SSE transport for compatibility with legacy servers [@mcp-sdk].
+
+## A minimal server and client
+The official Python SDK provides decorators for tools and resources and a client that can call any server [@mcp-sdk]:
+
+```python
+# server.py — serve with:  uv run mcp run server.py --transport streamable-http
+from mcp.server import MCPServer
+
+mcp = MCPServer("orders")
+
+@mcp.tool()
+def orders_search(customer_id: str, status: str = "any") -> list[dict]:
+    """Search a customer's orders. Use for order-status questions, not refunds."""
+    return orders_db.find(customer_id, status)[:20]   # orders_db: your data layer
+
+@mcp.resource("orders://{order_id}")
+def order_detail(order_id: str) -> str:
+    """Full order record as text, for attaching to the context."""
+    return orders_db.render(order_id)
+```
+
+```python
+# client.py
+import asyncio
+from mcp import Client
+
+async def main() -> None:
+    async with Client("http://localhost:8000/mcp") as client:
+        result = await client.call_tool("orders_search", {"customer_id": "c_42"})
+        print(result.structured_content)
+
+asyncio.run(main())
+```
+
+## Security and context cost
+An MCP server is code you are trusting, and its tool descriptions are text your model will read. The project's security best-practices guide covers confused-deputy attacks, token passthrough, session hijacking and user consent [@mcp-security] — read it before connecting third-party servers. Context is the other cost: dozens of servers can inject hundreds of tool definitions into every request. Anthropic and Cloudflare both describe presenting MCP tools to the model as a code API it calls from a sandbox, so only what it needs is loaded [@anth-code-mcp][@cf-codemode]. Reference implementations live in the official servers repository [@mcp-servers].
+
+> warn **Treat third-party MCP servers like third-party packages.** Pin versions, review the tools they expose, run them with least privilege, and never let a server's tool descriptions override your system prompt.
+
+@layman
+**MCP is a common plug shape for AI tools.** Before it existed, every AI app had to build its own connector for every service — one for code hosting, another for the database, another for files — and every new app had to build them all again.
+
+**With MCP, each service builds one connector and every AI app can use it.** A company writes an "orders" connector once, and it works in a coding assistant, a chat app and its own internal agent.
+
+**A connector can offer three kinds of things:** actions the AI may take (open a ticket), reference material the app can attach (a document, a database layout), and ready-made request templates a person can pick ("review this change").
+
+**Be choosy about which connectors you install.** A connector is software you're trusting with your data, just like an app on your phone.
+
+>> **The shipping container analogy:** before standard containers, every port loaded every ship differently, and cargo was unpacked and repacked at each stop. Once everyone agreed on one box size, any crane could lift any box onto any ship, train or truck. MCP is that standard box for AI connections.
+
+@bangla
+**MCP (Model Context Protocol)** হলো AI অ্যাপ্লিকেশনকে টুল ও ডেটার সাথে যুক্ত করার একটি open protocol। আগে প্রতিটি অ্যাপ ও প্রতিটি সিস্টেমের জন্য আলাদা connector লিখতে হতো (N × M); MCP-তে প্রতিটি পক্ষ একবার protocol বাস্তবায়ন করলেই চলে (N + M) [@mcp-news]।
+
+মূল ভূমিকা: **host** (AI অ্যাপ), প্রতিটি সংযোগে একটি **client**, আর ক্ষমতা প্রকাশকারী **server** [@mcp-spec]।
+- Server দেয়: **tools** (মডেল কল করে), **resources** (অ্যাপ context হিসেবে যোগ করে), **prompts** (ব্যবহারকারী template বাছাই করে)।
+- Client দেয়: **sampling**, **roots** ও **elicitation**।
+- Transport: local-এর জন্য **stdio**, remote-এর জন্য **Streamable HTTP**।
+
+নিরাপত্তা: third-party server-কে third-party package-এর মতোই সতর্কভাবে দেখুন — version pin করুন, ন্যূনতম অনুমতি দিন, আর security best practices পড়ুন [@mcp-security]। অনেক server যুক্ত করলে tool definition দিয়েই context ভরে যায়; তাই টুলগুলোকে code API হিসেবে দিয়ে প্রয়োজনমতো লোড করার কৌশল ব্যবহার করা হয় [@anth-code-mcp]।
+
+>> **শিপিং কন্টেইনারের উপমা:** standard কন্টেইনার আসার আগে প্রতিটি বন্দরে মাল আলাদা নিয়মে তোলা-নামানো হতো। সবাই এক মাপের বাক্সে একমত হওয়ার পর যেকোনো ক্রেন যেকোনো জাহাজ, ট্রেন বা ট্রাকে বাক্স তুলতে পারে। AI সংযোগের জন্য MCP হলো সেই standard বাক্স।

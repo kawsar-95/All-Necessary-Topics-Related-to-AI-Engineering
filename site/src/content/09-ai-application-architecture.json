@@ -1,0 +1,171 @@
+{
+  "slug": "09-ai-application-architecture",
+  "title": "AI application architecture",
+  "heroTitle": "",
+  "lede": "Streaming over SSE / WebSockets / chunked HTTP, background jobs and queues for long agent runs, idempotency and resumability, multi-tenant prompt and key management, fallback chains across providers, feature flags for prompts and models, and API design patterns for AI features (cancel, retry, partial results). This is chapter <strong>09</strong> of a 9-part series; every chapter is a single self-contained HTML file. <strong style=\"color: var(--accent-warn);\">Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
+  "sections": [
+    {
+      "id": "s9",
+      "num": "09",
+      "title": "AI application architecture",
+      "sub": "An LLM call is just one HTTP request. Building a <em>product</em> around it requires the same plumbing any modern app needs, plus a few new primitives: streaming, resumability, multi-tenancy, fallbacks, feature flags, and an API surface designed for partial results.",
+      "body": "<ul style=\"margin: 0 0 14px 20px; line-height: 1.8;\">\n    <li><strong>SSE (Server-Sent Events):</strong> the simplest; works through any HTTP proxy; one-way (server→client).</li>\n    <li><strong>WebSockets:</strong> bidirectional; needed for voice and collaborative UIs; heavier handshake.</li>\n    <li><strong>HTTP chunked transfer:</strong> a fallback for proxies that strip SSE headers.</li>\n  </ul>\n\n  <pre><code><span class=\"com\"># OpenAI streaming</span>\n  <span class=\"kw\">for</span> chunk <span class=\"kw\">in</span> client.chat.completions.create(\n        model=<span class=\"str\">\"gpt-4o\"</span>, stream=<span class=\"num\">True</span>,\n        messages=messages):\n    token = chunk.choices[<span class=\"num\">0</span>].delta.content <span class=\"kw\">or</span> <span class=\"str\">\"\"</span>\n    <span class=\"fn\">print</span>(token, end=<span class=\"str\">\"\"</span>, file=sys.stdout)</code></pre>\n\n  <h3>Background jobs and queues for long agent runs</h3>\n  <p>Anything over ~10 seconds should not block an HTTP request. Push it to a queue (BullMQ, Celery, Inngest, Cloud Tasks, Temporal) and return a <code>job_id</code>. Client polls or subscribes via SSE/WebSocket for updates. This is the single biggest UX win for \"the agent took 4 minutes\" tasks.</p>\n\n  <h3>Idempotency and resumability</h3>\n  <p>LLM calls fail. Networks drop. Users refresh. Always:</p>\n  <ul style=\"margin: 0 0 14px 20px; line-height: 1.8;\">\n    <li>Generate an <strong>idempotency key</strong> per request; reject duplicates.</li>\n    <li>Store <strong>checkpoints</strong> of agent state so a resume replays only the failed steps.</li>\n    <li>Use durable execution (Temporal/Restate) for anything longer than a minute.</li>\n  </ul>\n\n  <h3>Multi-tenant prompt and key management</h3>\n  <p>Per-tenant prompt overrides, per-tenant API keys, per-tenant rate limits, per-tenant tracing. The cleanest pattern: store all of these in a <code>tenant_config</code> row, fetch at the edge of every request, attach to the trace. <strong>Never</strong> hard-code a tenant's prompt in their codebase.</p>\n\n  <h3>Fallback chains across providers</h3>\n  <p>OpenAI 503s? Route to Anthropic. Anthropic 429s? Route to Together. With <em>degraded</em> prompts per provider (\"you have no tool use; just answer\"). LiteLLM and Portkey do this out of the box; a model gateway is essentially a fallback router plus cost tracking.</p>\n\n  <h3>Feature flags for prompts and models</h3>\n  <p>Treat every prompt and every model as a flag. Roll out \"use GPT-5 for premium users only\" to 1%, then 10%, then 100%. Roll back instantly when evals regress. LaunchDarkly, Statsig, PostHog, or a simple DB column — pick one and use it for prompts.</p>\n\n  <h3>API design patterns for AI features</h3>\n  <p>Five rules that distinguish an AI API from a normal REST API:<a class=\"cite\" href=\"#src30\">[30]</a></p>\n  <ul style=\"margin: 0 0 14px 20px; line-height: 1.8;\">\n    <li><strong>Cancel mid-flight:</strong> the client should be able to abort the request and stop the bill.</li>\n    <li><strong>Retry idempotently:</strong> same request + idempotency key → same response, no double billing.</li>\n    <li><strong>Return partial results:</strong> stream tokens, return intermediate tool states, never make the client wait until completion.</li>\n    <li><strong>Structured confidence:</strong> include a self-reported confidence, logprobs, or a \"would I retry this?\" field.</li>\n    <li><strong>Cost/latency budget in the request:</strong> let the client say \"spend up to $0.05 and 8s\"; the server respects it.</li>\n  </ul>",
+      "layman": "<div class=\"layman-head\"><span class=\"icon\">🏗️</span><span class=\"label\">Layman's version<small>plain English, no jargon</small></span></div>\n    <p><strong>An LLM call is one HTTP request. A product is a thousand of those wrapped in plumbing.</strong></p>\n\n    <p><strong>Streaming = \"show the words as they come.\"</strong> Users hate 3-second pauses before anything appears. Stream tokens to the browser as the AI writes them — the same way Twitter shows posts one at a time instead of all at once. SSE (server-sent events) is the simplest way; WebSockets if you need two-way chat.</p>\n\n    <p><strong>Background jobs = \"the long task runs in the background, you go on with your day.\"</strong> Anything taking more than ~10 seconds shouldn't make the user wait with a loading spinner. Push the task to a queue, return \"your job is #4711, here's a link to check on it.\" This is how email batch processors, video uploaders, and now AI agents work.</p>\n\n    <p><strong>Idempotency = \"if you accidentally click twice, you only pay once.\"</strong> Every request gets a unique ID. If the same ID shows up again, the server says \"I already answered that, here's the same result.\" Without it, retrying because of a timeout could double your cost.</p>\n\n    <p><strong>Multi-tenant prompt management = \"each customer has their own brain.\"</strong> If you're building for 100 customers, each customer's AI should be tuned to their voice, their policies, their data. Don't hard-code prompts in each customer's app. Store them centrally, fetch them per request, log which version ran.</p>\n\n    <p><strong>Fallback chains = \"if Vendor A is down, use Vendor B.\"</strong> OpenAI 503s? Anthropic is up? Send the next 100 requests to Anthropic. A \"model gateway\" is just a router that does this for you automatically, with cost tracking.</p>\n\n    <p><strong>Feature flags for prompts = \"I'll roll out the new brain to 1% of users first.\"</strong> Want to test a new prompt? Don't change it for everyone. Set a flag: \"users with ID ending in 87 get the new prompt.\" Roll to 1%, measure, roll to 100%. Roll back instantly if it breaks.</p>\n\n    <p><strong>API design rules for AI:</strong></p>\n    <p>• <em>Cancel mid-flight</em>: let the user stop a request and stop the bill.<br>\n       • <em>Retry idempotently</em>: same request ID → same result, no double work.<br>\n       • <em>Partial results</em>: stream tokens, never make the client wait until \"done.\"<br>\n       • <em>Confidence field</em>: include \"how sure am I?\" in the response.<br>\n       • <em>Budget field</em>: the client can say \"spend up to $0.05 and 8s, no more.\"</p>\n\n    <div class=\"analogy\"><strong>The restaurant-kitchen analogy:</strong> building an AI app is like running a restaurant kitchen. <em>Streaming</em> is serving courses as they're ready instead of holding every plate until the whole table is done. <em>Background jobs</em> are prep work that runs before dinner service. <em>Idempotency</em> is \"if the same order slips twice, we don't cook it twice.\" <em>Fallback chains</em> are \"if the fish supplier is out, get it from the second supplier.\" <em>Feature flags</em> are \"Monday only this table gets the new menu.\" <em>API design</em> is the rules the waiters agree on (\"don't bring the bill before dessert,\" \"always bring water first\").</div>",
+      "bangla": "<div class=\"bangla-head\"><span class=\"icon\">🇧🇩</span><span class=\"label\">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>\n    <p><strong>একটি LLM কল হলো একটি HTTP অনুরোধ। এর চারপাশে একটি <em>পণ্য</em> তৈরি করতে যেকোনো আধুনিক অ্যাপের প্রয়োজনীয় সাধারণ plumbing দরকার, সাথে কিছু নতুন primitive — streaming, resumability, multi-tenancy, fallbacks, feature flags, এবং partial results-এর জন্য ডিজাইন করা একটি API surface।</p>\n\n    <p><strong>SSE / WebSockets / HTTP chunked দিয়ে streaming:</strong> ব্যবহারকারীরা ৩ সেকেন্ডের বিরতির পরে নয়, মডেল যেভাবে লেখে সেভাবে শব্দ দেখতে চায়। তিনটি transport: <em>SSE</em> (সবচেয়ে সহজ, যেকোনো HTTP proxy-র মধ্য দিয়ে কাজ করে, একমুখী), <em>WebSockets</em> (দ্বিমুখী; voice ও সহযোগী UI-এর জন্য দরকার), <em>HTTP chunked transfer</em> (SSE header strip করে proxy-র জন্য fallback)।</p>\n\n    <p><strong>দীর্ঘ এজেন্ট রানের জন্য background jobs ও queues:</strong> ~১০ সেকেন্ডের বেশি যেকোনো কিছু HTTP request block করা উচিত নয়। একটি queue-তে (BullMQ, Celery, Inngest, Cloud Tasks, Temporal) push করুন এবং একটি <code>job_id</code> ফেরত দিন। ক্লায়েন্ট poll করে বা SSE/WebSocket দিয়ে update সাবস্ক্রাইব করে। \"এজেন্ট ৪ মিনিট নিয়েছে\" কাজের জন্য এটাই একমাত্র সবচেয়ে বড় UX জয়।</p>\n\n    <p><strong>Idempotency ও resumability:</strong> LLM কল ব্যর্থ হয়। নেটওয়ার্ক ড্রপ হয়। ব্যবহারকারী refresh করে। সর্বদা: প্রতিটি request-এর জন্য একটি <strong>idempotency key</strong> তৈরি করুন; duplicate প্রত্যাখ্যান করুন। এজেন্ট state-এর <strong>checkpoint</strong> সংরক্ষণ করুন যাতে resume শুধু ব্যর্থ ধাপগুলো replay করে। এক মিনিটের বেশি যেকোনো কিছুর জন্য durable execution (Temporal/Restate) ব্যবহার করুন।</p>\n\n    <p><strong>Multi-tenant prompt ও key management:</strong> প্রতি-tenant prompt override, প্রতি-tenant API key, প্রতি-tenant rate limit, প্রতি-tenant tracing। সবচেয়ে পরিষ্কার প্যান্টার্ন: এগুলো সব একটি <code>tenant_config</code> row-তে সংরক্ষণ করুন, প্রতিটি request-এর edge-এ fetch করুন, trace-এ যুক্ত করুন। <strong>কখনোই</strong> একটি tenant-এর prompt তাদের codebase-এ hard-code করবেন না।</p>\n\n    <p><strong>Provider-জুড়ে fallback chains:</strong> OpenAI 503 দিলে? => Anthropic-এ route করুন। Anthropic 429 দিলে? => Together-এ route করুন। <em>Degraded</em> prompt সহ (প্রতি provider-এর জন্য \"আপনার tool use নেই; শুধু উত্তর দিন\")। LiteLLM ও Portkey এটি বাক্সের বাইরে করে; একটি model gateway মূলত একটি fallback router ও খরচ ট্র্যাকিং।</p>\n\n    <p><strong>Prompt ও model-এর জন্য feature flags:</strong> প্রতিটি prompt ও প্রতিটি model-কে flag হিসেবে দেখুন। \"শুধু premium ব্যবহারকারীদের জন্য GPT-5 ব্যবহার করুন\" ১%, তারপর ১০%, তারপর ১০০%-এ roll out করুন। Eval regress করলে তাৎক্ষণিকভাবে roll back করুন। LaunchDarkly, Statsig, PostHog, বা একটি সাধারণ DB column — একটি বেছে নিন এবং prompt-এর জন্য এটি ব্যবহার করুন।</p>\n\n    <p><strong>AI feature-এর জন্য API design patterns:</strong> পাঁচটি নিয়ম যা একটি AI API-কে সাধারণ REST API থেকে আলাদা করে:<a class=\"cite\" href=\"#src30\">[30]</a></p>\n    <ul>\n      <li><strong>মাঝ-উড়ানে cancel:</strong> ক্লায়েন্ট request abort করতে এবং বিল বন্ধ করতে সক্ষম হওয়া উচিত।</li>\n      <li><strong>Idempotently retry:</strong> একই request + idempotency key → একই response, কোনো দ্বিগুণ billing নয়।</li>\n      <li><strong>Partial results ফেরত দিন:</strong> token stream করুন, মধ্যবর্তী tool state ফেরত দিন, ক্লায়েন্টকে কখনো সম্পূর্ণ হওয়া পর্যন্ত অপেক্ষা করাবেন না।</li>\n      <li><strong>Structured confidence:</strong> একটি self-reported confidence, logprobs, বা \"আমি কি এটি retry করব?\" ক্ষেত্র অন্তর্ভুক্ত করুন।</li>\n      <li><strong>Request-এ cost/latency budget:</strong> ক্লায়েন্টকে বলতে দিন \"সর্বোচ্চ $0.05 ও 8s খরচ করুন\"; server সেটি মানে।</li>\n    </ul>\n\n    <div class=\"analogy\"><strong>রেস্তোরাঁ-রান্নাঘরের উপমা:</strong> AI অ্যাপ তৈরি করা একটি রেস্তোরাঁর রান্নাঘর চালানোর মতো। <em>Streaming</em> হলো সম্পূর্ণ টেবিল শেষ না হওয়া পর্যন্ত প্রতিটি প্লেট আটকে না রেখে প্রস্তুত হওয়ার সাথে সাথে course পরিবেশন করা। <em>Background jobs</em> হলো dinner service-এর আগে চলা prep কাজ। <em>Idempotency</em> হলো \"একই order দুইবার slip হলে আমরা দুইবার রান্না করি না।\" <em>Fallback chains</em> হলো \"মাছ supplier-এর কাছে নেই, দ্বিতীয় supplier থেকে নাও।\" <em>Feature flags</em> হলো \"সোমবার শুধু এই টেবিল নতুন menu পায়।\" <em>API design</em> হলো waiter-দের মধ্যে চুক্তি করা নিয়ম (\"dessert-এর আগে bill আনবেন না\", \"সর্বদা আগে পানি আনুন\")।</div>"
+    }
+  ],
+  "sources": [
+    {
+      "n": 1,
+      "url": "https://arxiv.org/abs/2210.03629",
+      "text": "Yao et al., \"ReAct: Synergizing Reasoning and Acting in Language Models\" (ICLR 2023)"
+    },
+    {
+      "n": 2,
+      "url": "https://arxiv.org/abs/2305.04091",
+      "text": "Wei et al., \"Plan-and-Execute Agents\" / \"Chain-of-Thought Prompting Elicits Reasoning in Large Language Models\" — NeurIPS 2022"
+    },
+    {
+      "n": 3,
+      "url": "https://arxiv.org/abs/2303.11381",
+      "text": "Shinn et al., \"Reflexion: Language Agents with Verbal Reinforcement Learning\" — NeurIPS 2023"
+    },
+    {
+      "n": 4,
+      "url": "https://arxiv.org/abs/2305.18323",
+      "text": "Xu et al., \"ReWOO: Decoupling Reasoning from Observations for Efficient Augmented Language Models\""
+    },
+    {
+      "n": 5,
+      "url": "https://www.anthropic.com/engineering/built-multi-agent-research-system",
+      "text": "Anthropic Engineering blog — \"How we built our multi-agent research system\" (2025)"
+    },
+    {
+      "n": 6,
+      "url": "https://langchain-ai.github.io/langgraph/",
+      "text": "LangGraph — official documentation (LangChain)"
+    },
+    {
+      "n": 7,
+      "url": "https://temporal.io/blog/temporal-for-llm-agents",
+      "text": "Temporal — \"Durable Execution for LLM Agents\""
+    },
+    {
+      "n": 8,
+      "url": "https://arxiv.org/abs/2310.06825",
+      "text": "Park et al., \"Generative Agents: Interactive Simulacra of Human Behavior\" — 2023"
+    },
+    {
+      "n": 9,
+      "url": "https://www.anthropic.com/news/3-5-models-and-computer-use",
+      "text": "Anthropic — \"Introducing computer use, a new Claude 3.5 Sonnet capability\" (Oct 2024)"
+    },
+    {
+      "n": 10,
+      "url": "https://docs.anthropic.com/en/docs/build-with-claude/tool-use/overview",
+      "text": "Anthropic — Tool use / function calling documentation"
+    },
+    {
+      "n": 11,
+      "url": "https://platform.openai.com/docs/guides/function-calling",
+      "text": "OpenAI — Function calling guide"
+    },
+    {
+      "n": 12,
+      "url": "https://modelcontextprotocol.io/introduction",
+      "text": "Anthropic — Model Context Protocol (MCP) specification"
+    },
+    {
+      "n": 13,
+      "url": "https://arxiv.org/abs/2309.06180",
+      "text": "Kwon et al., \"Efficient Memory Management for Large Language Model Serving with PagedAttention\" — vLLM paper, SOSP 2023"
+    },
+    {
+      "n": 14,
+      "url": "https://arxiv.org/abs/2312.07104",
+      "text": "Zheng et al., \"SGLang: Efficient Execution of Structured Language Model Programs\" — 2023"
+    },
+    {
+      "n": 15,
+      "url": "https://github.com/ggerganov/llama.cpp",
+      "text": "llama.cpp — open-source GGUF-native inference (ggerganov)"
+    },
+    {
+      "n": 16,
+      "url": "https://arxiv.org/abs/2306.00978",
+      "text": "Lin et al., \"AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration\" — MLSys 2024"
+    },
+    {
+      "n": 17,
+      "url": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching",
+      "text": "Anthropic — Prompt caching documentation"
+    },
+    {
+      "n": 18,
+      "url": "https://arxiv.org/abs/2306.05685",
+      "text": "Zheng et al., \"Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena\" — NeurIPS 2023"
+    },
+    {
+      "n": 19,
+      "url": "https://arxiv.org/abs/2309.15217",
+      "text": "Es et al., \"Ragas: Automated Evaluation of Information Retrieval Augmented Language Models\" — 2023"
+    },
+    {
+      "n": 20,
+      "url": "https://arxiv.org/abs/2405.00072",
+      "text": "Yue et al., \"Large Language Model Cascades with Mixture of Thought Representations\" — 2024"
+    },
+    {
+      "n": 21,
+      "url": "https://github.com/zilliztech/GPTCache",
+      "text": "GPTCache — open-source semantic cache"
+    },
+    {
+      "n": 22,
+      "url": "https://arxiv.org/abs/2501.12948",
+      "text": "Guo et al., \"DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via RL\" — 2025"
+    },
+    {
+      "n": 23,
+      "url": "https://arxiv.org/abs/2310.06839",
+      "text": "Jiang et al., \"LLMLingua: Compressing Prompts for Accelerated Inference of Large Language Models\" — EMNLP 2023"
+    },
+    {
+      "n": 24,
+      "url": "https://docs.litellm.ai/",
+      "text": "LiteLLM — unified interface for 100+ LLMs"
+    },
+    {
+      "n": 25,
+      "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
+      "text": "OWASP — \"Top 10 for LLM Applications\" (LLM01 Prompt Injection, 2025)"
+    },
+    {
+      "n": 26,
+      "url": "https://arxiv.org/abs/2212.08073",
+      "text": "Bai et al., \"Constitutional AI: Harmlessness from AI Feedback\" — Anthropic, 2022"
+    },
+    {
+      "n": 27,
+      "url": "https://github.com/NVIDIA/NeMo-Guardrails",
+      "text": "NVIDIA NeMo Guardrails — open-source toolkit"
+    },
+    {
+      "n": 28,
+      "url": "https://arxiv.org/abs/2409.12191",
+      "text": "Qwen2-VL Team, \"Qwen2-VL: Enhancing Vision-Language Model's Perception of the World at Any Resolution\" — 2024"
+    },
+    {
+      "n": 29,
+      "url": "https://platform.openai.com/docs/guides/realtime",
+      "text": "OpenAI — Realtime API documentation"
+    },
+    {
+      "n": 30,
+      "url": "https://platform.openai.com/docs/guides/production-best-practices",
+      "text": "OpenAI — Production best practices guide"
+    }
+  ],
+  "num": "09",
+  "isChapter": true
+}

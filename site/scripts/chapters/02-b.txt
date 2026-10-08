@@ -1,0 +1,225 @@
+=== Sandboxed code execution
+@sub Letting the model write and run code replaces dozens of narrow tools with one general one — and turns your infrastructure into something a prompt can program. Isolation is not optional.
+@icon 🧪
+
+## Why code is a good action format
+CodeAct proposed that agents act by writing executable Python instead of emitting JSON tool calls; across 17 LLMs it reported up to 20% higher success rates than the usual alternatives [@codeact]. Code composes naturally (loops, conditionals, variables), does arithmetic exactly, and lets one action do the work of many tool calls. "Average order value per country for the last 30 days" is one pandas expression rather than a chain of `query`, `filter`, `group` and `average` tools.
+
+## Isolation layers
+Model-written code is untrusted code. The common isolation technologies, from weakest to strongest:
+
+| Layer | What isolates it | Typical use |
+|---|---|---|
+| Process + seccomp | syscall filtering on a shared kernel | quick local experiments only |
+| Container | namespaces and cgroups, shared kernel | dev environments with extra hardening |
+| gVisor | a user-space kernel that intercepts syscalls [@gvisor] | multi-tenant containers |
+| Firecracker microVM | a lightweight VM with its own kernel [@firecracker] | per-task sandboxes at scale |
+
+Hosted sandboxes package this up so you don't operate it yourself: E2B [@e2b], Modal Sandboxes [@modal-sandbox], Daytona [@daytona] and Cloudflare Sandboxes [@cf-sandbox] each give an agent an isolated environment for commands and code, with different trade-offs in start-up time, GPU access and persistence.
+
+```python
+# E2B: create an isolated sandbox, run a command, read the output.
+from e2b import Sandbox
+
+sandbox = Sandbox.create()          # needs the E2B_API_KEY environment variable
+result = sandbox.commands.run("python3 -c 'print(sum(range(10)))'")
+print(result.stdout)                # 45
+```
+
+## The hardening checklist
+- **No secrets inside.** Pass short-lived, narrowly scoped credentials only when a task needs them.
+- **Egress allowlist.** Default-deny outbound network; open only the hosts a task requires.
+- **Resource limits.** CPU, memory, disk and a wall-clock timeout per execution.
+- **Ephemeral by default.** A fresh sandbox per task or session; nothing persists unless you copy it out.
+- **Cap the output.** Truncate stdout before it reaches the model (see the last section of this chapter).
+
+> danger **A sandbox with internet access and private data is an exfiltration channel.** Simon Willison's "lethal trifecta" — private data, untrusted content, and the ability to communicate externally — is exactly the combination a code-running agent can assemble [@trifecta]. Remove at least one leg.
+
+## Code mode for tool-heavy agents
+The same idea now tames large tool catalogues: present tools to the model as a typed code API and let it write a short script that calls them inside the sandbox. Anthropic describes this as a way to cut the tokens spent loading tool definitions and passing intermediate results through the model [@anth-code-mcp], and Cloudflare calls the same pattern "Code Mode" [@cf-codemode].
+
+@layman
+**Sometimes the easiest way for an AI to answer is to write a tiny program and run it.** "What's the average order size per country?" is one line of code, instead of a long back-and-forth of separate lookups.
+
+**But you never let a stranger's program run loose on your real computer.** So the program runs in a sealed box: it can calculate, but it can't see your files, can't reach the internet unless you allow one specific address, can't run forever, and the box is thrown away afterwards.
+
+**The danger to watch:** a box that can see private data and can also send messages to the outside world can be tricked into leaking that data. Take away one of those two powers.
+
+>> **The fume cupboard analogy:** chemists do risky experiments inside a glass cabinet with its own air extraction. They can mix and heat whatever they need, but the fumes never reach the rest of the lab — and the cabinet is wiped clean before the next experiment.
+
+@bangla
+মডেলকে কোড লিখে চালাতে দিলে অনেকগুলো সরু টুলের বদলে একটি সাধারণ টুলেই কাজ হয়। CodeAct গবেষণায় JSON tool call-এর বদলে Python কোডকে action হিসেবে ব্যবহার করে ১৭টি মডেলে সর্বোচ্চ ২০% বেশি সাফল্য দেখা গেছে [@codeact]।
+
+কিন্তু মডেলের লেখা কোড **অবিশ্বস্ত**। তাই isolation দরকার: container, gVisor বা Firecracker microVM [@gvisor][@firecracker]। E2B, Modal, Daytona বা Cloudflare Sandboxes-এর মতো hosted sandbox এগুলো তৈরি অবস্থায় দেয় [@e2b]।
+
+নিরাপত্তা চেকলিস্ট:
+- sandbox-এর ভেতরে কোনো secret রাখবেন না।
+- বাইরের নেটওয়ার্ক ডিফল্টে বন্ধ রাখুন; শুধু প্রয়োজনীয় host allowlist করুন।
+- CPU, memory ও সময়ের সীমা দিন; প্রতিটি কাজ শেষে sandbox মুছে ফেলুন।
+- private data, অবিশ্বস্ত content আর বাইরে যোগাযোগের ক্ষমতা — এই তিনটি একসাথে থাকলে ডেটা পাচারের পথ খুলে যায় [@trifecta]।
+
+>> **ফিউম কাবার্ডের উপমা:** রসায়নবিদ ঝুঁকিপূর্ণ পরীক্ষা কাঁচের বাক্সের ভেতরে করেন, যার নিজস্ব বাতাস বের করার ব্যবস্থা আছে। ভেতরে যা খুশি মেশানো যায়, কিন্তু ধোঁয়া বাকি ল্যাবে পৌঁছায় না, আর পরের পরীক্ষার আগে বাক্সটি পরিষ্কার করা হয়।
+
+=== API wrappers as tools
+@sub Most tools are thin wrappers around APIs you already have. The wrapper translates between what an agent needs — intent-level actions, clear errors, safe defaults — and what the API offers.
+@icon 🛎️
+
+## Wrap intents, not endpoints
+Mirroring a REST API one endpoint per tool hands the model a pile of low-level steps to chain correctly. Anthropic's tool-writing guidance recommends consolidating multi-step workflows into single tools — one scheduling tool that finds availability and books, rather than separate list and create calls [@anth-tools]. Fewer, higher-level tools mean fewer chances to call them in the wrong order.
+
+## Errors the model can act on
+An agent can recover from an error only if the error says what to do. RFC 9457, "Problem Details for HTTP APIs", is a good template for the envelope [@rfc9457]; add a `retryable` flag so both the orchestrator and the model know whether another attempt makes sense. Return the error as the tool result rather than raising it — the model reads it and adapts [@claude-tools].
+
+```python
+import httpx
+from pydantic import BaseModel, Field
+
+billing = httpx.AsyncClient(base_url="https://billing.internal", timeout=10)
+
+class RefundInput(BaseModel):
+    order_id: str = Field(pattern=r"^ord_[a-z0-9]{8}$")
+    amount_cents: int = Field(gt=0, le=50_000)      # policy cap enforced in code
+    reason: str = Field(max_length=200)
+
+async def orders_refund(args: dict, user) -> dict:
+    data = RefundInput(**args)                      # re-validate server-side
+    try:
+        r = await billing.post(
+            "/refunds", json=data.model_dump(),
+            headers={"Idempotency-Key": f"refund:{data.order_id}",
+                     "Authorization": f"Bearer {user.token_for('refunds:write')}"})
+        r.raise_for_status()
+        return {"ok": True, "refund_id": r.json()["id"]}
+    except httpx.HTTPStatusError as e:
+        return {"ok": False, "status": e.response.status_code,
+                "detail": e.response.json().get("detail", "refund failed"),
+                "retryable": e.response.status_code in (429, 502, 503)}
+```
+
+## Credentials stay outside the model
+The model should never see API keys or tokens. The wrapper attaches a credential scoped to the current user and to the minimum permission for that tool (`refunds:write`, not admin). A prompt-injected model cannot leak a key it never had.
+
+## Pagination and limits
+Return a bounded page plus a cursor, not everything. Cursor-based pagination, as in Stripe's API, stays stable while data changes underneath [@stripe-pagination]. Put the page size and "how to get more" in the tool description so the model can plan.
+
+## Classify side effects
+Tag each wrapped tool as read-only, write, money-moving or destructive. The tag drives everything downstream: whether calls may run in parallel, whether they need an idempotency key, and whether a human must approve them (approval checkpoints are covered in chapter 01).
+
+| Class | Example | Run in parallel? | Human approval |
+|---|---|---|---|
+| Read-only | `orders_search` | yes | no |
+| Write | `ticket_comment` | with care | optional |
+| Money | `orders_refund` | no | above a threshold |
+| Destructive | `account_delete` | no | always, two people |
+
+@layman
+**Most AI "tools" are a friendly front desk for systems a company already has.** The billing system, the order database and the ticket system each have complicated controls. The wrapper turns them into simple requests the AI can make — "refund this order" rather than "open the ledger, find the line, reverse it, notify finance".
+
+**The front desk also holds the keys.** The AI never sees passwords; the desk uses a key that only allows that one job for that one customer.
+
+**When something goes wrong, the desk explains it plainly** — "too many requests, try again in 30 seconds" or "this order was already refunded" — so the AI can decide what to do next instead of guessing.
+
+>> **The hotel concierge analogy:** you ask the concierge for a dinner table at eight. They phone the restaurant, use the hotel's account, and come back with "booked" or "full, but nine is free". You never get the keys to the restaurant or the hotel's card — just a clear answer you can act on.
+
+@bangla
+বেশিরভাগ টুল আসলে আপনার বিদ্যমান API-এর ওপর একটি পাতলা **wrapper**। এর কাজ হলো agent-এর প্রয়োজন (উদ্দেশ্যভিত্তিক action, স্পষ্ট error, নিরাপদ default) আর API-এর ক্ষমতার মধ্যে অনুবাদ করা।
+
+মূল নীতি:
+- প্রতিটি endpoint-এর জন্য আলাদা টুল না বানিয়ে উদ্দেশ্য অনুযায়ী টুল দিন, যেমন একটি "meeting বুক করো" টুল [@anth-tools]।
+- error এমনভাবে ফেরত দিন যাতে মডেল বোঝে কী হয়েছে এবং আবার চেষ্টা (`retryable`) করা উচিত কি না; RFC 9457 একটি ভালো কাঠামো [@rfc9457]।
+- API key বা token কখনো মডেলকে দেখাবেন না; wrapper ব্যবহারকারীর জন্য ন্যূনতম অনুমতির token যোগ করবে।
+- সব ডেটা একবারে না দিয়ে cursor-সহ সীমিত page ফেরত দিন [@stripe-pagination]।
+- প্রতিটি টুলকে read-only, write, টাকা-সংক্রান্ত বা destructive হিসেবে চিহ্নিত করুন; এর ওপরই নির্ভর করে parallel চালানো যাবে কি না এবং মানুষের অনুমোদন লাগবে কি না।
+
+>> **হোটেল কনসিয়ার্জের উপমা:** আপনি কনসিয়ার্জকে রাত আটটায় ডিনার টেবিল বুক করতে বলেন। তিনি রেস্টুরেন্টে ফোন করেন, হোটেলের অ্যাকাউন্ট ব্যবহার করেন, আর ফিরে এসে বলেন "বুক হয়েছে" বা "আটটায় নেই, নয়টায় আছে"। রেস্টুরেন্টের চাবি বা হোটেলের কার্ড আপনার হাতে কখনো আসে না।
+
+=== Tool result formatting for LLM consumption
+@sub Whatever a tool returns is pasted into the model's context and re-read on every later turn. A good result is short, high-signal, and written for a reader that thinks in language, not database ids.
+@icon 🧭
+
+## Results are context, and context is finite
+Anthropic's context-engineering guidance treats the context window as a scarce budget: low-value tool output dilutes the model's attention and is paid for again on every subsequent turn [@anth-context]. Claude Code, for example, caps tool responses at 25,000 tokens by default [@anth-tools].
+
+## Make results readable for the model
+- **Resolve ids to meaning.** Anthropic reports that replacing opaque UUIDs with semantically meaningful names — or even a simple 0-based index — noticeably improves how precisely agents refer to items [@anth-tools].
+- **Offer a verbosity switch.** A `response_format` parameter with `concise` and `detailed` values lets the agent ask for detail only when it needs it [@anth-tools].
+- **Lead with the answer.** Put the summary line first ("3 open orders; 1 delayed"), details after.
+- **Prefer compact text to raw JSON** for reasoning steps; keep JSON when the next step is code.
+
+```text
+orders_search → format=concise
+3 open orders for Rahim Uddin (customer since 2021):
+1. #A-1042  shipped   ৳4,200   placed 28 Sep   on time
+2. #A-1057  pending   ৳1,150   placed 03 Oct   payment awaiting confirmation
+3. #A-1061  delayed   ৳9,800   placed 05 Oct   carrier exception, ETA +3 days
+(showing 3 of 3 · ask for format=detailed to include line items)
+```
+
+## Truncate with directions
+When you must cut, cut at a record boundary and tell the model how to get the rest: "showing 20 of 312 — filter by `status` or pass the returned cursor". Silent truncation makes the model believe a partial list is complete.
+
+## Errors that teach
+"Error 400" teaches nothing. "date must be YYYY-MM-DD; you sent 10/05/26" lets the model fix its own call on the next turn.
+
+## Tool output is untrusted input
+A web page, email or document returned by a tool may contain text written to manipulate the model. Indirect prompt injection works precisely by planting instructions in data the model will read [@greshake]. Label tool output as data, never as instructions, and keep the defences from chapter 07 in place.
+
+| Result type | Good format |
+|---|---|
+| A few records | numbered list or small table, summary first |
+| Many records | top N, counts, and how to page |
+| One long document | the relevant excerpt plus where it came from |
+| Input to a code step | JSON |
+| Failure | an error message that names the fix |
+
+@layman
+**Whatever a tool sends back, the AI has to read — and keeps re-reading for the rest of the conversation.** Dumping a thousand rows of raw data is like handing someone the whole filing cabinet when they asked one question.
+
+**Good results are short and lead with the answer:** "3 open orders, 1 is delayed" first, details after. Use names people recognise, not long code numbers. If a list was cut off, say so and say how to see more.
+
+**And treat anything that comes back from the outside world with suspicion.** A web page or email can hide sneaky instructions aimed at the AI.
+
+>> **The cockpit dashboard analogy:** during landing a pilot doesn't read every raw sensor value. The instruments show a handful of clear gauges, warnings in plain words, and a light when something needs attention. Tool results should be designed like that dashboard, not like the sensor log.
+
+@bangla
+টুল যা ফেরত দেয় তা মডেলের context-এ বসে যায় এবং পরের প্রতিটি turn-এ আবার পড়া হয় — তাই প্রতিটি অপ্রয়োজনীয় token খরচ ও মনোযোগ দুটোই নষ্ট করে [@anth-context]।
+
+ভালো ফলাফলের নিয়ম:
+- আগে সারাংশ, তারপর বিস্তারিত।
+- অর্থহীন UUID-এর বদলে মানুষের বোঝার মতো নাম বা ছোট index দিন [@anth-tools]।
+- `response_format` দিয়ে `concise` বা `detailed` বেছে নেওয়ার সুযোগ রাখুন।
+- কাটতে হলে record-এর সীমানায় কাটুন এবং বলে দিন বাকিটা কীভাবে পাওয়া যাবে।
+- error বার্তায় সমাধান বলুন, যেমন "তারিখ YYYY-MM-DD আকারে দিন"।
+
+সতর্কতা: ওয়েব পেজ, ইমেল বা ডকুমেন্টে মডেলকে বিভ্রান্ত করার নির্দেশ লুকানো থাকতে পারে (indirect prompt injection) [@greshake]। টুলের output-কে সবসময় ডেটা হিসেবে ধরুন, নির্দেশ হিসেবে নয়।
+
+>> **ককপিট ড্যাশবোর্ডের উপমা:** অবতরণের সময় পাইলট প্রতিটি sensor-এর কাঁচা রিডিং পড়েন না; কয়েকটি স্পষ্ট মিটার আর সহজ ভাষার সতর্কবার্তা দেখেন। টুলের ফলাফলও সেই ড্যাশবোর্ডের মতো হওয়া উচিত, sensor log-এর মতো নয়।
+
+@sources
+claude-tools | https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview | Anthropic — "Tool use with Claude" (Claude Platform Docs)
+oai-fc | https://developers.openai.com/api/docs/guides/function-calling | OpenAI — Function calling guide
+anth-tools | https://www.anthropic.com/engineering/writing-tools-for-agents | Anthropic Engineering — "Writing effective tools for AI agents—using AI agents"
+jsonschema | https://json-schema.org/ | JSON Schema — specification and documentation
+toolllm | https://arxiv.org/abs/2307.16789 | Qin et al., "ToolLLM: Facilitating Large Language Models to Master 16000+ Real-world APIs" (2023)
+gorilla | https://arxiv.org/abs/2305.15334 | Patil et al., "Gorilla: Large Language Model Connected with Massive APIs" (2023)
+bfcl | https://gorilla.cs.berkeley.edu/leaderboard.html | Berkeley Function Calling Leaderboard (BFCL)
+rewoo | https://arxiv.org/abs/2305.18323 | Xu et al., "ReWOO: Decoupling Reasoning from Observations for Efficient Augmented Language Models" (2023)
+mcp-news | https://www.anthropic.com/news/model-context-protocol | Anthropic — "Introducing the Model Context Protocol" (Nov 2024)
+mcp-spec | https://modelcontextprotocol.io/specification/2026-07-28 | Model Context Protocol — Specification, revision 2026-07-28
+mcp-sdk | https://github.com/modelcontextprotocol/python-sdk | Model Context Protocol — official Python SDK
+mcp-security | https://modelcontextprotocol.io/docs/2025-11-25/tutorials/security/security_best_practices | Model Context Protocol — Security best practices
+mcp-servers | https://github.com/modelcontextprotocol/servers | Model Context Protocol — reference servers repository
+anth-code-mcp | https://www.anthropic.com/engineering/code-execution-with-mcp | Anthropic Engineering — "Code execution with MCP: building more efficient AI agents"
+cf-codemode | https://blog.cloudflare.com/code-mode/ | Cloudflare Blog — "Code Mode: the better way to use MCP"
+codeact | https://arxiv.org/abs/2402.01030 | Wang et al., "Executable Code Actions Elicit Better LLM Agents" (CodeAct, 2024)
+gvisor | https://gvisor.dev/ | gVisor — application kernel for container isolation
+firecracker | https://firecracker-microvm.github.io/ | Firecracker — secure, fast microVMs
+e2b | https://docs.e2b.dev/ | E2B — sandbox documentation
+modal-sandbox | https://modal.com/docs/guide/sandboxes | Modal — Sandboxes guide
+daytona | https://www.daytona.io/docs/ | Daytona — documentation
+cf-sandbox | https://developers.cloudflare.com/sandbox/ | Cloudflare — Sandboxes documentation
+trifecta | https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/ | Simon Willison — "The lethal trifecta for AI agents: private data, untrusted content, and external communication" (Jun 2025)
+rfc9457 | https://datatracker.ietf.org/doc/html/rfc9457 | IETF RFC 9457 — Problem Details for HTTP APIs
+stripe-pagination | https://docs.stripe.com/api/pagination | Stripe API Reference — Pagination
+anth-context | https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents | Anthropic Engineering — "Effective context engineering for AI agents"
+greshake | https://arxiv.org/abs/2302.12173 | Greshake et al., "Not what you've signed up for: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection" (2023)

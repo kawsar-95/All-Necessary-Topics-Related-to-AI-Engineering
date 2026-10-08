@@ -1,0 +1,266 @@
+@h1 LLMOps &amp; <span class="gradient">observability</span>
+@lede A traditional service is healthy when it returns 200 quickly. An LLM feature can return 200 quickly and still be wrong, rude, slow to stream, ten times over budget, or quietly worse than last week. LLMOps is the discipline of seeing all of that: tracing every step, metering tokens and cost per user, versioning prompts and agents, A/B testing changes, replaying failures, detecting drift, and turning user feedback into tests.
+@minutes 24
+
+=== Tracing: Langfuse, LangSmith, Helicone, Arize Phoenix, Braintrust
+@sub A trace records one user request as a tree of spans — the model calls, tool calls, retrievals and checks it caused — with inputs, outputs, tokens, cost and timing on each. Without traces, debugging an agent is guesswork.
+@icon 📦
+
+## What a trace contains
+A trace is the full story of one request: a root span for the request, and child spans for each model call ("generation"), retrieval, tool call, guardrail and sub-agent. Each span records start and end time, inputs and outputs, model and parameters, token counts and errors. For agents, the trace is the only way to see *why* the agent did what it did.
+
+!diagram
+<svg viewBox="0 0 1100 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A trace as a tree of spans with a timeline">
+  <text x="40" y="30" font-family="JetBrains Mono, monospace" font-size="12" fill="#a8b5c8">trace 7f2c… · user u_8421 · tenant acme · prompt support-answer@v14</text>
+  <line x1="460" y1="44" x2="460" y2="262" stroke="#1f2937"/>
+  <line x1="1055" y1="44" x2="1055" y2="262" stroke="#1f2937"/>
+  <text x="460" y="280" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">0 s</text>
+  <text x="1055" y="280" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">6.2 s</text>
+  <text x="40" y="66" font-family="JetBrains Mono, monospace" font-size="12" fill="#22d3ee">POST /support/chat · 6.2 s · $0.031</text>
+  <rect x="460" y="52" width="595" height="20" rx="4" fill="#0f172a" stroke="#22d3ee"/>
+  <text x="60" y="104" font-family="JetBrains Mono, monospace" font-size="12" fill="#a78bfa">├ llm.plan · 1.1 s · 1,240 in / 180 out</text>
+  <rect x="460" y="90" width="106" height="20" rx="4" fill="#0f172a" stroke="#a78bfa"/>
+  <text x="60" y="142" font-family="JetBrains Mono, monospace" font-size="12" fill="#34d399">├ tool.orders_search · 0.4 s · 3 rows</text>
+  <rect x="566" y="128" width="38" height="20" rx="4" fill="#0f172a" stroke="#34d399"/>
+  <text x="60" y="180" font-family="JetBrains Mono, monospace" font-size="12" fill="#34d399">├ retrieval.policy_docs · 0.3 s · 5 chunks</text>
+  <rect x="566" y="166" width="29" height="20" rx="4" fill="#0f172a" stroke="#34d399"/>
+  <text x="60" y="218" font-family="JetBrains Mono, monospace" font-size="12" fill="#a78bfa">├ llm.answer · 3.9 s · 3,980 in (2,900 cached) / 410 out</text>
+  <rect x="604" y="204" width="374" height="20" rx="4" fill="#0f172a" stroke="#a78bfa"/>
+  <text x="60" y="256" font-family="JetBrains Mono, monospace" font-size="12" fill="#fbbf24">└ guardrail.pii_scan · 0.2 s · pass</text>
+  <rect x="978" y="242" width="19" height="20" rx="4" fill="#0f172a" stroke="#fbbf24"/>
+  <text x="40" y="312" font-family="JetBrains Mono, monospace" font-size="11" fill="#94a3b8">Every span carries model, prompt version, tokens, cost, latency and status — the raw material for the rest of this chapter.</text>
+</svg>
+!caption One support request as a trace. The timeline shows the tool call and retrieval running in parallel, the answer generation dominating latency, and a large share of input tokens served from the prompt cache.
+!caption-bn একটি support request-এর trace। Timeline-এ দেখা যাচ্ছে tool call ও retrieval একসাথে চলেছে, উত্তর তৈরিতেই সবচেয়ে বেশি সময় লেগেছে, আর input token-এর বড় অংশ cache থেকে এসেছে।
+!end
+
+## Standard attributes: OpenTelemetry GenAI conventions
+OpenTelemetry defines semantic conventions for generative AI so traces are portable between tools — attributes such as `gen_ai.provider.name`, `gen_ai.request.model`, `gen_ai.usage.input_tokens` and `gen_ai.usage.output_tokens` [@otel-genai], now maintained in a dedicated GenAI conventions repository [@otel-genai-repo]. OpenInference [@openinference] and OpenLLMetry [@openllmetry] add auto-instrumentation for popular SDKs and frameworks on top of OpenTelemetry.
+
+```python
+from opentelemetry import trace
+
+tracer = trace.get_tracer("support-bot")
+
+def answer(question: str, user_id: str) -> str:
+    with tracer.start_as_current_span("llm.answer") as span:
+        span.set_attribute("gen_ai.provider.name", "anthropic")
+        span.set_attribute("gen_ai.request.model", MODEL)
+        span.set_attribute("app.user_id", user_id)
+        span.set_attribute("app.prompt_version", "support-answer@v14")
+        resp = client.messages.create(model=MODEL, max_tokens=800,
+                                      messages=[{"role": "user", "content": question}])
+        span.set_attribute("gen_ai.usage.input_tokens", resp.usage.input_tokens)
+        span.set_attribute("gen_ai.usage.output_tokens", resp.usage.output_tokens)
+        return resp.content[0].text
+```
+
+## The tools
+| Tool | Shape | Notable for |
+|---|---|---|
+| Langfuse | open source and self-hostable; SDKs plus OpenTelemetry ingestion [@langfuse] | traces, prompt management and evals in one place |
+| LangSmith | managed platform from the LangChain team [@langsmith] | deep integration with LangChain and LangGraph |
+| Helicone | open-source observability that can sit in the request path [@helicone] | setup by changing the API base URL |
+| Arize Phoenix | open source, built on OpenTelemetry and OpenInference [@phoenix] | local-first tracing and evaluation |
+| Braintrust | managed platform combining logs and evals [@braintrust] | a tight loop between production logs and eval datasets |
+
+## What to capture — and what not to
+Capture prompts, outputs, tool arguments and results, model and parameters, prompt version, user and tenant ids, token usage and errors. Never capture secrets, and decide deliberately about personal data: redact or hash before export (chapter 07), restrict who can read raw traces, and set a retention period.
+
+> warn **A trace store is a production database.** It holds what users typed and what your tools returned. Give it the same access control, retention rules and breach planning as your customer data.
+
+@layman
+**A trace is the full receipt for one question someone asked your AI.** It lists every step: what the AI was told, which tools it used, what it looked up, what it answered, how long each step took and what it cost.
+
+**Without it, problems are guesswork.** When a customer says "the bot gave me a weird answer yesterday", you open their trace and see exactly where it went wrong — the lookup returned the wrong order, or an old version of the instructions was running.
+
+**Because traces contain what people typed, they need the same care as any customer database.**
+
+>> **The parcel tracking analogy:** a parcel's tracking page shows every hop — picked up, sorted, loaded, out for delivery — each with a time. When a parcel goes missing you don't guess; you look at the last scan. A trace is the tracking page for one AI request.
+
+@bangla
+**Trace** হলো একটি request-এর পুরো গল্প: মূল span-এর নিচে প্রতিটি LLM call, retrieval, tool call ও sub-agent-এর আলাদা span, আর প্রতিটিতে input, output, মডেল, token, খরচ ও সময়। Agent কেন একটি কাজ করল, তা বোঝার একমাত্র উপায় trace।
+
+OpenTelemetry-র GenAI semantic conventions (`gen_ai.request.model`, `gen_ai.usage.input_tokens` ইত্যাদি) trace-কে বিভিন্ন টুলের মধ্যে বহনযোগ্য করে [@otel-genai]।
+
+টুল: Langfuse (open source, prompt management-সহ) [@langfuse], LangSmith [@langsmith], Helicone (request-এর পথে বসানো যায়) [@helicone], Arize Phoenix [@phoenix] ও Braintrust [@braintrust]।
+
+সতর্কতা: trace-এ ব্যবহারকারীর ডেটা থাকে — secret কখনো রাখবেন না, ব্যক্তিগত তথ্য redact করুন, আর access control ও retention নীতি ঠিক করুন।
+
+>> **পার্সেল ট্র্যাকিংয়ের উপমা:** পার্সেলের ট্র্যাকিং পেজে প্রতিটি ধাপ সময়সহ দেখা যায় — সংগ্রহ, বাছাই, গাড়িতে ওঠা, ডেলিভারির পথে। পার্সেল হারালে অনুমান না করে শেষ স্ক্যানটি দেখা হয়। একটি AI request-এর জন্য trace হলো সেই ট্র্যাকিং পেজ।
+
+=== Token, cost, and latency tracking per request and per user
+@sub Every model call should emit a usage record — tokens in and out, cached tokens, model, latency, cost — tagged with who and what caused it. Aggregated, those records answer every question finance and product will ask.
+@icon 🧾
+
+## The usage record
+| Field | Why it matters |
+|---|---|
+| `input_tokens`, `output_tokens` | the two numbers every price sheet is built on |
+| cached input tokens | prompt-cache reads are billed at a fraction of normal input (chapter 06) |
+| reasoning ("thinking") tokens | billed as output on reasoning models; can dominate cost |
+| `model` (exact id) | prices and behaviour differ between model versions |
+| TTFT and total latency | the user experience (chapter 03) |
+| `tenant_id`, `user_id`, `feature`, `prompt_version` | the dimensions you will group by |
+| cost in currency | computed from a versioned price table, never hard-coded |
+
+## Compute cost from a versioned price table
+Prices change, and differ by model, region, batch versus real-time, and cache read versus write. Keep a table keyed by model and effective date, compute cost when you write the record, and never rewrite history — last quarter's cost must stay last quarter's.
+
+```sql
+-- Daily calls, tokens, cost and p95 latency per tenant and feature
+SELECT
+  date_trunc('day', created_at)                            AS day,
+  tenant_id,
+  feature,
+  count(*)                                                 AS calls,
+  sum(input_tokens)                                        AS input_tokens,
+  sum(output_tokens)                                       AS output_tokens,
+  round(sum(cost_usd)::numeric, 2)                         AS cost_usd,
+  percentile_cont(0.95) WITHIN GROUP (ORDER BY latency_ms) AS p95_latency_ms
+FROM llm_usage
+WHERE created_at >= now() - interval '30 days'
+GROUP BY 1, 2, 3
+ORDER BY cost_usd DESC;
+```
+
+## The dashboards that pay for themselves
+- **Cost per feature and per active user** — finds the one feature eating the budget.
+- **Tokens per conversation over time** — catches context bloat as histories grow.
+- **Cache hit rate** — tells you whether restructuring prompts actually worked.
+- **p95 TTFT and error rate per model** — the first place a provider incident shows up.
+- **Top users by spend** — abuse, runaway agents and loops appear here first (chapter 07).
+
+> good **Alert on the rate of change, not only on thresholds.** "Cost this hour is 3× the same hour last week" catches a looping agent within the hour; a monthly budget alert catches it on day 28.
+
+@layman
+**Every time the AI answers, it should leave a line on the bill:** how much it read, how much it wrote, how long it took, what it cost, and who asked.
+
+**Added up, those lines answer the big questions:** which feature costs the most, which customers use it heavily, whether a change made things cheaper, and whether something is running away overnight.
+
+**Prices change, so the bill should remember which price applied at the time** — otherwise last month's numbers shift every time a vendor updates its rates.
+
+>> **The itemised phone bill analogy:** a good phone bill doesn't just say "you owe 2,140 taka". It lists each call: who made it, to where, for how long, at what rate. That's how a family discovers that one teenager's international calls are the whole problem.
+
+@bangla
+প্রতিটি মডেল call একটি usage record রাখবে: input ও output token, cached token, reasoning token, মডেলের সঠিক id, TTFT ও মোট latency, খরচ, এবং `tenant_id`, `user_id`, `feature`, `prompt_version`।
+
+খরচ হিসাব করুন version-যুক্ত price table থেকে — দাম বদলায়, তাই পুরোনো রেকর্ড কখনো নতুন দামে বদলাবেন না।
+
+দরকারি dashboard:
+- feature ও সক্রিয় ব্যবহারকারীপ্রতি খরচ
+- কথোপকথনপ্রতি token-এর প্রবণতা
+- cache hit rate
+- মডেলভিত্তিক p95 TTFT ও error rate
+- সবচেয়ে বেশি খরচ করা ব্যবহারকারী
+
+Alert দিন পরিবর্তনের হারে: "এই ঘণ্টার খরচ গত সপ্তাহের একই ঘণ্টার ৩ গুণ" — এতে loop-এ আটকে যাওয়া agent এক ঘণ্টার মধ্যেই ধরা পড়ে।
+
+>> **বিস্তারিত ফোন বিলের উপমা:** ভালো ফোন বিল শুধু মোট টাকা বলে না; প্রতিটি কল আলাদা দেখায় — কে করেছে, কোথায়, কতক্ষণ, কোন রেটে। এভাবেই পরিবার বুঝতে পারে যে একজনের বিদেশি কলই আসল সমস্যা।
+
+=== Prompt and agent versioning
+@sub An agent's behaviour is defined by more than code: the prompt text, the model id, sampling parameters, tool definitions and retrieval settings. Version them together, release them deliberately, and stamp the version on every trace.
+@icon 🎼
+
+## Version the whole configuration
+A "prompt change" that also swaps the model, or a model alias that silently moves to a new snapshot, makes regressions impossible to attribute. Treat the full configuration as one immutable, versioned artifact:
+
+```yaml
+# agents/support-answer/v14.yaml — immutable once released
+id: support-answer
+version: 14
+model: "<exact snapshot id from your provider, not a floating alias>"
+temperature: 0.2
+max_tokens: 800
+system_prompt: prompts/support-answer/v14.md
+tools: [orders_search, orders_refund, policy_lookup]
+retrieval: {index: policies-2026-10, top_k: 5}
+eval_gate: {suite: support-golden, min_pass_rate: 0.95}
+```
+
+## Registry, labels and rollback
+Prompt-management tools store versions and attach labels such as `production` and `staging`; the application fetches "the production version" at runtime, so a rollback is moving a label rather than redeploying code [@langfuse-prompts]. If you keep prompts in git instead, get the same properties: review in pull requests, immutable tags, and a release record of which version is live.
+
+## Pin model versions
+Providers publish both floating aliases and specific model snapshots, and document how aliases move to newer snapshots over time [@claude-models]. Production traffic should pin an exact id, so that "the model changed" is always a deliberate release rather than a surprise (see drift detection below).
+
+## Stamp versions on every trace
+Put `prompt_version`, `agent_version` and the exact model id on every span. Then "quality dropped on Tuesday" becomes a query: which versions served Tuesday's bad traces?
+
+> warn **Don't edit prompts in place in production.** An admin-panel edit with no version history is a silent deploy that skips review, evals and rollback.
+
+@layman
+**An AI feature's behaviour comes from its written instructions, the exact model, and a handful of settings.** Change any one of them and the behaviour changes. So the whole bundle gets a version number, like an app update.
+
+**Every answer is stamped with the version that produced it.** When something goes wrong, you know exactly which bundle was running — and going back to the previous one is a single switch.
+
+**Nobody quietly edits the instructions on the live system,** for the same reason nobody should edit a live website without keeping a copy.
+
+>> **The orchestra sheet music analogy:** every musician must play from the same edition of the score. If a wrong note appears in a concert, the conductor checks which edition was on each stand. Printing a corrected edition — and keeping the old one in the archive — fixes it without chaos.
+
+@bangla
+Agent-এর আচরণ শুধু কোডে ঠিক হয় না — prompt-এর লেখা, মডেলের id, temperature-এর মতো parameter, tool definition ও retrieval সেটিং মিলে ঠিক হয়। এগুলো একসাথে একটি অপরিবর্তনীয়, version-যুক্ত configuration হিসেবে রাখুন।
+- Prompt registry-তে version ও label (`production`, `staging`) ব্যবহার করুন; rollback মানে শুধু label সরানো [@langfuse-prompts]।
+- Floating alias নয়, নির্দিষ্ট model snapshot id pin করুন [@claude-models]।
+- প্রতিটি trace-এ `prompt_version`, `agent_version` ও মডেল id লিখে রাখুন।
+- Production-এ সরাসরি prompt edit করবেন না — এটি review, eval ও rollback ছাড়াই গোপন deploy।
+
+>> **অর্কেস্ট্রার স্বরলিপির উপমা:** সব বাদককে একই সংস্করণের স্বরলিপি থেকে বাজাতে হয়। কনসার্টে ভুল সুর বাজলে কন্ডাক্টর দেখেন কোন stand-এ কোন সংস্করণ ছিল। সংশোধিত সংস্করণ ছাপিয়ে পুরোনোটি আর্কাইভে রাখাই সঠিক সমাধান।
+
+=== A/B testing prompts and models in production
+@sub Offline evals tell you a change is safe; online experiments tell you whether it is better for real users. A/B tests on LLM features follow the same statistics as any product experiment, plus a few LLM-specific traps.
+@icon 🥤
+
+## The experiment design
+1. Gate with offline evals first (chapter 05) — never A/B test a variant that fails your golden set.
+2. Randomise by **user**, not by request, so each person sees a consistent experience.
+3. Choose one **primary metric** (task success, resolution rate) and several **guardrail metrics** (cost per conversation, p95 latency, escalation and complaint rates).
+4. Size the test before starting; don't stop the moment the dashboard looks good.
+5. Check for **sample ratio mismatch**: if a 50/50 split arrives as 53/47, assignment is broken and the result can't be trusted.
+
+Kohavi, Tang and Xu's book on online controlled experiments is the standard reference for these practices, including sample-ratio checks and the dangers of peeking [@experimentguide].
+
+```python
+import hashlib
+
+def variant(user_id: str, experiment: str,
+            split=(("control", 50), ("treatment", 50))) -> str:
+    """Deterministic, sticky assignment: same user + experiment -> same arm."""
+    digest = hashlib.sha256(f"{experiment}:{user_id}".encode()).hexdigest()
+    bucket = int(digest, 16) % 100
+    edge = 0
+    for name, pct in split:
+        edge += pct
+        if bucket < edge:
+            return name
+    return split[-1][0]
+```
+
+## LLM-specific traps
+- **Novelty and verbosity.** Longer, more confident answers often win thumbs-ups in week one and lose trust later. Watch retention and repeat-contact rates, not just first impressions.
+- **Cost belongs in the decision.** A variant that is 2% better but 40% more expensive may be a loss.
+- **Non-stationarity.** A provider-side model update during the test affects both arms; pin model versions.
+- **Interference.** Shared caches or rate limits can let one arm slow the other; isolate them where you can.
+
+> info **Shadow first, then split.** For risky changes, run the new variant in shadow mode — generate but don't show — and compare judge scores on real traffic before exposing any users.
+
+@layman
+**An A/B test shows two versions to two random groups of real users and measures which works better.** Before that, the new version must pass your own internal checks — you never experiment on customers with something you already know is broken.
+
+**Each person stays in the same group,** so their experience doesn't flip back and forth. You decide in advance what "better" means — more problems solved, fewer repeat complaints — and what must not get worse, like cost and speed.
+
+**And you wait for enough data before declaring a winner,** because early results swing wildly.
+
+>> **The blind taste test analogy:** two unlabelled cups of cola go to randomly chosen shoppers, and each shopper always tastes the same pair. You count preferences only after hundreds of tastings — and you also check that the "winning" recipe doesn't cost twice as much to make.
+
+@bangla
+Offline eval বলে পরিবর্তনটি নিরাপদ; online experiment বলে আসল ব্যবহারকারীর জন্য সেটি ভালো কি না।
+- আগে offline eval পাস করান (অধ্যায় ০৫)।
+- Request নয়, **user** ধরে randomise করুন, যাতে একজন সবসময় একই সংস্করণ দেখেন।
+- একটি প্রধান মেট্রিক (সমস্যা সমাধানের হার) আর কয়েকটি guardrail মেট্রিক (খরচ, p95 latency, অভিযোগ) ঠিক করুন।
+- আগেই sample size ঠিক করুন; ড্যাশবোর্ড ভালো দেখালেই থামবেন না।
+- Sample ratio mismatch পরীক্ষা করুন [@experimentguide]।
+
+LLM-এর বিশেষ ফাঁদ: লম্বা ও আত্মবিশ্বাসী উত্তর শুরুতে বেশি পছন্দ পায়; খরচকে সিদ্ধান্তের অংশ ধরুন; পরীক্ষা চলাকালে provider মডেল বদলালে দুই দলই প্রভাবিত হয়।
+
+>> **অন্ধ স্বাদ পরীক্ষার উপমা:** লেবেলহীন দুই কাপ কোলা এলোমেলোভাবে বাছাই করা ক্রেতাদের দেওয়া হয়। শত শত মানুষের মত নেওয়ার পরেই ফল গোনা হয় — আর দেখা হয় "জয়ী" রেসিপি বানাতে দ্বিগুণ খরচ হয় কি না।

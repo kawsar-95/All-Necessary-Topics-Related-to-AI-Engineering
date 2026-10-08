@@ -1,0 +1,263 @@
+@h1 Inference: <span class="gradient">serving models fast and cheap</span>
+@lede Every call to a language model runs on someone's accelerators. This chapter covers when to rent inference through an API and when to run it yourself; the servers that do the work (vLLM, SGLang, TGI, Ollama, llama.cpp); how quantization shrinks models; the KV cache, prefix caching and speculative decoding; continuous batching; the latency metrics users feel (TTFT, TPS); GPU economics and on-device models; and the main hosted providers.
+@minutes 28
+
+=== API-based vs self-hosted inference
+@sub Renting inference from an API and running open-weight models on your own GPUs are different businesses: one bills per token, the other per GPU-hour. The right answer depends on volume, utilisation, data rules and how much operations work you can absorb.
+@icon 🖨️
+
+## Two cost structures
+An API bills per input and output token: you pay nothing while idle and the provider absorbs capacity planning. Self-hosting bills per GPU-hour whether or not requests arrive, so your cost per token depends almost entirely on **utilisation**.
+
+| Dimension | Hosted API | Self-hosted open weights |
+|---|---|---|
+| Time to first request | minutes | days to weeks (GPUs, serving stack, monitoring) |
+| Cost model | per token, zero when idle | per GPU-hour, paid even when idle |
+| Model choice | provider's catalogue, including closed frontier models | any open-weight model you can fit |
+| Data control | provider's retention and region terms | stays inside your network |
+| Customisation | prompts, some fine-tuning | fine-tunes, LoRA adapters, custom decoding |
+| Scaling and on-call | the provider's problem | your problem: autoscaling, upgrades, incidents |
+
+## A break-even sketch
+Self-hosted cost per million output tokens ≈ GPU price per hour ÷ (sustained tokens per second × 3,600 ÷ 1,000,000). With **illustrative** numbers — a $2.50/hour GPU sustaining 1,500 tokens/s across all concurrent requests — that is 5.4M tokens per hour, about $0.46 per million. At 20% utilisation the same GPU costs about $2.31 per million, five times more. Use your own measured throughput and current prices; the formula matters more than these numbers.
+
+```python
+def self_hosted_cost_per_million(gpu_usd_per_hour, tokens_per_s, utilisation):
+    tokens_per_hour = tokens_per_s * 3600 * utilisation
+    return gpu_usd_per_hour / (tokens_per_hour / 1_000_000)
+
+print(round(self_hosted_cost_per_million(2.50, 1500, 1.0), 2))   # 0.46
+print(round(self_hosted_cost_per_million(2.50, 1500, 0.2), 2))   # 2.31
+```
+
+## The common hybrid
+Most teams end up hybrid: frontier APIs for hard, low-volume reasoning, and a small open model — self-hosted or provider-hosted — for high-volume narrow tasks such as classification, extraction or routing. Because vLLM, SGLang, Ollama and most hosted providers expose OpenAI-compatible endpoints, moving between them is often just a base-URL change [@vllm-docs][@ollama].
+
+> warn **Utilisation is the hidden variable.** A self-hosted GPU that sits idle overnight doubles your effective cost per token. Measure the real shape of your traffic before buying capacity.
+
+@layman
+**There are two ways to get answers from an AI model: pay per use, or own the machine.** Paying per use is simple — no setup, no cost when you're not using it. Running the model yourself means buying or renting powerful computers and keeping them running; each answer becomes cheap, but only while the machines stay busy.
+
+**The trap is an idle machine.** If your own computers sit unused half the day, every answer they do produce costs twice as much. Owning only pays off when demand is steady and heavy.
+
+**Most companies mix both:** they rent the cleverest, most expensive model for hard questions, and run a small model themselves for repetitive, high-volume jobs.
+
+>> **The print shop analogy:** a print shop charges per page and you can walk in any time. A printing press of your own costs a fortune up front and needs a skilled operator, but if you print a newspaper every day, each copy is far cheaper. Print a few flyers a month and the press is just an expensive dust-collector.
+
+@bangla
+API-তে খরচ হয় প্রতি token হিসেবে, আর নিজের GPU-তে মডেল চালালে খরচ হয় প্রতি GPU-ঘণ্টায় — request আসুক বা না আসুক। তাই self-hosting-এ প্রতি token-এর খরচ প্রায় পুরোটাই নির্ভর করে **utilisation**-এর ওপর।
+
+সূত্র: প্রতি মিলিয়ন token-এর খরচ ≈ GPU-এর ঘণ্টাপ্রতি দাম ÷ (সেকেন্ডে token × ৩৬০০ ÷ ১০,০০,০০০)। কাল্পনিক উদাহরণ: ঘণ্টায় $2.50-এর GPU সেকেন্ডে ১৫০০ token দিলে প্রতি মিলিয়নে প্রায় $0.46; কিন্তু মাত্র ২০% সময় ব্যস্ত থাকলে খরচ প্রায় পাঁচগুণ।
+
+বেশিরভাগ দল hybrid পথ নেয়: কঠিন কাজে frontier API, আর বেশি volume-এর সরল কাজে (classification, extraction) ছোট open model। vLLM, SGLang, Ollama-র মতো server OpenAI-compatible endpoint দেয়, তাই বদলানো সহজ [@vllm-docs]।
+
+>> **ছাপাখানার উপমা:** দোকানে ছাপালে প্রতি পাতার দাম দিতে হয়, কোনো প্রস্তুতি লাগে না। নিজের ছাপাখানা কিনলে শুরুতে বড় খরচ আর দক্ষ লোক লাগে, কিন্তু প্রতিদিন পত্রিকা ছাপলে প্রতি কপি অনেক সস্তা। মাসে কয়েকটা লিফলেট ছাপলে সেই মেশিন শুধু ধুলো জমায়।
+
+=== Inference servers: vLLM, TGI, SGLang, Ollama, llama.cpp
+@sub An inference server loads model weights into accelerator memory, schedules many concurrent requests, manages the KV cache and streams tokens back. The choice shapes your throughput, hardware options and operational burden.
+@icon ☕
+
+## The landscape
+| Server | Core idea | Best for |
+|---|---|---|
+| vLLM | PagedAttention KV-cache management plus continuous batching; 2–4× higher throughput than earlier systems at the same latency [@pagedattention] | high-throughput GPU serving with an OpenAI-compatible API [@vllm-docs] |
+| SGLang | RadixAttention for automatic KV reuse across calls, plus a frontend language for structured programs; up to 6.4× higher throughput reported [@sglang] | agentic and multi-call workloads, constrained JSON decoding |
+| TGI | Hugging Face's Rust/Python server | existing deployments — it is now in maintenance mode [@tgi] |
+| Ollama | one-command local runner with a simple REST API [@ollama] | laptops, dev boxes, small internal services |
+| llama.cpp | C/C++ inference with CPU, GPU and mixed offload; GGUF model files [@llamacpp] | edge devices, CPUs, Apple silicon, minimal dependencies |
+| TensorRT-LLM | NVIDIA's compiled, kernel-optimised runtime [@trtllm] | maximum throughput from a fixed NVIDIA fleet |
+
+> warn **TGI is in maintenance mode.** Hugging Face now accepts only minor bug fixes and documentation changes for text-generation-inference [@tgi]. For new deployments, start with vLLM or SGLang.
+
+## Starting each one
+```bash
+# vLLM: OpenAI-compatible server on port 8000
+vllm serve Qwen/Qwen2.5-7B-Instruct --max-model-len 8192 --gpu-memory-utilization 0.90 --enable-prefix-caching
+
+# SGLang
+python -m sglang.launch_server --model-path Qwen/Qwen2.5-7B-Instruct --port 30000
+
+# llama.cpp: a 4-bit GGUF file, all layers offloaded to the GPU if there is one
+llama-server -m qwen2.5-7b-instruct-q4_k_m.gguf -c 8192 -ngl 99 --port 8080
+
+# Ollama
+ollama run llama3.2
+```
+
+## Calling any of them the same way
+```python
+from openai import OpenAI
+
+# The standard client, pointed at a self-hosted server instead of a cloud API.
+client = OpenAI(base_url="http://localhost:8000/v1", api_key="unused-locally")
+reply = client.chat.completions.create(
+    model="Qwen/Qwen2.5-7B-Instruct",
+    messages=[{"role": "user", "content": "Classify: 'my parcel never arrived'"}],
+    max_tokens=20,
+)
+print(reply.choices[0].message.content)
+```
+
+## How to choose
+- Many concurrent users on datacentre GPUs → vLLM or SGLang.
+- Agents that resend long shared prefixes → SGLang's radix cache or vLLM's prefix caching.
+- A laptop, a CPU-only server or Apple silicon → llama.cpp or Ollama.
+- Maximum tokens per dollar on NVIDIA hardware, with engineers to spare → TensorRT-LLM.
+
+@layman
+**An inference server is the engine that actually runs an AI model.** It loads the model into the graphics card's memory, juggles many people's questions at once, and sends the answers back word by word.
+
+**Different engines suit different scales.** Some are built for a data centre serving thousands of people at once. Others run on one laptop with a single command. One popular older engine now only gets small fixes, so new projects usually pick a different one.
+
+**The nice part:** most of them accept requests in the same format as the big cloud AI services, so an app can switch engines by changing a single address.
+
+>> **The coffee machine analogy:** a busy café needs a big commercial espresso machine that pulls dozens of shots at once and never cools down. A student needs a cheap stovetop pot that works anywhere. Both make coffee — but pick the wrong one for your situation and you get either wasted money or a queue out the door.
+
+@bangla
+Inference server মডেলের weight GPU-মেমরিতে লোড করে, একসাথে অনেক request সামলায়, KV cache পরিচালনা করে এবং token stream করে।
+- **vLLM**: PagedAttention ও continuous batching; আগের সিস্টেমের তুলনায় একই latency-তে ২–৪ গুণ throughput [@pagedattention]।
+- **SGLang**: RadixAttention দিয়ে একই prefix বারবার ব্যবহার; agentic কাজে ভালো [@sglang]।
+- **TGI**: Hugging Face-এর server, এখন maintenance mode-এ — নতুন প্রজেক্টে vLLM বা SGLang নিন [@tgi]।
+- **Ollama** ও **llama.cpp**: ল্যাপটপ, CPU বা Apple silicon-এ চালানোর সহজ উপায় [@llamacpp]।
+- **TensorRT-LLM**: NVIDIA GPU থেকে সর্বোচ্চ গতি, তবে বেশি প্রকৌশল শ্রম লাগে।
+
+বেশিরভাগ server OpenAI-compatible API দেয়, তাই অ্যাপ শুধু base URL বদলে এক server থেকে আরেকটিতে যেতে পারে।
+
+>> **কফি মেশিনের উপমা:** ব্যস্ত ক্যাফের দরকার বড় বাণিজ্যিক espresso মেশিন, যা একসাথে অনেক কাপ বানায়। ছাত্রের দরকার চুলায় বসানো ছোট একটি পাত্র, যা যেকোনো জায়গায় চলে। দুটোতেই কফি হয়, কিন্তু ভুলটি বাছলে হয় টাকা নষ্ট, নয়তো দরজা পর্যন্ত লম্বা লাইন।
+
+=== Quantization: GGUF, AWQ, GPTQ, INT4/INT8
+@sub Quantization stores weights — and sometimes activations — in fewer bits. Smaller weights let a model fit on cheaper hardware, and because generating tokens is limited by memory bandwidth, they usually make it faster too.
+@icon 🗜️
+
+## Why fewer bits make inference faster
+Weights dominate memory: bytes ≈ parameters × bits ÷ 8. An 8-billion-parameter model needs about 16 GB in 16-bit, 8 GB in 8-bit and roughly 4–5 GB at 4-bit (formats also store scales and metadata). Generating each token reads essentially all the weights, so decoding is usually limited by memory bandwidth rather than arithmetic — fewer bytes per weight means more tokens per second.
+
+| Model size | FP16 / BF16 | INT8 / FP8 | about 4-bit |
+|---|---|---|---|
+| 8B parameters | ~16 GB | ~8 GB | ~4–5 GB |
+| 70B parameters | ~140 GB (two 80 GB GPUs) | ~70 GB | ~35–40 GB (one 80 GB GPU, leaving room for KV cache) |
+
+## The main methods
+- **LLM.int8()** keeps rare outlier dimensions in 16-bit and multiplies the rest — more than 99.9% of values — in 8-bit, halving inference memory without degradation even at 175B parameters [@llmint8].
+- **SmoothQuant** migrates activation outliers into the weights so both can be INT8 (W8A8), reporting up to 1.56× speedup and 2× memory reduction [@smoothquant].
+- **GPTQ** uses approximate second-order information to quantize weights to 3–4 bits in one shot — a 175B model in about four GPU-hours with negligible accuracy loss [@gptq].
+- **AWQ** shows that protecting about 1% of salient weights, chosen by activation magnitude, greatly reduces 4-bit error [@awq].
+- **FP8** defines two 8-bit floating-point encodings (E4M3 and E5M2) that recent accelerators support natively [@fp8].
+- **NF4**, introduced with QLoRA, is a 4-bit data type for normally distributed weights, used mainly for memory-efficient fine-tuning [@qlora].
+- **GGUF** is not an algorithm but llama.cpp's single-file model format; it packages weights in many quantization types such as `Q4_K_M` or `Q8_0`, together with metadata [@gguf][@llamacpp].
+
+## Doing it
+```bash
+# llama.cpp: turn a 16-bit GGUF into a 4-bit K-quant
+llama-quantize model-f16.gguf model-q4_k_m.gguf Q4_K_M
+
+# vLLM: serve a checkpoint that was already quantized with AWQ
+vllm serve <org>/<model>-AWQ --quantization awq
+```
+
+> warn **Quantization quality is task-dependent.** Average benchmark scores can hide regressions in long-context retrieval, maths, code or non-English text. Rerun your own eval suite (chapter 05) on the quantized model before switching traffic.
+
+@layman
+**Quantization is compression for AI models.** A model is billions of numbers. Storing each one with a little less precision makes the whole thing two to four times smaller, so it fits on a cheaper chip — or even a laptop or phone — and usually answers faster.
+
+**The catch is that heavy squeezing shows.** Gentle compression is almost invisible; aggressive compression can make the model slip on tricky tasks like maths or long documents. So you always test the compressed version on your own real tasks before trusting it.
+
+>> **The photo compression analogy:** a RAW photo straight from a camera is huge. Saved as a high-quality JPEG it's a fraction of the size and looks identical on your phone. Push the compression too far and blocky smudges appear — usually in exactly the fine detail you cared about.
+
+@bangla
+Quantization মানে weight কম bit-এ সংরক্ষণ করা। মেমরি ≈ parameter × bit ÷ ৮; যেমন ৮B মডেল 16-bit-এ প্রায় ১৬ GB, 4-bit-এ প্রায় ৪–৫ GB। প্রতিটি token তৈরিতে প্রায় সব weight মেমরি থেকে পড়তে হয়, তাই কম byte মানে সাধারণত দ্রুত উত্তর।
+
+প্রধান পদ্ধতি:
+- **LLM.int8()**: outlier মান 16-bit-এ রেখে বাকিগুলো 8-bit-এ; মেমরি অর্ধেক [@llmint8]।
+- **SmoothQuant**: weight ও activation দুটোই INT8 [@smoothquant]।
+- **GPTQ**: ৩–৪ bit-এ one-shot quantization [@gptq]।
+- **AWQ**: গুরুত্বপূর্ণ প্রায় ১% weight রক্ষা করে 4-bit-এর ত্রুটি কমায় [@awq]।
+- **GGUF**: llama.cpp-এর single-file ফরম্যাট, যেমন `Q4_K_M` [@gguf]।
+
+সতর্কতা: গড় benchmark ভালো দেখালেও গণিত, কোড বা দীর্ঘ context-এ মান কমে যেতে পারে — নিজের eval দিয়ে যাচাই করুন।
+
+>> **ছবি compress করার উপমা:** ক্যামেরার RAW ছবি বিশাল; ভালো মানের JPEG করলে আকার অনেক কমে, ফোনে দেখতে একই রকম লাগে। বেশি compress করলে ছবিতে ঘোলাটে দাগ পড়ে — ঠিক সেই সূক্ষ্ম জায়গায়, যেটা আপনার সবচেয়ে দরকার ছিল।
+
+=== KV cache, prefix caching, speculative decoding
+@sub Three techniques that avoid redundant work: the KV cache stops recomputing the past, prefix caching shares that work across requests, and speculative decoding lets a cheap model draft tokens that the big model checks in bulk.
+@icon 🪚
+
+## The KV cache and its size
+During generation, attention needs the keys and values of every previous token. Caching them turns each new token into a small incremental computation — but the cache lives in GPU memory and grows with every token of every concurrent sequence:
+
+`KV bytes per token = 2 (K and V) × layers × KV heads × head dimension × bytes per value`
+
+For a Llama-3.1-8B-style model (32 layers, 8 KV heads, head dimension 128, 16-bit values) that is 2 × 32 × 8 × 128 × 2 = 131,072 bytes, about **128 KiB per token** — roughly 1 GiB for a single 8K-token conversation. Multi-query attention [@mqa] and grouped-query attention [@gqa] shrink it by sharing key/value heads across query heads, which is why most current models use GQA.
+
+## PagedAttention
+Naive servers reserve one contiguous buffer per request, sized for the maximum length, and waste most of it. vLLM's PagedAttention stores the KV cache in fixed-size blocks, like virtual-memory pages, giving near-zero waste and letting requests share blocks [@pagedattention].
+
+## Prefix caching
+Many requests begin with identical tokens: a system prompt, tool definitions, a long document. Automatic prefix caching keeps those KV blocks so a new request skips recomputing the shared part [@vllm-apc]; SGLang organises the same reuse as a radix tree [@sglang]. Hosted APIs expose the idea as prompt caching: Anthropic uses `cache_control` breakpoints with 5-minute or 1-hour lifetimes [@claude-cache], and OpenAI applies caching automatically to repeated prompt prefixes [@oai-cache]. Either way the rule is the same: **stable content first, variable content last**.
+
+## Speculative decoding
+A small draft model proposes several tokens; the large target model checks all of them in one forward pass and keeps the longest accepted prefix. Because acceptance uses a rejection-sampling rule, the output distribution is exactly the target model's [@specdec][@specsampling]. Reported speedups: 2–3× on T5-XXL with identical outputs [@specdec], 2–2.5× on the 70B Chinchilla model [@specsampling], more than 2.2× for Medusa's extra decoding heads [@medusa], and 2.7–3.5× lower latency for EAGLE on LLaMA2-Chat 70B [@eagle].
+
+!diagram
+<svg viewBox="0 0 1100 310" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Speculative decoding: a draft model proposes tokens and the target model verifies them in one pass">
+  <text x="40" y="34" font-family="JetBrains Mono, monospace" font-size="12" fill="#a8b5c8">1 · DRAFT MODEL (small, fast) proposes 5 tokens</text>
+  <rect x="40" y="46" width="100" height="40" rx="6" fill="#0f172a" stroke="#a78bfa"/>
+  <text x="90" y="71" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#a78bfa">the</text>
+  <rect x="160" y="46" width="100" height="40" rx="6" fill="#0f172a" stroke="#a78bfa"/>
+  <text x="210" y="71" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#a78bfa">order</text>
+  <rect x="280" y="46" width="100" height="40" rx="6" fill="#0f172a" stroke="#a78bfa"/>
+  <text x="330" y="71" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#a78bfa">ships</text>
+  <rect x="400" y="46" width="100" height="40" rx="6" fill="#0f172a" stroke="#a78bfa"/>
+  <text x="450" y="71" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#a78bfa">on</text>
+  <rect x="520" y="46" width="100" height="40" rx="6" fill="#0f172a" stroke="#a78bfa"/>
+  <text x="570" y="71" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#a78bfa">Friday</text>
+  <text x="40" y="128" font-family="JetBrains Mono, monospace" font-size="12" fill="#a8b5c8">2 · TARGET MODEL (large) scores all 5 positions in ONE forward pass</text>
+  <rect x="40" y="140" width="580" height="40" rx="6" fill="#0f172a" stroke="#22d3ee"/>
+  <text x="330" y="165" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#22d3ee">parallel verification of all 5 draft tokens</text>
+  <text x="40" y="222" font-family="JetBrains Mono, monospace" font-size="12" fill="#a8b5c8">3 · RESULT</text>
+  <rect x="40" y="234" width="100" height="40" rx="6" fill="#0f172a" stroke="#34d399"/>
+  <text x="90" y="259" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#34d399">the ✓</text>
+  <rect x="160" y="234" width="100" height="40" rx="6" fill="#0f172a" stroke="#34d399"/>
+  <text x="210" y="259" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#34d399">order ✓</text>
+  <rect x="280" y="234" width="100" height="40" rx="6" fill="#0f172a" stroke="#34d399"/>
+  <text x="330" y="259" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#34d399">ships ✓</text>
+  <rect x="400" y="234" width="100" height="40" rx="6" fill="#0f172a" stroke="#fb7185"/>
+  <text x="450" y="259" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#fb7185">on ✗ → next</text>
+  <rect x="520" y="234" width="100" height="40" rx="6" fill="#111827" stroke="#334155" stroke-dasharray="4 4"/>
+  <text x="570" y="259" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#64748b">discarded</text>
+  <rect x="680" y="46" width="380" height="228" rx="10" fill="#111827" stroke="#334155"/>
+  <text x="700" y="80" font-family="JetBrains Mono, monospace" font-size="13" fill="#34d399">accepted: 3 draft tokens</text>
+  <text x="700" y="106" font-family="JetBrains Mono, monospace" font-size="13" fill="#fbbf24">+ 1 token sampled by the target</text>
+  <text x="700" y="132" font-family="JetBrains Mono, monospace" font-size="13" fill="#22d3ee">= 4 tokens for 1 large-model pass</text>
+  <text x="700" y="176" font-family="JetBrains Mono, monospace" font-size="12" fill="#a8b5c8">rejection sampling decides acceptance,</text>
+  <text x="700" y="198" font-family="JetBrains Mono, monospace" font-size="12" fill="#a8b5c8">so the output follows the target</text>
+  <text x="700" y="220" font-family="JetBrains Mono, monospace" font-size="12" fill="#a8b5c8">model's distribution exactly</text>
+</svg>
+!caption Speculative decoding: the draft guesses five tokens, the target verifies them together, keeps the agreed prefix and supplies the first corrected token. When drafts are usually right, each expensive pass yields several tokens.
+!caption-bn Speculative decoding: ছোট মডেল পাঁচটি token আন্দাজ করে, বড় মডেল একসাথে যাচাই করে মিলে যাওয়া অংশ রাখে এবং প্রথম ভুলটির জায়গায় নিজের token দেয়।
+!end
+
+## Measure on your traffic
+Speculative decoding pays off when the draft is usually right — templated replies, code, structured data — and helps most at small batch sizes, where the GPU has spare compute. Prefix caching pays off only if prompts really share long prefixes. Measure both on production-shaped traffic before relying on them.
+
+@layman
+**These are three tricks to stop the AI doing the same work twice.**
+
+**First, it keeps notes.** While writing an answer, the AI keeps a running memo of everything it has read so far, so each new word doesn't require re-reading the whole conversation. Those notes take memory, which is why very long conversations are expensive.
+
+**Second, it shares notes between customers.** If a thousand people's requests all begin with the same long instructions, the system works through that part once and reuses it.
+
+**Third, a fast helper guesses ahead.** A small, quick model guesses the next few words; the big model checks the whole guess in one go and keeps the correct part. When the guesses are good, answers arrive two or three times faster — and the final text is exactly what the big model would have written anyway.
+
+>> **The carpentry workshop analogy:** an apprentice cuts five pieces ahead from the plan while the master carpenter inspects them all in a single pass. Every piece that matches the plan is kept; at the first bad cut, the master makes that piece properly and the apprentice starts again from there. The furniture comes out exactly as the master would have made it — just sooner.
+
+@bangla
+**KV cache**: আগের token-গুলোর key ও value জমা রাখে, যাতে প্রতিটি নতুন token-এ পুরো ইতিহাস আবার হিসাব করতে না হয়। আকার = ২ × layer × KV head × head dimension × byte; ৮B-ধরনের মডেলে প্রতি token-এ প্রায় ১২৮ KiB। GQA এটি কমায় [@gqa]।
+
+**PagedAttention** KV cache-কে page-এর মতো ছোট block-এ রাখে, ফলে মেমরির অপচয় প্রায় শূন্য [@pagedattention]।
+
+**Prefix caching**: অনেক request-এর শুরু একই হলে (system prompt, টুল definition) সেই অংশ একবার হিসাব করে বারবার ব্যবহার করা হয় [@vllm-apc]। নিয়ম: স্থির অংশ prompt-এর শুরুতে, পরিবর্তনশীল অংশ শেষে।
+
+**Speculative decoding**: ছোট draft মডেল কয়েকটি token আন্দাজ করে, বড় মডেল এক pass-এ সবগুলো যাচাই করে; ফলাফলের distribution বদলায় না, অথচ গতি ২–৩ গুণ পর্যন্ত বাড়ে [@specdec][@eagle]।
+
+>> **কাঠমিস্ত্রির কারখানার উপমা:** শিক্ষানবিশ নকশা দেখে আগেভাগে পাঁচটি টুকরো কেটে রাখে, ওস্তাদ একবারে সবগুলো পরীক্ষা করেন। নকশার সাথে মেলা টুকরো রাখা হয়; প্রথম ভুল টুকরোটি ওস্তাদ নিজে কাটেন। আসবাব ঠিক ওস্তাদের মতোই হয়, শুধু আগে শেষ হয়।
