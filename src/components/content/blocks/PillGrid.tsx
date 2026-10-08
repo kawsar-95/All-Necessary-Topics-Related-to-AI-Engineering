@@ -7,7 +7,7 @@ export function PillGrid(block: Extract<Block, { type: "pillGrid" }>) {
       {block.items.map((item, i) => (
         <div
           key={i}
-          className="rounded-lg border border-[var(--border)] bg-[var(--bg-card)] px-3.5 py-2.5"
+          className="rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] px-3.5 py-2.5"
         >
           <Inline
             as="div"

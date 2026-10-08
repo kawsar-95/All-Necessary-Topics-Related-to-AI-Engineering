@@ -13,10 +13,10 @@ export default function Home() {
           All necessary topics
           <br />
           <span
-            className="bg-gradient-to-br from-accent to-accent-2 bg-clip-text text-transparent"
+            className="bg-gradient-to-br from-accent to-voice-layman bg-clip-text text-transparent"
             style={{
               backgroundImage:
-                "linear-gradient(120deg, var(--accent) 0%, var(--accent-2) 100%)",
+                "linear-gradient(120deg, var(--accent) 0%, var(--voice-layman) 100%)",
               WebkitBackgroundClip: "text",
               backgroundClip: "text",
               color: "transparent",
@@ -31,7 +31,7 @@ export default function Home() {
           context, and agent loops. Each topic ships in three voices: the
           engineer&apos;s version (with code and diagrams), the layman&apos;s
           version (plain English with analogies), and{" "}
-          <span className="text-accent-3">বাংলা ব্যাখ্যা</span>.
+          <span className="text-voice-bangla">বাংলা ব্যাখ্যা</span>.
         </p>
       </section>
 
@@ -40,9 +40,9 @@ export default function Home() {
           <li key={t.slug}>
             <Link
               href={`/topics/${t.slug}`}
-              className="group block bg-bg-card border border-border rounded-xl p-6 no-underline transition-all hover:border-accent hover:-translate-y-0.5"
+              className="group block bg-bg-raised border border-border rounded-xl p-6 no-underline transition-all hover:border-accent hover:-translate-y-0.5"
             >
-              <div className="font-mono text-[11px] tracking-wider text-accent-3 uppercase mb-2">
+              <div className="font-mono text-[11px] tracking-wider text-voice-bangla uppercase mb-2">
                 Part {t.part} · {t.sections.length} section
                 {t.sections.length === 1 ? "" : "s"} · {t.sources.length} source
                 {t.sources.length === 1 ? "" : "s"}

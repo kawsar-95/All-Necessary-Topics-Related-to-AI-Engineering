@@ -17,8 +17,8 @@ const VOICE_LABEL: Record<Voice, string> = {
 
 const VOICE_COLOR: Record<Voice, string> = {
   main: "var(--accent)",
-  layman: "var(--accent-2)",
-  bangla: "var(--accent-3)",
+  layman: "var(--voice-layman)",
+  bangla: "var(--voice-bangla)",
   all: "var(--text)",
 };
 

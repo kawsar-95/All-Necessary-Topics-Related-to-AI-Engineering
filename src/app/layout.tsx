@@ -1,7 +1,19 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Noto_Sans_Bengali } from "next/font/google";
+import { Fraunces, Inter, JetBrains_Mono, Noto_Sans_Bengali } from "next/font/google";
 import "./globals.css";
-import { SiteHeader } from "@/components/SiteHeader";
+import { getNavItems } from "@/lib/topics";
+import { SiteHeader } from "@/components/layout/SiteHeader";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { SidebarList } from "@/components/layout/SidebarList";
+
+const fraunces = Fraunces({
+  variable: "--font-display",
+  subsets: ["latin"],
+  display: "swap",
+  style: ["normal", "italic"],
+  axes: ["opsz"],
+});
 
 const inter = Inter({
   variable: "--font-inter",
@@ -32,18 +44,32 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
+  const items = getNavItems();
+
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrainsMono.variable} ${notoBengali.variable} h-full antialiased`}
+      className={`${fraunces.variable} ${inter.variable} ${jetbrainsMono.variable} ${notoBengali.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        <SiteHeader />
-        <main className="flex-1">{children}</main>
-        <footer className="border-t border-border mt-24 py-8 text-center text-xs text-text-faint">
-          Built as a Next.js port of the single-file AI Engineering reference
-          guides. Citations verified against each publisher&apos;s metadata.
-        </footer>
+      <body className="min-h-full bg-bg text-text">
+        <SiteHeader items={items} />
+        <div className="lg:grid lg:grid-cols-[260px_minmax(0,1fr)]">
+          <aside className="hidden border-r border-border lg:sticky lg:top-14 lg:block lg:h-[calc(100vh-3.5rem)] lg:self-start lg:overflow-y-auto">
+            <Suspense fallback={<SidebarList items={items} activeSlug={null} />}>
+              <Sidebar items={items} />
+            </Suspense>
+          </aside>
+          <div className="flex min-h-[calc(100vh-3.5rem)] min-w-0 flex-col">
+            <main className="flex-1">{children}</main>
+            <footer className="mt-24 border-t border-border px-6 py-8 text-xs leading-relaxed text-text-faint">
+              <p className="mx-auto max-w-3xl">
+                Built as a Next.js port of the single-file AI Engineering
+                reference guides. Citations verified against each
+                publisher&apos;s metadata.
+              </p>
+            </footer>
+          </div>
+        </div>
       </body>
     </html>
   );

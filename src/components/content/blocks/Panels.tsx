@@ -8,7 +8,7 @@ export function Panels(block: Extract<Block, { type: "panels" }>) {
       {block.panels.map((panel, i) => (
         <section
           key={i}
-          className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-4 [&>:last-child]:mb-0"
+          className="rounded-xl border border-[var(--border)] bg-[var(--bg-raised)] p-4 [&>:last-child]:mb-0"
         >
           <Inline
             as="h4"
