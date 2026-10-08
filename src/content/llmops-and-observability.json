@@ -1,0 +1,354 @@
+{
+  "slug": "llmops-and-observability",
+  "title": "LLMOps and Observability",
+  "lede": "Tracing with Langfuse / LangSmith / Helicone / Arize Phoenix / Braintrust; per-request token, cost, and latency tracking; prompt and agent versioning; A/B testing; replay and debugging; drift detection when model upgrades silently change behaviour; feedback loops that grow your eval dataset. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
+  "sections": [
+    {
+      "id": "s4",
+      "num": "01",
+      "title": "LLMOps & observability",
+      "sub": "Traditional DevOps answers \"did the request return 200?\" LLM apps need richer questions: <em>did the model return the right answer, at the right cost, in the right tone, with no leakage?</em> The discipline of answering those is <strong>LLMOps</strong>, and it has its own toolchain.",
+      "body": [
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s4-tracing",
+          "html": "Tracing"
+        },
+        {
+          "type": "paragraph",
+          "html": "An LLM <strong>trace</strong> is a tree of <em>spans</em>: the user request, the system prompt assembly, the LLM call, every tool invocation, the result. The four leading tracing tools in 2025:"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Tool",
+            "Strength"
+          ],
+          "rows": [
+            [
+              "<strong>Langfuse</strong>",
+              "Open-source, OpenTelemetry-native, self-hostable"
+            ],
+            [
+              "<strong>LangSmith</strong>",
+              "Polished UI, deep LangChain integration"
+            ],
+            [
+              "<strong>Helicone</strong>",
+              "Drop-in proxy that captures everything with one env-var change"
+            ],
+            [
+              "<strong>Arize Phoenix</strong>",
+              "Evaluation-first, embeddings-aware drift detection"
+            ],
+            [
+              "<strong>Braintrust</strong>",
+              "Eval + trace in one workspace"
+            ]
+          ]
+        },
+        {
+          "type": "diagram",
+          "svg": "<svg viewBox=\"0 0 1100 280\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"Agent run as a tree of traced spans\">\n      <text x=\"40\" y=\"36\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\" fill=\"#a8b5c8\">trace_id: 7f2c… | agent_run_id: 91 | user: u_8421</text>\n      <line x1=\"0\" y1=\"48\" x2=\"1100\" y2=\"48\" stroke=\"#1f2937\"></line>\n      \n      <rect x=\"40\" y=\"64\" width=\"280\" height=\"42\" rx=\"6\" fill=\"#0f172a\" stroke=\"#22d3ee\"></rect>\n      <text x=\"56\" y=\"82\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#22d3ee\">POST /agent/run (1.8 s)</text>\n      <text x=\"56\" y=\"98\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">user: \"plan my Tokyo trip\"</text>\n      \n      <rect x=\"360\" y=\"64\" width=\"220\" height=\"42\" rx=\"6\" fill=\"#0f172a\" stroke=\"#a78bfa\"></rect>\n      <text x=\"376\" y=\"82\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#a78bfa\">llm.plan (0.6 s, 412 tok)</text>\n      <text x=\"376\" y=\"98\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">plan: [search, weather, fx]</text>\n      <rect x=\"600\" y=\"64\" width=\"180\" height=\"42\" rx=\"6\" fill=\"#0f172a\" stroke=\"#34d399\"></rect>\n      <text x=\"616\" y=\"82\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#34d399\">tool.weather (0.2 s)</text>\n      <text x=\"616\" y=\"98\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">cached ✓</text>\n      <rect x=\"800\" y=\"64\" width=\"220\" height=\"42\" rx=\"6\" fill=\"#0f172a\" stroke=\"#fbbf24\"></rect>\n      <text x=\"816\" y=\"82\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#fbbf24\">tool.fx_rates (0.4 s)</text>\n      <text x=\"816\" y=\"98\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">usd_jpy: 154.2</text>\n      <rect x=\"360\" y=\"130\" width=\"220\" height=\"42\" rx=\"6\" fill=\"#0f172a\" stroke=\"#a78bfa\"></rect>\n      <text x=\"376\" y=\"148\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#a78bfa\">llm.synthesize (0.9 s)</text>\n      <text x=\"376\" y=\"164\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">487 tok out · cached prefix 80%</text>\n      <rect x=\"600\" y=\"130\" width=\"180\" height=\"42\" rx=\"6\" fill=\"#0f172a\" stroke=\"#34d399\"></rect>\n      <text x=\"616\" y=\"148\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#34d399\">tool.email.send (0.3 s)</text>\n      <text x=\"616\" y=\"164\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">user approved ✓</text>\n      \n      <line x1=\"320\" y1=\"86\" x2=\"360\" y2=\"86\" stroke=\"#94a3b8\"></line>\n      <line x1=\"580\" y1=\"76\" x2=\"600\" y2=\"76\" stroke=\"#94a3b8\"></line>\n      <line x1=\"780\" y1=\"86\" x2=\"800\" y2=\"86\" stroke=\"#94a3b8\"></line>\n      <line x1=\"180\" y1=\"106\" x2=\"470\" y2=\"130\" stroke=\"#94a3b8\"></line>\n      <line x1=\"470\" y1=\"172\" x2=\"690\" y2=\"172\" stroke=\"#94a3b8\"></line>\n      \n      <rect x=\"40\" y=\"200\" width=\"1020\" height=\"48\" rx=\"6\" fill=\"#111827\" stroke=\"#334155\"></rect>\n      <text x=\"60\" y=\"220\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#a8b5c8\">cost: $0.0042 · input 812 tok · output 487 tok · latency p50 1.6 s · p99 4.1 s</text>\n      <text x=\"60\" y=\"240\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">evals: faithfulness 0.91 · task_success 1.00 · no_pii_leak ✓</text>\n    </svg>",
+          "caption": "A single agent run as a traced tree: parent (POST), LLM calls (in violet), tool calls (in green/yellow), approval gate, plus a cost and latency footer.",
+          "captionBn": "একটি এজেন্ট রান traced tree হিসেবে: parent POST, LLM calls (বেগুনি), tool calls (সবুজ/হলুদ), approval gate, এবং খরচ ও latency ফুটার।"
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s4-token-cost-and-latency-tracking",
+          "html": "Token, cost, and latency tracking"
+        },
+        {
+          "type": "paragraph",
+          "html": "Every request must record: <strong>input tokens</strong>, <strong>output tokens</strong>, <strong>model</strong>, <strong>cost</strong> (computed from vendor's pricing), <strong>latency</strong> (TTFT, total), and <strong>cache hit</strong>. Tag with <code>user_id</code>, <code>feature</code>, <code>experiment</code>. This data is the substrate for every other LLMOps question — \"is feature X losing money?\", \"is the new model slower?\""
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s4-prompt-and-agent-versioning",
+          "html": "Prompt and agent versioning"
+        },
+        {
+          "type": "paragraph",
+          "html": "Prompts are code. Treat them like code: store in git, version them, review them via PR, deploy via CI. Each prompt version gets a stable ID; every trace carries the prompt ID. When something breaks, you can answer \"what prompt version were users on?\" instantly."
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s4-a-b-testing-prompts-and-models-in-production",
+          "html": "A/B testing prompts and models in production"
+        },
+        {
+          "type": "paragraph",
+          "html": "Route traffic between two prompt versions (or two models) by <code>user_id</code> hash. Measure: cost, latency, evals run on the output, user feedback. Stop the experiment when one variant wins on the metric you chose (and you didn't peak on it after one bad afternoon)."
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s4-replay-and-debugging",
+          "html": "Replay and debugging"
+        },
+        {
+          "type": "paragraph",
+          "html": "When a user complains, you should be able to pull the trace, see every prompt and every model reply, identify the failure, and <strong>replay</strong> the exact request against a different model or prompt to verify the fix. Langfuse, Helicone, and LangSmith all give you a replay button."
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s4-drift-detection-silent-behaviour-changes",
+          "html": "Drift detection (silent behaviour changes)"
+        },
+        {
+          "type": "paragraph",
+          "html": "When OpenAI swaps GPT-4 for GPT-4-0613 or Anthropic bumps the weights of a \"same-named\" model, your outputs drift in ways your offline evals won't catch. The fix: run a small fraction of production traffic (1–5%) through both the old and new model, compare evals, alert on delta. Arize Phoenix and Braintrust automate this."
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s4-feedback-loops",
+          "html": "Feedback loops"
+        },
+        {
+          "type": "paragraph",
+          "html": "Capture thumbs-up / thumbs-down (or richer signals) and feed the failures into your eval dataset. After three months you'll have a thousand real failures that's worth more than ten thousand synthetic ones."
+        }
+      ],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>LLMOps is \"DevOps for AI apps.\"</strong> In a normal web app, you know if it crashed because you see a red error in your dashboard. In an AI app, the call might return 200 OK and the model might still be giving wrong answers, expensive answers, or biased answers. So you need new tools that watch for those things."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Tracing = a flight recorder for every request.</strong> When a user says \"your AI gave me a weird answer yesterday,\" you should be able to pull up the exact request, see every prompt, every model call, every tool it used, the cost, and the latency — in one view. The big tracing tools (Langfuse, LangSmith, Helicone, Arize Phoenix) all do this."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Token and latency tracking is your new \"errors dashboard.</strong> Every call should write down how many tokens it used, how much it cost, how fast it was, and whether the cache worked. Tag every call with who made it, what feature was running, and which experiment it was part of. Now you can answer \"which feature is burning the budget?\" instantly."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Prompt versioning = prompts are code.</strong> Stop editing prompts in the admin panel. Put them in git, give them version IDs, deploy them through CI. When something breaks, you can say \"users on version 7 reported this,\" not \"uh, I changed the prompt last Tuesday.\""
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>A/B testing = \"let's see which version people like more.\"</strong> Send 50% of users to prompt A, 50% to prompt B. Measure cost, speed, thumbs-up rate. The winner becomes the default."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Drift detection = \"did the AI quietly get worse?\"</strong> AI vendors upgrade models without telling you, and the new version might be subtly worse on your specific workload. The fix: send 5% of traffic through the new model, compare the answers, alert if quality dropped."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Feedback loops = \"learn from complaints.\"</strong> When users click thumbs-down, save that exact trace into your eval set. Three months from now you'll have hundreds of real-world failures to test against, worth more than thousands of synthetic ones."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The black-box flight recorder analogy:</strong> every LLM call should leave a black-box flight recorder behind. The recorder should write down the prompt, the model's reply, the cost, the latency, which user, which feature, which experiment — so when something goes wrong (or silently degrades), you can replay the exact moment and figure out why."
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "<strong>LLMOps</strong> হলো \"DevOps for AI apps\"। সাধারণ ওয়েব অ্যাপে আপনি জানেন এটি ক্র্যাশ করেছে কারণ ড্যাশবোর্ডে লাল ত্রুটি দেখেন। AI অ্যাপে কল 200 OK ফেরত দিতে পারে, অথচ মডেল ভুল, ব্যয়বহুল বা পক্ষপাতদুষ্ট উত্তর দিতে পারে। তাই এই বিষয়গুলো দেখার নতুন সরঞ্জাম দরকার।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Tracing = প্রতিটি request-এর জন্য flight recorder:</strong> ব্যবহারকারী বললে \"আপনার AI গতকাল আমাকে অদ্ভুত উত্তর দিয়েছে,\" আপনি সেই নির্দিষ্ট request টেনে এনে প্রতিটি prompt, প্রতিটি model call, প্রতিটি ব্যবহৃত tool, খরচ ও latency এক দৃশ্যে দেখতে পারবেন। প্রধান tracing tools: Langfuse (open-source, OpenTelemetry-native, self-hostable), LangSmith (LangChain ইন্টিগ্রেশন), Helicone (একটি env-var দিয়ে সব ক্যাপচার), Arize Phoenix (evaluation-first), Braintrust (eval + trace এক জায়গায়)।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Token, cost ও latency tracking:</strong> প্রতিটি request রেকর্ড করুক: <strong>input tokens</strong>, <strong>output tokens</strong>, <strong>model</strong>, <strong>cost</strong> (vendor-এর pricing থেকে হিসাব), <strong>latency</strong> (TTFT, total), ও <strong>cache hit</strong>। <code>user_id</code>, <code>feature</code>, <code>experiment</code> দিয়ে tag করুন। এই ডেটাই প্রতিটি অন্য LLMOps প্রশ্নের ভিত্তি।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Prompt ও agent versioning:</strong> prompt হলো কোড। কোডের মতোই git-এ রাখুন, ভার্সন করুন, PR-এ review করুন, CI দিয়ে deploy করুন। প্রতিটি prompt version-এর একটি স্থিত ID থাকবে; প্রতিটি trace সেই prompt ID বহন করবে।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>A/B testing prompts ও models:</strong> <code>user_id</code> hash দিয়ে দুটি prompt version (বা দুটি model)-এর মধ্যে traffic রাউট করুন। Cost, latency, output-এ চালানো eval, ব্যবহারকারীর প্রতিক্রিয়া মাপুন। নির্বাচিত মেট্রিকে একটি ভ্যারিয়েন্ট জিতলে পরীক্ষা বন্ধ করুন।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Replay ও debugging:</strong> ব্যবহারকারী অভিযোগ করলে trace টেনে এনে প্রতিটি prompt ও প্রতিটি model reply দেখুন, ব্যর্থতা চিহ্নিত করুন, এবং সেই exact request ভিন্ন model বা prompt-এ <strong>replay</strong> করে fix যাচাই করুন।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Drift detection (silent behaviour changes):</strong> OpenAI GPT-4-কে GPT-4-0613 দিয়ে প্রতিস্থাপন করলে বা Anthropic \"same-named\" মডেলের weights আপডেট করলে, আপনার output-গুলো আপনার offline eval ধরতে পারবে না এমনভাবে drift করে। সমাধান: production traffic-এর একটি ছোট অংশ (১–৫%) একই সাথে পুরোনো ও নতুন মডেলের মধ্য দিয়ে চালান, eval তুলনা করুন, delta-তে সতর্কতা দিন। Arize Phoenix ও Braintrust এটি স্বয়ংক্রিয় করে।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Feedback loops:</strong> thumbs-up / thumbs-down (বা সমৃদ্ধ সংকেত) ক্যাপচার করুন এবং ব্যর্থতাগুলো আপনার eval dataset-এ ফিড করুন। তিন মাস পর আপনার কাছে এক হাজার বাস্তব ব্যর্থতা থাকবে, যা দশ হাজার synthetic-এর চেয়ে বেশি মূল্যবান।"
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>Black-box flight recorder উপমা:</strong> প্রতিটি LLM কল একটি black-box flight recorder রেখে আসা উচিত। Recorder prompt, model reply, খরচ, latency, কোন ব্যবহারকারী, কোন feature, কোন experiment — সব লিখে রাখুক, যাতে কিছু ভুল হলে (বা নীরবে খারাপ হলে) আপনি সেই মুহূর্তটি replay করে বুঝতে পারেন কেন।"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "n": 1,
+      "url": "https://arxiv.org/abs/2210.03629",
+      "text": "Yao et al., \"ReAct: Synergizing Reasoning and Acting in Language Models\" (ICLR 2023)"
+    },
+    {
+      "n": 2,
+      "url": "https://arxiv.org/abs/2305.04091",
+      "text": "Wei et al., \"Plan-and-Execute Agents\" / \"Chain-of-Thought Prompting Elicits Reasoning in Large Language Models\" — NeurIPS 2022"
+    },
+    {
+      "n": 3,
+      "url": "https://arxiv.org/abs/2303.11381",
+      "text": "Shinn et al., \"Reflexion: Language Agents with Verbal Reinforcement Learning\" — NeurIPS 2023"
+    },
+    {
+      "n": 4,
+      "url": "https://arxiv.org/abs/2305.18323",
+      "text": "Xu et al., \"ReWOO: Decoupling Reasoning from Observations for Efficient Augmented Language Models\""
+    },
+    {
+      "n": 5,
+      "url": "https://www.anthropic.com/engineering/built-multi-agent-research-system",
+      "text": "Anthropic Engineering blog — \"How we built our multi-agent research system\" (2025)"
+    },
+    {
+      "n": 6,
+      "url": "https://langchain-ai.github.io/langgraph/",
+      "text": "LangGraph — official documentation (LangChain)"
+    },
+    {
+      "n": 7,
+      "url": "https://temporal.io/blog/temporal-for-llm-agents",
+      "text": "Temporal — \"Durable Execution for LLM Agents\""
+    },
+    {
+      "n": 8,
+      "url": "https://arxiv.org/abs/2310.06825",
+      "text": "Park et al., \"Generative Agents: Interactive Simulacra of Human Behavior\" — 2023"
+    },
+    {
+      "n": 9,
+      "url": "https://www.anthropic.com/news/3-5-models-and-computer-use",
+      "text": "Anthropic — \"Introducing computer use, a new Claude 3.5 Sonnet capability\" (Oct 2024)"
+    },
+    {
+      "n": 10,
+      "url": "https://docs.anthropic.com/en/docs/build-with-claude/tool-use/overview",
+      "text": "Anthropic — Tool use / function calling documentation"
+    },
+    {
+      "n": 11,
+      "url": "https://platform.openai.com/docs/guides/function-calling",
+      "text": "OpenAI — Function calling guide"
+    },
+    {
+      "n": 12,
+      "url": "https://modelcontextprotocol.io/introduction",
+      "text": "Anthropic — Model Context Protocol (MCP) specification"
+    },
+    {
+      "n": 13,
+      "url": "https://arxiv.org/abs/2309.06180",
+      "text": "Kwon et al., \"Efficient Memory Management for Large Language Model Serving with PagedAttention\" — vLLM paper, SOSP 2023"
+    },
+    {
+      "n": 14,
+      "url": "https://arxiv.org/abs/2312.07104",
+      "text": "Zheng et al., \"SGLang: Efficient Execution of Structured Language Model Programs\" — 2023"
+    },
+    {
+      "n": 15,
+      "url": "https://github.com/ggerganov/llama.cpp",
+      "text": "llama.cpp — open-source GGUF-native inference (ggerganov)"
+    },
+    {
+      "n": 16,
+      "url": "https://arxiv.org/abs/2306.00978",
+      "text": "Lin et al., \"AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration\" — MLSys 2024"
+    },
+    {
+      "n": 17,
+      "url": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching",
+      "text": "Anthropic — Prompt caching documentation"
+    },
+    {
+      "n": 18,
+      "url": "https://arxiv.org/abs/2306.05685",
+      "text": "Zheng et al., \"Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena\" — NeurIPS 2023"
+    },
+    {
+      "n": 19,
+      "url": "https://arxiv.org/abs/2309.15217",
+      "text": "Es et al., \"Ragas: Automated Evaluation of Information Retrieval Augmented Language Models\" — 2023"
+    },
+    {
+      "n": 20,
+      "url": "https://arxiv.org/abs/2405.00072",
+      "text": "Yue et al., \"Large Language Model Cascades with Mixture of Thought Representations\" — 2024"
+    },
+    {
+      "n": 21,
+      "url": "https://github.com/zilliztech/GPTCache",
+      "text": "GPTCache — open-source semantic cache"
+    },
+    {
+      "n": 22,
+      "url": "https://arxiv.org/abs/2501.12948",
+      "text": "Guo et al., \"DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via RL\" — 2025"
+    },
+    {
+      "n": 23,
+      "url": "https://arxiv.org/abs/2310.06839",
+      "text": "Jiang et al., \"LLMLingua: Compressing Prompts for Accelerated Inference of Large Language Models\" — EMNLP 2023"
+    },
+    {
+      "n": 24,
+      "url": "https://docs.litellm.ai/",
+      "text": "LiteLLM — unified interface for 100+ LLMs"
+    },
+    {
+      "n": 25,
+      "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
+      "text": "OWASP — \"Top 10 for LLM Applications\" (LLM01 Prompt Injection, 2025)"
+    },
+    {
+      "n": 26,
+      "url": "https://arxiv.org/abs/2212.08073",
+      "text": "Bai et al., \"Constitutional AI: Harmlessness from AI Feedback\" — Anthropic, 2022"
+    },
+    {
+      "n": 27,
+      "url": "https://github.com/NVIDIA/NeMo-Guardrails",
+      "text": "NVIDIA NeMo Guardrails — open-source toolkit"
+    },
+    {
+      "n": 28,
+      "url": "https://arxiv.org/abs/2409.12191",
+      "text": "Qwen2-VL Team, \"Qwen2-VL: Enhancing Vision-Language Model's Perception of the World at Any Resolution\" — 2024"
+    },
+    {
+      "n": 29,
+      "url": "https://platform.openai.com/docs/guides/realtime",
+      "text": "OpenAI — Realtime API documentation"
+    },
+    {
+      "n": 30,
+      "url": "https://platform.openai.com/docs/guides/production-best-practices",
+      "text": "OpenAI — Production best practices guide"
+    }
+  ]
+}
