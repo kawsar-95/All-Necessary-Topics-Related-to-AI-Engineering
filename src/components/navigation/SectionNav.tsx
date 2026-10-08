@@ -19,13 +19,8 @@ export function SectionNav({ items }: { items: TocItem[] }) {
   const [active, setActive] = useState<string | null>(null);
 
   useEffect(() => {
-    const elements = items
-      .map((item) => document.getElementById(item.id))
-      .filter((el): el is HTMLElement => el !== null);
-    if (!elements.length) return;
-
-    // Look the ids up again on each update: a voice switch can replace the
-    // h3 elements of a section.
+    // Look the ids up again on each update: a voice switch can remove or
+    // replace the h3 elements of a section.
     const update = () => {
       const line = window.innerHeight * LINE;
       let current: string | null = null;
@@ -40,8 +35,33 @@ export function SectionNav({ items }: { items: TocItem[] }) {
       rootMargin: `0px 0px -${(1 - LINE) * 100}% 0px`,
       threshold: 0,
     });
-    for (const el of elements) observer.observe(el);
-    return () => observer.disconnect();
+    const observed = new Set<Element>();
+    const observeAll = () => {
+      for (const el of observed) {
+        if (!el.isConnected) {
+          observer.unobserve(el);
+          observed.delete(el);
+        }
+      }
+      for (const item of items) {
+        const el = document.getElementById(item.id);
+        if (el && !observed.has(el)) {
+          observer.observe(el);
+          observed.add(el);
+        }
+      }
+    };
+    observeAll();
+
+    // A voice switch puts new heading elements in the page. Observe them too.
+    const article = document.getElementById(items[0]?.id ?? "")?.parentElement ?? document.body;
+    const mutations = new MutationObserver(observeAll);
+    mutations.observe(article, { childList: true, subtree: true });
+
+    return () => {
+      mutations.disconnect();
+      observer.disconnect();
+    };
   }, [items]);
 
   return (

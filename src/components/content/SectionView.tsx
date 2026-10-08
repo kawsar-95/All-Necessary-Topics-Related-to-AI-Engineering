@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import type { Block, Section } from "@/lib/content-schema";
 import { Inline } from "./Inline";
@@ -15,6 +15,33 @@ function availableVoices(section: Section): Voice[] {
   if (section.bangla.length) voices.push("bangla");
   if (voices.length > 1) voices.push("all");
   return voices;
+}
+
+/** The ids of all heading blocks in a block list, nested blocks included. */
+function headingIds(blocks: Block[]): string[] {
+  return blocks.flatMap((block): string[] => {
+    switch (block.type) {
+      case "heading":
+        return [block.id];
+      case "callout":
+      case "analogy":
+        return headingIds(block.blocks);
+      case "panels":
+        return block.panels.flatMap((panel) => headingIds(panel.blocks));
+      default:
+        return [];
+    }
+  });
+}
+
+/** The element id that a hash or an in-page href points to, or null. */
+function idFromHash(hash: string): string | null {
+  if (!hash.startsWith("#") || hash.length < 2) return null;
+  try {
+    return decodeURIComponent(hash.slice(1));
+  } catch {
+    return hash.slice(1);
+  }
 }
 
 /** A Layman's or Bangla version, set apart in its own panel. */
@@ -71,6 +98,58 @@ export function SectionView({ section }: { section: Section }) {
   const [voice, setVoice] = useState<Voice>(available[0] ?? "main");
   const show = (v: Exclude<Voice, "all">) =>
     (voice === v || voice === "all") && available.includes(v);
+
+  // A link to a heading of the Technical body (for example a TOC entry)
+  // must work in every voice. If this section shows only Layman's or
+  // Bangla, switch it to Technical and scroll to the heading after the
+  // render.
+  const bodyHeadings = useMemo(() => new Set(headingIds(section.body)), [section.body]);
+  const voiceRef = useRef(voice);
+  const pendingScroll = useRef<string | null>(null);
+
+  useEffect(() => {
+    voiceRef.current = voice;
+    const id = pendingScroll.current;
+    if (!id) return;
+    pendingScroll.current = null;
+    const el = document.getElementById(id);
+    if (!el) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const scroll = () => el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    // The voice-fade rise moves the heading 4px. Scroll when it ends, so the
+    // scroll target is the heading's final position.
+    const fades = el.closest(".voice-fade")?.getAnimations() ?? [];
+    if (fades.length) Promise.all(fades.map((a) => a.finished)).then(scroll, scroll);
+    else scroll();
+  }, [voice]);
+
+  useEffect(() => {
+    const reveal = (hash: string) => {
+      const id = idFromHash(hash);
+      if (!id || !bodyHeadings.has(id)) return;
+      const current = voiceRef.current;
+      if (current !== "layman" && current !== "bangla") return;
+      pendingScroll.current = id;
+      voiceRef.current = "main";
+      setVoice("main");
+    };
+    // A click covers a repeat click on the same link: the hash does not
+    // change, so no hashchange event fires.
+    const onClick = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0) return;
+      const link = (event.target as Element | null)?.closest?.('a[href^="#"]');
+      if (link) reveal(link.getAttribute("href") ?? "");
+    };
+    const onHashChange = () => reveal(window.location.hash);
+
+    reveal(window.location.hash);
+    document.addEventListener("click", onClick);
+    window.addEventListener("hashchange", onHashChange);
+    return () => {
+      document.removeEventListener("click", onClick);
+      window.removeEventListener("hashchange", onHashChange);
+    };
+  }, [bodyHeadings]);
 
   return (
     <section
