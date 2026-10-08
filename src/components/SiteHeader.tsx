@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { GUIDES } from "@/lib/guides";
 
 // Top navigation bar. Plain server component — no client state, no JS shipped
 // for this piece except the Link prefetcher.
@@ -20,17 +19,6 @@ export function SiteHeader() {
             / All Necessary Topics
           </span>
         </Link>
-        <nav className="flex items-center gap-1 text-sm overflow-x-auto">
-          {GUIDES.map((g) => (
-            <Link
-              key={g.slug}
-              href={`/guides/${g.slug}`}
-              className="px-3 py-1.5 rounded-md text-text-dim hover:text-text hover:bg-bg-card no-underline whitespace-nowrap transition-colors"
-            >
-              {g.title}
-            </Link>
-          ))}
-        </nav>
       </div>
     </header>
   );

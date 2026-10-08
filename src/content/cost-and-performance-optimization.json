@@ -1,0 +1,323 @@
+{
+  "slug": "cost-and-performance-optimization",
+  "title": "Cost and Performance Optimization",
+  "lede": "Model cascading, semantic / output / prompt caching, batch APIs, distillation, LLMLingua-style prompt compression, per-feature token budgets, and model gateways (LiteLLM, Portkey, OpenRouter) — a five-tier stack that can cut LLM spend by 5–50× without losing quality. This is chapter <strong>06</strong> of a 9-part series; every chapter is a single self-contained HTML file. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
+  "sections": [
+    {
+      "id": "s6",
+      "num": "01",
+      "title": "Cost & performance optimisation",
+      "sub": "LLM bills scale with usage. Three knobs let you cut cost by 5–50× without losing quality: <strong>cascade</strong> (cheap → expensive routing), <strong>cache</strong> (semantic, prefix, output), and <strong>compress</strong> (prompt compression, distillation).",
+      "body": [
+        {
+          "type": "code",
+          "lang": "python",
+          "code": "# Two-tier cascade\ndef answer(q):\n    small = call(\"llama-3.1-8b\", q, max_tokens=200)\n    if small.confidence > 0.85 or is_simple(q):\n        return small.text\n    return call(\"claude-sonnet-4-5\", q, system=\"Refine this draft: \"+small.text)",
+          "html": "<pre class=\"shiki github-dark-dimmed\" style=\"background-color:#22272e;color:#adbac7\" tabindex=\"0\"><code><span class=\"line\"><span style=\"color:#768390\"># Two-tier cascade</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">def</span><span style=\"color:#DCBDFB\"> answer</span><span style=\"color:#ADBAC7\">(q):</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    small </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> call(</span><span style=\"color:#96D0FF\">\"llama-3.1-8b\"</span><span style=\"color:#ADBAC7\">, q, </span><span style=\"color:#F69D50\">max_tokens</span><span style=\"color:#F47067\">=</span><span style=\"color:#6CB6FF\">200</span><span style=\"color:#ADBAC7\">)</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">    if</span><span style=\"color:#ADBAC7\"> small.confidence </span><span style=\"color:#F47067\">></span><span style=\"color:#6CB6FF\"> 0.85</span><span style=\"color:#F47067\"> or</span><span style=\"color:#ADBAC7\"> is_simple(q):</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">        return</span><span style=\"color:#ADBAC7\"> small.text</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">    return</span><span style=\"color:#ADBAC7\"> call(</span><span style=\"color:#96D0FF\">\"claude-sonnet-4-5\"</span><span style=\"color:#ADBAC7\">, q, </span><span style=\"color:#F69D50\">system</span><span style=\"color:#F47067\">=</span><span style=\"color:#96D0FF\">\"Refine this draft: \"</span><span style=\"color:#F47067\">+</span><span style=\"color:#ADBAC7\">small.text)</span></span></code></pre>"
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s6-caching-semantic-output-prompt",
+          "html": "Caching: semantic, output, prompt"
+        },
+        {
+          "type": "paragraph",
+          "html": "Caching is the single most powerful cost lever. Three kinds:"
+        },
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            "<strong>Semantic cache:</strong> hash embeddings of the prompt; if a near-identical prompt was answered recently (cosine &gt; 0.95), return the cached answer. Built into GPTCache, Redis with vector search, and Helicone.<a class=\"cite\" href=\"#src21\">[21]</a>",
+            "<strong>Output cache:</strong> for deterministic tasks (extraction, classification with temperature=0), a key-value cache keyed on the input.",
+            "<strong>Prompt cache:</strong> provider-level (Anthropic <code>prompt_caching</code>, OpenAI <code>cached_prompt</code>) reuses the KV of the system prompt across calls. 80–90% discount on cached prefix."
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s6-batch-apis-for-non-real-time-workloads",
+          "html": "Batch APIs for non-real-time workloads"
+        },
+        {
+          "type": "paragraph",
+          "html": "OpenAI's <code>/v1/batches</code>, Google Batch, Together batch — submit a JSONL file, get results within 24h, at half the cost. Use for: nightly evals, bulk labelling, backfills, anything that doesn't need an answer in the next 5 seconds."
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s6-distillation-small-model-from-big",
+          "html": "Distillation (small model from big)"
+        },
+        {
+          "type": "paragraph",
+          "html": "Take 50,000 (prompt, big_model_answer) pairs from production (with consent), fine-tune a small open model on them. DeepSeek-R1's \"distilled Qwen\" line showed that a well-distilled 7B beats an un-distilled 12B on reasoning benchmarks.<a class=\"cite\" href=\"#src22\">[22]</a> Distillation is the only technique that simultaneously cuts cost <em>and</em> latency <em>and</em> unlocks self-hosting."
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s6-prompt-compression-llmlingua-style",
+          "html": "Prompt compression (LLMLingua-style)"
+        },
+        {
+          "type": "paragraph",
+          "html": "Tools like <strong>LLMLingua</strong> remove stopwords, paraphrase verbose passages, and drop low-information tokens — often 5–20× compression with &lt;3% quality hit.<a class=\"cite\" href=\"#src23\">[23]</a> Particularly powerful for long RAG contexts where most chunks are filler."
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s6-token-budgeting-per-feature",
+          "html": "Token budgeting per feature"
+        },
+        {
+          "type": "paragraph",
+          "html": "Allocate a monthly token budget per feature, alert at 80%, throttle at 100%. This is the operational layer that prevents one runaway feature from blowing the company's bill."
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s6-model-gateways-litellm-portkey-openrouter",
+          "html": "Model gateways: LiteLLM, Portkey, OpenRouter"
+        },
+        {
+          "type": "paragraph",
+          "html": "A <strong>model gateway</strong> sits between your app and every LLM provider. It gives you: one API for OpenAI + Anthropic + Together + your own vLLM; per-key rate limits; cost tracking; retries; fallbacks; semantic caching out of the box. The three major options are <strong>LiteLLM</strong> (Python proxy), <strong>Portkey</strong> (production-grade SaaS), and <strong>OpenRouter</strong> (consumer-grade aggregator).<a class=\"cite\" href=\"#src24\">[24]</a>"
+        },
+        {
+          "type": "diagram",
+          "svg": "<svg viewBox=\"0 0 1100 760\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"Cost optimisation stack\">\n      <text x=\"40\" y=\"30\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#a8b5c8\">Cost optimisation stack — top-down, highest impact first</text>\n\n      <g><rect x=\"40\" y=\"50\" width=\"1020\" height=\"100\" rx=\"10\" fill=\"#0f172a\" stroke=\"#fb7185\"></rect>\n        <text x=\"60\" y=\"78\" font-family=\"Inter, sans-serif\" font-size=\"14\" font-weight=\"700\" fill=\"#fb7185\">Tier 1 — Eliminate the call entirely</text>\n        <text x=\"60\" y=\"100\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#cfd8e6\">semantic cache · output cache · prompt cache · guardrail short-circuit</text>\n        <text x=\"60\" y=\"120\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">typical savings: 30–80% of total cost</text>\n        <text x=\"60\" y=\"138\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">zero quality impact if cache key is correct</text></g>\n\n      <g><rect x=\"40\" y=\"170\" width=\"1020\" height=\"100\" rx=\"10\" fill=\"#0f172a\" stroke=\"#fbbf24\"></rect>\n        <text x=\"60\" y=\"198\" font-family=\"Inter, sans-serif\" font-size=\"14\" font-weight=\"700\" fill=\"#fbbf24\">Tier 2 — Shrink the call</text>\n        <text x=\"60\" y=\"220\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#cfd8e6\">prompt compression (LLMLingua) · short system prompts · trim tool output · max_tokens caps</text>\n        <text x=\"60\" y=\"240\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">typical savings: 30–70% on remaining calls</text>\n        <text x=\"60\" y=\"258\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">minor quality risk; measure before/after</text></g>\n\n      <g><rect x=\"40\" y=\"290\" width=\"1020\" height=\"100\" rx=\"10\" fill=\"#0f172a\" stroke=\"#22d3ee\"></rect>\n        <text x=\"60\" y=\"318\" font-family=\"Inter, sans-serif\" font-size=\"14\" font-weight=\"700\" fill=\"#22d3ee\">Tier 3 — Use a cheaper model</text>\n        <text x=\"60\" y=\"340\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#cfd8e6\">cascade (8B → 70B) · distillation · batch API (50% off) · self-host open weights</text>\n        <text x=\"60\" y=\"360\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">typical savings: 2–10× per remaining call</text>\n        <text x=\"60\" y=\"378\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">requires quality testing per workload</text></g>\n\n      <g><rect x=\"40\" y=\"410\" width=\"1020\" height=\"100\" rx=\"10\" fill=\"#0f172a\" stroke=\"#34d399\"></rect>\n        <text x=\"60\" y=\"438\" font-family=\"Inter, sans-serif\" font-size=\"14\" font-weight=\"700\" fill=\"#34d399\">Tier 4 — Discount the call</text>\n        <text x=\"60\" y=\"460\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#cfd8e6\">provider price matching · committed-use discounts · AWS / Azure credits</text>\n        <text x=\"60\" y=\"480\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">typical savings: 10–40% at scale</text>\n        <text x=\"60\" y=\"498\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">procurement play, not engineering</text></g>\n\n      <g><rect x=\"40\" y=\"530\" width=\"1020\" height=\"100\" rx=\"10\" fill=\"#0f172a\" stroke=\"#a78bfa\"></rect>\n        <text x=\"60\" y=\"558\" font-family=\"Inter, sans-serif\" font-size=\"14\" font-weight=\"700\" fill=\"#a78bfa\">Tier 5 — Stop runaway usage</text>\n        <text x=\"60\" y=\"580\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#cfd8e6\">token budgets · per-user rate limits · loop detection · prompt-length caps</text>\n        <text x=\"60\" y=\"600\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">typical savings: unpredictable but bounded</text>\n        <text x=\"60\" y=\"618\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">prevents the $100k surprise on the 31st</text></g>\n\n      <text x=\"40\" y=\"700\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">work top-down; Tiers 1–3 are engineering, Tiers 4–5 are procurement / ops. Each tier compounds with the ones above.</text>\n      <text x=\"40\" y=\"720\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">gate each tier with an offline eval: measure quality before/after; refuse the optimisation if it breaks your golden dataset.</text>\n    </svg>",
+          "caption": "The cost-optimisation stack. Each tier compounds with the ones above; work top-down. Tiers 1–3 are engineering, Tier 4 is procurement, Tier 5 is ops.",
+          "captionBn": "খরচ-অপ্টিমাইজেশন স্ট্যাক। প্রতিটি স্তর উপরের স্তরগুলোর সাথে মিলিত হয়; উপর থেকে নিচে কাজ করুন। স্তর 1–3 ইসলেব-ই, স্তর 4 procurement, স্তর 5 ops।"
+        }
+      ],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Three big knobs to cut your AI bill by 5–50×:</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>1. Cascade (route easy to cheap, hard to expensive).</strong> Don't send every question to the smartest AI. Send \"what's 2+2?\" to the tiny model, send \"draft me a legal contract\" to the big one. A small classifier (or the model's own score) decides which to use. You get almost the same quality at much less."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>2. Cache (don't re-answer the same thing).</strong> If 1,000 users all ask \"what's your refund policy?\" within an hour, you answer once and serve the cached answer 999 times. Three kinds: <em>semantic</em> cache (answers to questions similar by meaning), <em>output</em> cache (answers to exact inputs), and <em>prompt cache</em> (the AI vendor remembers the start of your prompt and skips re-reading it)."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>3. Compress + distill (use less, or use smaller).</strong> <em>Prompt compression</em> strips the filler from your prompt without losing meaning. <em>Distillation</em> takes a small model, shows it 50,000 answers the big model gave, and trains it to give similar answers. The small model is now nearly as good as the big one — but 10× cheaper and runs on your laptop."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Other tricks:</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "• <strong>Batch API</strong> = \"send me 10,000 questions, get answers tomorrow, half price.\" Great for anything not real-time.<br>\n       • <strong>Token budgets</strong> = \"feature Y has a $500/month budget; cut it off at 100%.\" So nothing burns the company's bank account by accident.<br>\n       • <strong>Model gateways</strong> = \"one API that talks to OpenAI + Anthropic + your self-hosted model.\" Tracks cost, retries, falls back when one provider is down."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The electricity-bill analogy:</strong> your AI bill is like an electricity bill — every call uses some. <em>Caching</em> is \"remember what the previous user already paid for and share it.\" <em>Cascade</em> is \"use a nightlight when you don't need a spotlight.\" <em>Compression</em> is \"wrap your house in better insulation — same warmth, less energy.\" <em>Distillation</em> is \"buy a smaller, more efficient fridge.\" <em>Budgets</em> are \"the circuit breaker that trips if you accidentally leave every appliance on at once.\""
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "<strong>তিনটি বড় লিভার যা আপনার AI বিল ৫–৫০× কমাতে পারে:</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>১. Cascade (সহজ প্রসিঙ্গুলো সস্তায়, কঠিনগুলো ব্যয়বহুলায়)।</strong> প্রতিটি প্রশ্ন সবচেয়ে স্মার্ট AI-এ পাঠাবেন না। \"২+২ কত?\" ছোট মডেলে পাঠান, \"আমাকে একটি আইনি চুক্তি ড্রাফ্ট কর\" বড় মডেলে। একটি ছোট classifier (বা মডেলের নিজস্ব স্কোর) সিদ্ধান্ত নেয় কোনটি ব্যবহার করবে। প্রায় একই মান অনেক কম খরচে।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>২. Cache (একই জিনিস আবার উত্তর দেবেন না)।</strong> ১,০০০ ব্যবহারকারী এক ঘণ্টার মধ্যে \"আপনার refund policy কী?\" জিজ্ঞেস করলে, আপনি একবার উত্তর দিন এবং ৯৯৯ বার cached উত্তর দিন। তিন ধরন: <em>semantic cache</em> (অর্থ দ্বারা অনুরূপ প্রশ্নের উত্তর), <em>output cache</em> (হুবহু একই input-এর উত্তর), এবং <em>prompt cache</em> (AI vendor আপনার prompt-এর শুরুটি মনে রাখে এবং পুনঃপড়া এড়িয়ে যায়)।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>৩. Compress ও distill (কম ব্যবহার করুন, অথবা ছোট ব্যবহার করুন)।</strong> <em>Prompt compression</em> আপনার prompt থেকে অর্থ না হারিয়ে ফিলার বাদ দেয়। <em>Distillation</em> একটি ছোট মডেল নিয়ে, বড় মডেলের দেওয়া ৫০,০০০ উত্তর দেখায়, এবং অনুরূপ উত্তর দিতে প্রশিক্ষণ দেয়। ছোট মডেল এখন বড়টির প্রায় কাছাকাছি — কিন্তু ১০× সস্তা এবং আপনার ল্যাপটপে চলে।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>অন্যান্য কৌশল:</strong>"
+        },
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            "<strong>Batch API</strong> = \"আমাকে ১০,০০০ প্রশ্ন পাঠাও, কাল উত্তর দাও, অর্ধেক দামে।\" real-time নয় এমন সবকিছুর জন্য দারুণ।",
+            "<strong>Token budgets</strong> = \"feature Y-এর মাসে $500 বাজেট; ১০০%-এ কেটে দাও।\" যাতে কোনোকিছু দুর্ঘটনাবশত কোম্পানির ব্যাংক অ্যাকাউন্ট পুড়িয়ে না ফেলে।",
+            "<strong>Model gateways</strong> = \"OpenAI + Anthropic + আপনার স্ব-হোস্টেড মডেলের সাথে কথা বলে এমন একটি API।\" খরচ ট্র্যাক করে, retry করে, একটি provider down হলে fallback দেয়।"
+          ]
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>বিদ্যুৎ বিলের উপমা:</strong> আপনার AI বিল হলো বিদ্যুৎ বিলের মতো — প্রতিটি কল কিছু ব্যবহার করে। <em>Caching</em> হলো \"পূর্ববর্তী ব্যবহারকারী যার জন্য ইতিমধ্যে অর্থ দিয়েছেন তা মনে রাখুন এবং শেয়ার করুন।\" <em>Cascade</em> হলো \"স্পটলাইটের দরকার না হলে নাইটলাইট ব্যবহার করুন।\" <em>Compression</em> হলো \"বাড়িতে ভালো ইনসুলেশন — একই উষ্ণতা, কম শক্তি।\" <em>Distillation</em> হলো \"একটি ছোট, আরও দক্ষ ফ্রিজ কিনা।\" <em>Budgets</em> হলো \"সার্কিট ব্রেকার — দুর্ঘটনাবশত সব যন্ত্র একসাথে চালু রাখলে সেটি trip করে।\""
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "n": 1,
+      "url": "https://arxiv.org/abs/2210.03629",
+      "text": "Yao et al., \"ReAct: Synergizing Reasoning and Acting in Language Models\" (ICLR 2023)"
+    },
+    {
+      "n": 2,
+      "url": "https://arxiv.org/abs/2305.04091",
+      "text": "Wei et al., \"Plan-and-Execute Agents\" / \"Chain-of-Thought Prompting Elicits Reasoning in Large Language Models\" — NeurIPS 2022"
+    },
+    {
+      "n": 3,
+      "url": "https://arxiv.org/abs/2303.11381",
+      "text": "Shinn et al., \"Reflexion: Language Agents with Verbal Reinforcement Learning\" — NeurIPS 2023"
+    },
+    {
+      "n": 4,
+      "url": "https://arxiv.org/abs/2305.18323",
+      "text": "Xu et al., \"ReWOO: Decoupling Reasoning from Observations for Efficient Augmented Language Models\""
+    },
+    {
+      "n": 5,
+      "url": "https://www.anthropic.com/engineering/built-multi-agent-research-system",
+      "text": "Anthropic Engineering blog — \"How we built our multi-agent research system\" (2025)"
+    },
+    {
+      "n": 6,
+      "url": "https://langchain-ai.github.io/langgraph/",
+      "text": "LangGraph — official documentation (LangChain)"
+    },
+    {
+      "n": 7,
+      "url": "https://temporal.io/blog/temporal-for-llm-agents",
+      "text": "Temporal — \"Durable Execution for LLM Agents\""
+    },
+    {
+      "n": 8,
+      "url": "https://arxiv.org/abs/2310.06825",
+      "text": "Park et al., \"Generative Agents: Interactive Simulacra of Human Behavior\" — 2023"
+    },
+    {
+      "n": 9,
+      "url": "https://www.anthropic.com/news/3-5-models-and-computer-use",
+      "text": "Anthropic — \"Introducing computer use, a new Claude 3.5 Sonnet capability\" (Oct 2024)"
+    },
+    {
+      "n": 10,
+      "url": "https://docs.anthropic.com/en/docs/build-with-claude/tool-use/overview",
+      "text": "Anthropic — Tool use / function calling documentation"
+    },
+    {
+      "n": 11,
+      "url": "https://platform.openai.com/docs/guides/function-calling",
+      "text": "OpenAI — Function calling guide"
+    },
+    {
+      "n": 12,
+      "url": "https://modelcontextprotocol.io/introduction",
+      "text": "Anthropic — Model Context Protocol (MCP) specification"
+    },
+    {
+      "n": 13,
+      "url": "https://arxiv.org/abs/2309.06180",
+      "text": "Kwon et al., \"Efficient Memory Management for Large Language Model Serving with PagedAttention\" — vLLM paper, SOSP 2023"
+    },
+    {
+      "n": 14,
+      "url": "https://arxiv.org/abs/2312.07104",
+      "text": "Zheng et al., \"SGLang: Efficient Execution of Structured Language Model Programs\" — 2023"
+    },
+    {
+      "n": 15,
+      "url": "https://github.com/ggerganov/llama.cpp",
+      "text": "llama.cpp — open-source GGUF-native inference (ggerganov)"
+    },
+    {
+      "n": 16,
+      "url": "https://arxiv.org/abs/2306.00978",
+      "text": "Lin et al., \"AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration\" — MLSys 2024"
+    },
+    {
+      "n": 17,
+      "url": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching",
+      "text": "Anthropic — Prompt caching documentation"
+    },
+    {
+      "n": 18,
+      "url": "https://arxiv.org/abs/2306.05685",
+      "text": "Zheng et al., \"Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena\" — NeurIPS 2023"
+    },
+    {
+      "n": 19,
+      "url": "https://arxiv.org/abs/2309.15217",
+      "text": "Es et al., \"Ragas: Automated Evaluation of Information Retrieval Augmented Language Models\" — 2023"
+    },
+    {
+      "n": 20,
+      "url": "https://arxiv.org/abs/2405.00072",
+      "text": "Yue et al., \"Large Language Model Cascades with Mixture of Thought Representations\" — 2024"
+    },
+    {
+      "n": 21,
+      "url": "https://github.com/zilliztech/GPTCache",
+      "text": "GPTCache — open-source semantic cache"
+    },
+    {
+      "n": 22,
+      "url": "https://arxiv.org/abs/2501.12948",
+      "text": "Guo et al., \"DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via RL\" — 2025"
+    },
+    {
+      "n": 23,
+      "url": "https://arxiv.org/abs/2310.06839",
+      "text": "Jiang et al., \"LLMLingua: Compressing Prompts for Accelerated Inference of Large Language Models\" — EMNLP 2023"
+    },
+    {
+      "n": 24,
+      "url": "https://docs.litellm.ai/",
+      "text": "LiteLLM — unified interface for 100+ LLMs"
+    },
+    {
+      "n": 25,
+      "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
+      "text": "OWASP — \"Top 10 for LLM Applications\" (LLM01 Prompt Injection, 2025)"
+    },
+    {
+      "n": 26,
+      "url": "https://arxiv.org/abs/2212.08073",
+      "text": "Bai et al., \"Constitutional AI: Harmlessness from AI Feedback\" — Anthropic, 2022"
+    },
+    {
+      "n": 27,
+      "url": "https://github.com/NVIDIA/NeMo-Guardrails",
+      "text": "NVIDIA NeMo Guardrails — open-source toolkit"
+    },
+    {
+      "n": 28,
+      "url": "https://arxiv.org/abs/2409.12191",
+      "text": "Qwen2-VL Team, \"Qwen2-VL: Enhancing Vision-Language Model's Perception of the World at Any Resolution\" — 2024"
+    },
+    {
+      "n": 29,
+      "url": "https://platform.openai.com/docs/guides/realtime",
+      "text": "OpenAI — Realtime API documentation"
+    },
+    {
+      "n": 30,
+      "url": "https://platform.openai.com/docs/guides/production-best-practices",
+      "text": "OpenAI — Production best practices guide"
+    }
+  ]
+}

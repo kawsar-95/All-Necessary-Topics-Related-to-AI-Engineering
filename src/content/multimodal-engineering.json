@@ -1,0 +1,371 @@
+{
+  "slug": "multimodal-engineering",
+  "title": "Multimodal Engineering",
+  "lede": "Vision (OCR-via-LLM, document AI), voice (STT/TTS, realtime APIs from OpenAI / LiveKit / Vapi), image generation (Flux, SDXL, Imagen, DALL-E; ControlNet, LoRA, ComfyUI), and video generation (Sora, Veo, Runway, Kling). This is chapter <strong>08</strong> of a 9-part series; every chapter is a single self-contained HTML file. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies). প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
+  "sections": [
+    {
+      "id": "s8",
+      "num": "01",
+      "title": "Multimodal engineering (vision, voice, video)",
+      "sub": "Text was the first modality. In 2025, every production AI app combines at least two of <strong>vision</strong>, <strong>voice</strong>, <strong>image generation</strong>, and <strong>video generation</strong>. Multimodal engineering is the discipline of choosing models, latency budgets, and pipelines for each.",
+      "body": [
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            "<strong>OCR-via-LLM</strong>: an LLM beats Tesseract on messy photos, handwritten notes, and structured forms. Often no separate OCR step needed.<a class=\"cite\" href=\"#src28\">[28]</a>",
+            "<strong>Document AI</strong>: PDF understanding with layout awareness (Claude, Mistral OCR, Qwen2-VL).",
+            "<strong>Chart/diagram extraction</strong>: ask the model to read a chart and emit JSON.",
+            "<strong>Visual Q&A</strong>: \"what's wrong with this screenshot?\""
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s8-voice-agents-stt-tts-realtime-apis",
+          "html": "Voice agents: STT, TTS, realtime APIs"
+        },
+        {
+          "type": "paragraph",
+          "html": "A voice pipeline is STT → LLM → TTS. Each has its own SOTA:"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Component",
+            "Options"
+          ],
+          "rows": [
+            [
+              "<strong>STT (speech → text)</strong>",
+              "Whisper, Deepgram, AssemblyAI, ElevenLabs Scribe"
+            ],
+            [
+              "<strong>TTS (text → speech)</strong>",
+              "ElevenLabs, Cartesia, OpenAI TTS, PlayHT"
+            ],
+            [
+              "<strong>Realtime</strong>",
+              "OpenAI Realtime API, LiveKit Agents, Vapi, Retell, Daily"
+            ]
+          ]
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Realtime APIs</strong> skip the chunky STT→LLM→TTS loop by streaming audio bidirectionally. Sub-500 ms turn-taking is now achievable. LiveKit and Vapi ship full agent frameworks on top of these.<a class=\"cite\" href=\"#src29\">[29]</a>"
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s8-image-generation",
+          "html": "Image generation"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Model",
+            "Style"
+          ],
+          "rows": [
+            [
+              "<strong>Flux (Black Forest Labs)</strong>",
+              "Open-weights availability, strong prompt fidelity"
+            ],
+            [
+              "<strong>SDXL / SD3 (Stability)</strong>",
+              "Open, fine-tuneable with LoRA"
+            ],
+            [
+              "<strong>Imagen 3 (Google)</strong>",
+              "Photorealism, available via Vertex"
+            ],
+            [
+              "<strong>DALL-E 3 / GPT-Image-1 (OpenAI)</strong>",
+              "Polished, instruction-following"
+            ],
+            [
+              "<strong>Ideogram, Recraft, Reve</strong>",
+              "Typography and design-oriented"
+            ]
+          ]
+        },
+        {
+          "type": "paragraph",
+          "html": "Workflows: <strong>ControlNet</strong> for structure (pose, depth, canny edges), <strong>LoRA</strong> for style or character consistency, <strong>inpainting</strong> for edits, <strong>IP-Adapter</strong> for reference images. ComfyUI lets you wire these into reproducible pipelines."
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s8-video-generation",
+          "html": "Video generation"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Model",
+            "Length / strength"
+          ],
+          "rows": [
+            [
+              "<strong>Sora (OpenAI)</strong>",
+              "Up to 20 s, strong physics"
+            ],
+            [
+              "<strong>Veo 3 (Google)</strong>",
+              "Native audio + 4K, prompt-adherent"
+            ],
+            [
+              "<strong>Runway Gen-4</strong>",
+              "Reference-image continuity for character"
+            ],
+            [
+              "<strong>Kling 2.0 (Kuaishou)</strong>",
+              "Long-form, motion quality"
+            ],
+            [
+              "<strong>Pika, Luma, Hailuo</strong>",
+              "Smaller, cheaper, faster"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s8-comfyui-replicate-fal-for-media-pipelines",
+          "html": "ComfyUI, Replicate, Fal for media pipelines"
+        },
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            "<strong>ComfyUI</strong> — node-based UI for Stable Diffusion / Flux workflows. The \"Figma for diffusion.\" Production teams version-control the JSON graphs.",
+            "<strong>Replicate</strong> — pay-per-second API for any open-source model. The fastest way to deploy something you found on Hugging Face.",
+            "<strong>Fal</strong> — fast hosted inference for diffusion, with streaming partial results."
+          ]
+        }
+      ],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>AI isn't just text anymore.</strong> In 2025 every serious AI app combines at least two of: looking at images, listening to voice, generating images, generating video. Each has its own model, its own trade-off, and its own best-practice pipeline."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Vision (\"AI that sees\"):</strong> Native multimodal models like GPT-4o, Claude 4, Gemini 2.5 take images directly — no separate OCR step needed. They can read a photo of a receipt, look at a screenshot and tell you what's wrong, extract the data from a chart, or understand a PDF's layout. They beat traditional OCR tools on messy real-world images."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Voice (\"AI that hears and talks\"):</strong> The old way is a 3-step pipeline: speech-to-text → LLM → text-to-speech. Each step adds latency. <em>STT</em> (speech-to-text) tools: Whisper, Deepgram, AssemblyAI. <em>TTS</em> (text-to-speech) tools: ElevenLabs, Cartesia, OpenAI TTS. <em>Realtime APIs</em> (OpenAI Realtime, LiveKit, Vapi) stream audio both directions without the chunky step-by-step loop — the AI interrupts itself, pauses naturally, and feels like a real conversation."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Image generation (\"AI that draws\"):</strong> Flux, SDXL, Imagen, DALL-E — pick by what you need: open weights and fine-tunability (Flux, SDXL), photorealism (Imagen), instruction-following (DALL-E). Advanced: <em>ControlNet</em> lets you say \"draw this character in <em>this</em> pose\"; <em>LoRA</em> lets you teach it a model in the style you want; <em>inpainting</em> lets you edit part of an image. <em>ComfyUI</em> is the node-based UI where you wire these into reproducible pipelines."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Video generation (\"AI that films\"):</strong> Sora (OpenAI), Veo 3 (Google, with native audio), Kling (Kuaishou, longer), Runway (character continuity), Pika/Luma/Hailuo (cheaper, faster). Most produce 5–20 second clips. Quality is now broadcast-grade for short social-media content."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Production plumbing:</strong> <em>Replicate</em> is \"give me a credit card and I'll run any open-source AI model for you per second.\" <em>Fal</em> is the same with speed-optimised diffusion. <em>ComfyUI</em> is the Figma-for-diffusion tool: node-based UI that you can version-control and run headlessly."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The studio analogy:</strong> think of an AI studio in 2025. The <em>vision</em> model is the camera operator. The <em>voice</em> model is the dubbing artist. The <em>image-generation</em> model is the illustrator. The <em>video</em> model is the director of photography. <em>ComfyUI</em> is the studio's workflow tool — where you plug the camera, the artist, and the director into one pipeline. <em>Replicate/Fal</em> is \"rent a GPU by the hour, no need to buy your own.\""
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "<strong>এআই আর শুধু টেক্সট নয়।</strong> ২০২৫-এ প্রতিটি গুরুতর AI অ্যাপ অন্তত দুটির সমন্বয় করে — চিত্র দেখা, কণ্ঠ শোনা, চিত্র তৈরি, ভিডিও তৈরি। প্রতিটির নিজস্ব মডেল, ট্রেড-অফ ও সেরা-অনুশীলন পাইপলাইন আছে।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Vision (\"যে AI দেখে\"):</strong> GPT-4o, Claude 4, Gemini 2.5 এর মতো নেটিভ multimodal মডেলগুলো সরাসরি চিত্র নেয় — কোনো আলাদা OCR ধাপের দরকার নেই। তারা রসিদের ছবি পড়তে, স্ক্রিনশট দেখে বলতে এটি কী ভুল, চার্ট থেকে ডেটা বের করতে, বা PDF-এর layout বুঝতে পারে। তারা বাস্তব-বিশ্বের অগোছালো চিত্রে ঐতিহ্যবাহী OCR tools-কে ছাড়িয়ে যায়।<a class=\"cite\" href=\"#src28\">[28]</a>"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Voice (\"যে AI শোনে ও কথা বলে\"):</strong> পুরোনো উপায় হলো ৩-ধাপের pipeline: speech-to-text → LLM → text-to-speech। প্রতিটি ধাপ latency যোগ করে। <em>STT</em> (speech-to-text) tools: Whisper, Deepgram, AssemblyAI। <em>TTS</em> (text-to-speech) tools: ElevenLabs, Cartesia, OpenAI TTS। <em>Realtime APIs</em> (OpenAI Realtime, LiveKit, Vapi) chunky ধাপে-ধাপে লুপ ছাড়াই উভয় দিকে audio stream করে — AI নিজেই নিজেকে interrupt করে, স্বাভাবিকভাবে pause নেয়, এবং আসল কথোপকথনের মতো অনুভূত হয়।<a class=\"cite\" href=\"#src29\">[29]</a>"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Image generation (\"যে AI আঁকে\"):</strong> Flux, SDXL, Imagen, DALL-E — আপনার প্রয়োজন অনুযায়ী বেছে নিন: open weights ও fine-tunability (Flux, SDXL), photorealism (Imagen), instruction-following (DALL-E)। উন্নত: <em>ControlNet</em> আপনাকে বলতে দেয় \"এই চরিত্রটি <em>এই</em> pose-এ আঁক\"; <em>LoRA</em> আপনাকে আপনার পছন্দের স্টাইলে শেখায়; <em>inpainting</em> একটি চিত্রের অংশ সম্পাদনা করতে দেয়। <em>ComfyUI</em> হলো node-based UI যেখানে আপনি এগুলো reproducible pipeline-এ সংযুক্ত করেন।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Video generation (\"যে AI চিত্রগ্রহণ করে\"):</strong> Sora (OpenAI), Veo 3 (Google, native audio সহ), Kling (Kuaishou, দীর্ঘ), Runway (চরিত্রের ধারাবাহিকতা), Pika/Luma/Hailuo (সস্তা, দ্রুত)। বেশিরভাগ ৫–২০ সেকেন্ডের ক্লিপ তৈরি করে। স্বল্প social-media কন্টেন্টের জন্য মান এখন broadcast-grade।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Production plumbing:</strong> <em>Replicate</em> হলো \"আমাকে একটি ক্রেডিট কার্ড দাও এবং আমি যেকোনো open-source AI মডেল প্রতি সেকেন্ডে চালাব।\" <em>Fal</em> একই কিন্তু speed-optimised diffusion। <em>ComfyUI</em> হলো diffusion-এর জন্য Figma: node-based UI যা version-control ও headless চালানো যায়।"
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>স্টুডিওর উপমা:</strong> ২০২৫-এর AI স্টুডিও ভাবুন। <em>Vision</em> মডেল হলো camera operator। <em>Voice</em> মডেল হলো dubbing artist। <em>Image-generation</em> মডেল হলো illustrator। <em>Video</em> মডেল হলো director of photography। <em>ComfyUI</em> হলো স্টুডিওর workflow tool — যেখানে camera, artist ও director-কে একটি pipeline-এ প্লাগ করা হয়। <em>Replicate/Fal</em> হলো \"নিজের GPU না কিনে ঘণ্টা ভাড়ায় ভাড়া নাও।\""
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "n": 1,
+      "url": "https://arxiv.org/abs/2210.03629",
+      "text": "Yao et al., \"ReAct: Synergizing Reasoning and Acting in Language Models\" (ICLR 2023)"
+    },
+    {
+      "n": 2,
+      "url": "https://arxiv.org/abs/2305.04091",
+      "text": "Wei et al., \"Plan-and-Execute Agents\" / \"Chain-of-Thought Prompting Elicits Reasoning in Large Language Models\" — NeurIPS 2022"
+    },
+    {
+      "n": 3,
+      "url": "https://arxiv.org/abs/2303.11381",
+      "text": "Shinn et al., \"Reflexion: Language Agents with Verbal Reinforcement Learning\" — NeurIPS 2023"
+    },
+    {
+      "n": 4,
+      "url": "https://arxiv.org/abs/2305.18323",
+      "text": "Xu et al., \"ReWOO: Decoupling Reasoning from Observations for Efficient Augmented Language Models\""
+    },
+    {
+      "n": 5,
+      "url": "https://www.anthropic.com/engineering/built-multi-agent-research-system",
+      "text": "Anthropic Engineering blog — \"How we built our multi-agent research system\" (2025)"
+    },
+    {
+      "n": 6,
+      "url": "https://langchain-ai.github.io/langgraph/",
+      "text": "LangGraph — official documentation (LangChain)"
+    },
+    {
+      "n": 7,
+      "url": "https://temporal.io/blog/temporal-for-llm-agents",
+      "text": "Temporal — \"Durable Execution for LLM Agents\""
+    },
+    {
+      "n": 8,
+      "url": "https://arxiv.org/abs/2310.06825",
+      "text": "Park et al., \"Generative Agents: Interactive Simulacra of Human Behavior\" — 2023"
+    },
+    {
+      "n": 9,
+      "url": "https://www.anthropic.com/news/3-5-models-and-computer-use",
+      "text": "Anthropic — \"Introducing computer use, a new Claude 3.5 Sonnet capability\" (Oct 2024)"
+    },
+    {
+      "n": 10,
+      "url": "https://docs.anthropic.com/en/docs/build-with-claude/tool-use/overview",
+      "text": "Anthropic — Tool use / function calling documentation"
+    },
+    {
+      "n": 11,
+      "url": "https://platform.openai.com/docs/guides/function-calling",
+      "text": "OpenAI — Function calling guide"
+    },
+    {
+      "n": 12,
+      "url": "https://modelcontextprotocol.io/introduction",
+      "text": "Anthropic — Model Context Protocol (MCP) specification"
+    },
+    {
+      "n": 13,
+      "url": "https://arxiv.org/abs/2309.06180",
+      "text": "Kwon et al., \"Efficient Memory Management for Large Language Model Serving with PagedAttention\" — vLLM paper, SOSP 2023"
+    },
+    {
+      "n": 14,
+      "url": "https://arxiv.org/abs/2312.07104",
+      "text": "Zheng et al., \"SGLang: Efficient Execution of Structured Language Model Programs\" — 2023"
+    },
+    {
+      "n": 15,
+      "url": "https://github.com/ggerganov/llama.cpp",
+      "text": "llama.cpp — open-source GGUF-native inference (ggerganov)"
+    },
+    {
+      "n": 16,
+      "url": "https://arxiv.org/abs/2306.00978",
+      "text": "Lin et al., \"AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration\" — MLSys 2024"
+    },
+    {
+      "n": 17,
+      "url": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching",
+      "text": "Anthropic — Prompt caching documentation"
+    },
+    {
+      "n": 18,
+      "url": "https://arxiv.org/abs/2306.05685",
+      "text": "Zheng et al., \"Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena\" — NeurIPS 2023"
+    },
+    {
+      "n": 19,
+      "url": "https://arxiv.org/abs/2309.15217",
+      "text": "Es et al., \"Ragas: Automated Evaluation of Information Retrieval Augmented Language Models\" — 2023"
+    },
+    {
+      "n": 20,
+      "url": "https://arxiv.org/abs/2405.00072",
+      "text": "Yue et al., \"Large Language Model Cascades with Mixture of Thought Representations\" — 2024"
+    },
+    {
+      "n": 21,
+      "url": "https://github.com/zilliztech/GPTCache",
+      "text": "GPTCache — open-source semantic cache"
+    },
+    {
+      "n": 22,
+      "url": "https://arxiv.org/abs/2501.12948",
+      "text": "Guo et al., \"DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via RL\" — 2025"
+    },
+    {
+      "n": 23,
+      "url": "https://arxiv.org/abs/2310.06839",
+      "text": "Jiang et al., \"LLMLingua: Compressing Prompts for Accelerated Inference of Large Language Models\" — EMNLP 2023"
+    },
+    {
+      "n": 24,
+      "url": "https://docs.litellm.ai/",
+      "text": "LiteLLM — unified interface for 100+ LLMs"
+    },
+    {
+      "n": 25,
+      "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
+      "text": "OWASP — \"Top 10 for LLM Applications\" (LLM01 Prompt Injection, 2025)"
+    },
+    {
+      "n": 26,
+      "url": "https://arxiv.org/abs/2212.08073",
+      "text": "Bai et al., \"Constitutional AI: Harmlessness from AI Feedback\" — Anthropic, 2022"
+    },
+    {
+      "n": 27,
+      "url": "https://github.com/NVIDIA/NeMo-Guardrails",
+      "text": "NVIDIA NeMo Guardrails — open-source toolkit"
+    },
+    {
+      "n": 28,
+      "url": "https://arxiv.org/abs/2409.12191",
+      "text": "Qwen2-VL Team, \"Qwen2-VL: Enhancing Vision-Language Model's Perception of the World at Any Resolution\" — 2024"
+    },
+    {
+      "n": 29,
+      "url": "https://platform.openai.com/docs/guides/realtime",
+      "text": "OpenAI — Realtime API documentation"
+    },
+    {
+      "n": 30,
+      "url": "https://platform.openai.com/docs/guides/production-best-practices",
+      "text": "OpenAI — Production best practices guide"
+    }
+  ]
+}

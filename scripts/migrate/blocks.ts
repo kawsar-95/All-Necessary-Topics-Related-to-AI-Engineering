@@ -92,17 +92,22 @@ function diagramBlock(el: HTMLElement, ctx: ParseContext): Block {
   };
 }
 
+type Panel = Extract<Block, { type: "panels" }>["panels"][number];
+
+function isPanel(node: Node): node is HTMLElement {
+  return node instanceof HTMLElement && node.classList.contains("panel");
+}
+
+function panelOf(panel: HTMLElement, ctx: ParseContext): Panel {
+  const h4 = panel.querySelector("h4");
+  return {
+    heading: inline(h4, ctx),
+    blocks: parseNodes(panel.childNodes.filter((n) => n !== h4), ctx),
+  };
+}
+
 function panelsBlock(el: HTMLElement, ctx: ParseContext): Block {
-  const panels = el.childNodes
-    .filter((n): n is HTMLElement => n instanceof HTMLElement && n.classList.contains("panel"))
-    .map((panel) => {
-      const h4 = panel.querySelector("h4");
-      return {
-        heading: inline(h4, ctx),
-        blocks: parseNodes(panel.childNodes.filter((n) => n !== h4), ctx),
-      };
-    });
-  return { type: "panels", panels };
+  return { type: "panels", panels: el.childNodes.filter(isPanel).map((p) => panelOf(p, ctx)) };
 }
 
 function divBlock(el: HTMLElement, ctx: ParseContext): Block | null {
@@ -162,9 +167,15 @@ function elementBlock(el: HTMLElement, ctx: ParseContext): Block | null {
 export function parseNodes(nodes: Node[], ctx: ParseContext): Block[] {
   const blocks: Block[] = [];
   let run: Node[] = [];
+  // Sibling .panel divs that lost their .two-col wrapper join one panels block.
+  let strayPanels: Panel[] | null = null;
+  const push = (block: Block) => {
+    blocks.push(block);
+    strayPanels = null;
+  };
   const flush = () => {
     const html = inlineNodes(run, ctx);
-    if (html) blocks.push({ type: "paragraph", html });
+    if (html) push({ type: "paragraph", html });
     run = [];
   };
   for (const node of nodes) {
@@ -179,8 +190,19 @@ export function parseNodes(nodes: Node[], ctx: ParseContext): Block[] {
       continue;
     }
     flush();
+    if (isPanel(node)) {
+      const panel = panelOf(node, ctx);
+      if (strayPanels) {
+        strayPanels.push(panel);
+      } else {
+        const group = [panel];
+        push({ type: "panels", panels: group });
+        strayPanels = group;
+      }
+      continue;
+    }
     const block = elementBlock(node, ctx);
-    if (block) blocks.push(block);
+    if (block) push(block);
   }
   flush();
   return blocks;

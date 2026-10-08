@@ -1,0 +1,1343 @@
+{
+  "slug": "agents-and-agentic-systems",
+  "title": "Agents and Agentic Systems",
+  "lede": "An <strong>agent</strong> is an LLM running in a control loop: it observes the world, decides what to do, calls tools, observes the results, and repeats until the goal is reached. This chapter covers the four canonical agent loops, single- vs multi-agent orchestration, state machines and workflow graphs, agent memory, human-in-the-loop checkpoints, subagents, error recovery, durable long-running execution, and browser / computer-use agents.",
+  "sections": [
+    {
+      "id": "s1",
+      "num": "01",
+      "title": "What an agent actually is",
+      "sub": "A working definition, the boundary between \"agent\" and \"workflow,\" and the minimum set of components any production agent must have.",
+      "body": [
+        {
+          "type": "code",
+          "lang": "python",
+          "code": "# The minimal agent in 12 lines\ndef agent_loop(goal, llm, tools, max_steps=20):\n    history = [{\"role\": \"user\", \"content\": goal}]\n    for step in range(max_steps):\n        response = llm.complete(history, tools=tools)\n        if response.finish_reason == \"stop\":\n            return response.text\n        result = tools.invoke(response.tool_call)\n        history.append({\"role\": \"tool\", \"content\": str(result)})\n    raise AgentTimeout(\"loop did not terminate\")",
+          "html": "<pre class=\"shiki github-dark-dimmed\" style=\"background-color:#22272e;color:#adbac7\" tabindex=\"0\"><code><span class=\"line\"><span style=\"color:#768390\"># The minimal agent in 12 lines</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">def</span><span style=\"color:#DCBDFB\"> agent_loop</span><span style=\"color:#ADBAC7\">(goal, llm, tools, max_steps</span><span style=\"color:#F47067\">=</span><span style=\"color:#6CB6FF\">20</span><span style=\"color:#ADBAC7\">):</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    history </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> [{</span><span style=\"color:#96D0FF\">\"role\"</span><span style=\"color:#ADBAC7\">: </span><span style=\"color:#96D0FF\">\"user\"</span><span style=\"color:#ADBAC7\">, </span><span style=\"color:#96D0FF\">\"content\"</span><span style=\"color:#ADBAC7\">: goal}]</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">    for</span><span style=\"color:#ADBAC7\"> step </span><span style=\"color:#F47067\">in</span><span style=\"color:#6CB6FF\"> range</span><span style=\"color:#ADBAC7\">(max_steps):</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">        response </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> llm.complete(history, </span><span style=\"color:#F69D50\">tools</span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\">tools)</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">        if</span><span style=\"color:#ADBAC7\"> response.finish_reason </span><span style=\"color:#F47067\">==</span><span style=\"color:#96D0FF\"> \"stop\"</span><span style=\"color:#ADBAC7\">:</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">            return</span><span style=\"color:#ADBAC7\"> response.text</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">        result </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> tools.invoke(response.tool_call)</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">        history.append({</span><span style=\"color:#96D0FF\">\"role\"</span><span style=\"color:#ADBAC7\">: </span><span style=\"color:#96D0FF\">\"tool\"</span><span style=\"color:#ADBAC7\">, </span><span style=\"color:#96D0FF\">\"content\"</span><span style=\"color:#ADBAC7\">: </span><span style=\"color:#6CB6FF\">str</span><span style=\"color:#ADBAC7\">(result)})</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">    raise</span><span style=\"color:#ADBAC7\"> AgentTimeout(</span><span style=\"color:#96D0FF\">\"loop did not terminate\"</span><span style=\"color:#ADBAC7\">)</span></span></code></pre>"
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s1-agent-vs-workflow",
+          "html": "Agent vs workflow"
+        },
+        {
+          "type": "paragraph",
+          "html": "A <strong>workflow</strong> is a deterministic graph of LLM calls and tool calls: every step is authored, every branch is explicit. An <strong>agent</strong> is a workflow where at least one node's behaviour is decided at runtime by the LLM itself. The line is blurry in practice — most production systems are \"agentic workflows\" that combine both."
+        },
+        {
+          "type": "callout",
+          "variant": "good",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>Rule of thumb:</strong> if a human could write a flowchart of the system's behaviour from the prompt alone, it's a workflow. If the LLM picks the next node at runtime, it's an agent. Most shipped systems are a mix — deterministic scaffolding around a few agentic decisions."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s1-what-every-production-agent-needs",
+          "html": "What every production agent needs"
+        },
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            "<strong>A bounded loop</strong> with a hard step cap and a wall-clock timeout. Unbounded loops are how agents burn $10k overnight.",
+            "<strong>A tool surface</strong> that's narrow, well-typed, and namespaced (so the model can't accidentally call a destructive tool without going through a guardrail).",
+            "<strong>A scratchpad</strong> — some persistent state across turns that survives the LLM's context window. Either the model writes to a file, the framework keeps it, or you stuff it into the next prompt.",
+            "<strong>An exit predicate</strong>: at minimum, \"I think I have enough; here is the answer.\" Without one the agent will keep acting forever.",
+            "<strong>Observability</strong>: every step recorded with prompt, tool call, result, cost, and latency. Without it you cannot debug."
+          ]
+        }
+      ],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>An agent is an AI that doesn't stop until the job is done.</strong> A normal chatbot: you ask, it answers, done. An agent: you ask \"find me a hotel under $150 in Tokyo next week,\" and it goes off, browses the web, checks three sites, compares them, and comes back in five minutes with a recommendation. You didn't tell it which sites. It figured that out."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>The \"loop\" is just doing the same five steps over and over:</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "1. <strong>Look at what's in front of me</strong> (what tools do I have? what have I learned so far?).<br>\n       2. <strong>Decide what to do next</strong> (use a tool, ask the user, or stop).<br>\n       3. <strong>Do it</strong> (call the tool, send the message).<br>\n       4. <strong>Look at the result</strong>.<br>\n       5. <strong>Repeat from step 1</strong> until done (or until you've been looping too long)."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>The five things every production agent must have:</strong> a cap on how many times it can loop, a small list of allowed tools, a place to keep notes that survive the model's short memory, a way to say \"I'm done,\" and a way to record what it did so you can debug it later. Skip any one and you have a hobby project, not a product."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The personal-assistant analogy:</strong> an agent is like hiring a human PA. The PA doesn't know your preferences yet (it builds them over time). When you ask \"handle my dentist appointment,\" the PA calls the dentist, asks for times, checks your calendar, calls back to confirm, and texts you the details. If the dentist's line is busy, the PA tries again in 5 minutes. If you said \"cancel if it costs more than $200,\" the PA pauses and asks before booking. If the PA's phone dies, it picks up where it left off when it charges. That's an agent."
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Agent</strong> হলো একটি LLM যা একটি control loop-এ চলে — পরিবেশ দেখে, সিদ্ধান্ত নেয়, টুল কল করে, ফলাফল দেখে এবং লক্ষ্য পূরণ না হওয়া পর্যন্ত পুনরাবৃত্তি করে।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>ন্যূনতম agent</strong>: একটি লুপ যা বর্তমান state নেয়, LLM-কে জিজ্ঞেস করে \"পরে কী করবে,\" উত্তর execute করে এবং ফলাফল ফিরিয়ে দেয়।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Agent বনাম workflow:</strong> <em>workflow</em> হলো LLM কল ও টুল কলের একটি নির্ধারিত গ্রাফ। <em>Agent</em> হলো এমন একটি workflow যেখানে কমপক্ষে একটি node-এর আচরণ runtime-এ LLM নিজেই সিদ্ধান্ত নেয়।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>প্রতিটি প্রোডাকশন agent-এর যা থাকা দরকার:</strong> একটি সীমিত লুপ, একটি সংকীর্ণ ও টাইপ করা টুল surface, একটি scratchpad, একটি exit predicate, এবং observability।"
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>ব্যক্তিগত সহকারীর উপমা:</strong> এজেন্ট হলো একজন PA নিয়োগ করার মতো। PA আপনার পছন্দ জানে না (সময়ের সাথে শেখে)। \"ডেন্টিস্টের অ্যাপয়েন্টমেন্ট ঠিক কর\" বললে সে ফোন করে, সময় জিজ্ঞেস করে, ক্যালেন্ডার দেখে, নিশ্চিত করে আপনাকে জানায়।"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "num": "02",
+      "title": "The four canonical agent loops",
+      "sub": "Every agent loop you'll meet in production is a variation of one of these four patterns. Pick by the shape of your task, not by hype.",
+      "body": [
+        {
+          "type": "code",
+          "lang": "text",
+          "code": "# ReAct scratchpad format (text version)\nThought: I need to find the population of Tokyo in 2024.\nAction:   search(query=\"Tokyo population 2024 official\")\nObservation: As of January 2024, the estimated population...\nThought: Now I can answer.\nAction:   Finish(\"Tokyo's population is ~13.96 million.\")",
+          "html": "<pre class=\"shiki github-dark-dimmed\" style=\"background-color:#22272e;color:#adbac7\" tabindex=\"0\"><code><span class=\"line\"><span># ReAct scratchpad format (text version)</span></span>\n<span class=\"line\"><span>Thought: I need to find the population of Tokyo in 2024.</span></span>\n<span class=\"line\"><span>Action:   search(query=\"Tokyo population 2024 official\")</span></span>\n<span class=\"line\"><span>Observation: As of January 2024, the estimated population...</span></span>\n<span class=\"line\"><span>Thought: Now I can answer.</span></span>\n<span class=\"line\"><span>Action:   Finish(\"Tokyo's population is ~13.96 million.\")</span></span></code></pre>"
+        },
+        {
+          "type": "callout",
+          "variant": "good",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>Why ReAct dominates:</strong> the interleaved reasoning makes traces human-readable. When something goes wrong, you can read the scratchpad and see <em>why</em> the model picked the action it did. That single property is why ReAct is still the default for most agent debugging."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s2-plan-and-execute",
+          "html": "Plan-and-Execute"
+        },
+        {
+          "type": "paragraph",
+          "html": "Plan-and-Execute separates planning from execution: a planner (usually a strong LLM) produces a sequence of steps, then a worker (often a smaller model or a deterministic tool) carries out each step. The worker can be ReAct itself, a single-shot LLM call, or a pure function. If a step fails, the planner re-runs only that step (cheap) rather than the whole loop.<a class=\"cite\" href=\"#src2\">[2]</a>"
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s2-reflexion-verbal-self-criticism",
+          "html": "Reflexion — verbal self-criticism"
+        },
+        {
+          "type": "paragraph",
+          "html": "Reflexion adds a second pass: after a ReAct attempt, the model is asked to <em>reflect</em> on what went wrong, and that reflection is appended to the memory for the next attempt.<a class=\"cite\" href=\"#src3\">[3]</a> In benchmarks (HumanEval, AlfWorld) Reflexion beats vanilla ReAct by 10–20% absolute."
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s2-rewoo-reasoning-without-observation",
+          "html": "ReWOO — Reasoning Without Observation"
+        },
+        {
+          "type": "paragraph",
+          "html": "ReWOO's insight: in many retrieval-heavy tasks, the model doesn't need to see the result of tool #1 to plan tool #2. It plans the entire tool graph upfront, the worker executes everything in parallel, then the solver reads the evidence and answers.<a class=\"cite\" href=\"#src4\">[4]</a> ReWOO uses 4–6× fewer tokens than ReAct on retrieval benchmarks."
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s2-which-loop-to-pick",
+          "html": "Which loop to pick"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Loop",
+            "Token cost",
+            "Latency",
+            "Debug-ability",
+            "When to use"
+          ],
+          "rows": [
+            [
+              "<strong>ReAct</strong>",
+              "High (LLM per step)",
+              "Medium",
+              "Excellent",
+              "Default for short, tool-heavy tasks; debugging"
+            ],
+            [
+              "<strong>Plan-and-Execute</strong>",
+              "Medium (replan only)",
+              "Medium",
+              "Good",
+              "Known-shape workflows; mixed executors per step"
+            ],
+            [
+              "<strong>Reflexion</strong>",
+              "2–3× ReAct",
+              "Slow",
+              "Good",
+              "Tasks with clear success signal"
+            ],
+            [
+              "<strong>ReWOO</strong>",
+              "Low (4–6× fewer tokens)",
+              "Fast",
+              "Weak",
+              "Retrieval-heavy, fan-out tool graphs"
+            ]
+          ]
+        }
+      ],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>There are four common \"personalities\" for agents:</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "• <strong>ReAct</strong> = the improv actor. Thinks out loud, acts, reacts.<br>\n       • <strong>Plan-and-Execute</strong> = the project manager. Writes a to-do list, then ticks items off.<br>\n       • <strong>Reflexion</strong> = the perfectionist. Does the work, checks itself, tries again.<br>\n       • <strong>ReWOO</strong> = the efficient assistant. Plans every call upfront, no chat."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>How to pick:</strong> default to ReAct. If your task is \"go look up 5 things in parallel and write a summary,\" switch to ReWOO. If your task is \"do these 6 steps in order, but be ready to replan if step 3 fails,\" use Plan-and-Execute."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The four-college analogy:</strong> ReAct is the liberal-arts student. Plan-and-Execute is the engineering student. Reflexion is the grad student. ReWOO is the consultant who preps the entire deck before the meeting."
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "<strong>চারটি ক্যানোনিক্যাল লুপ:</strong> ReAct, Plan-and-Execute, Reflexion, ReWOO।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>কোনটা বেছে নেবেন:</strong> ReAct দিয়ে শুরু করুন। parallel-এ 5টি জিনিস খুঁজে summary লিখতে হলে ReWOO। 6-ধাপের sequence-এ ধাপ 3 ব্যর্থ হলে replan করতে হলে Plan-and-Execute।"
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>চার-শিক্ষার্থীর উপমা:</strong> ReAct হলো liberal-arts শিক্ষার্থী। Plan-and-Execute হলো engineering শিক্ষার্থী। Reflexion হলো graduate শিক্ষার্থী। ReWOO হলো consultant।"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "num": "03",
+      "title": "Single-agent vs multi-agent orchestration",
+      "sub": "The most expensive mistake in agent engineering is reaching for a multi-agent setup when a well-tuned single agent would do.",
+      "body": [
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s3-what-a-multi-agent-setup-gives-you",
+          "html": "What a multi-agent setup gives you"
+        },
+        {
+          "type": "paragraph",
+          "html": "Multi-agent systems have an <strong>orchestrator</strong> that delegates to specialised <strong>workers</strong> — researcher, writer, critic, coder — each with its own prompt, its own tool surface, and (often) its own model.<a class=\"cite\" href=\"#src5\">[5]</a>"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Dimension",
+            "Single-agent",
+            "Multi-agent"
+          ],
+          "rows": [
+            [
+              "Debugging",
+              "One trace to read end-to-end",
+              "N traces to correlate"
+            ],
+            [
+              "Token cost",
+              "Lower",
+              "2–5× higher"
+            ],
+            [
+              "Capability ceiling",
+              "Limited by one prompt's coherence",
+              "Higher (separation of concerns)"
+            ],
+            [
+              "Failure isolation",
+              "Whole loop fails together",
+              "One agent's failure can be retried independently"
+            ],
+            [
+              "When to use",
+              "≤5 tools, one domain",
+              "Distinct roles, high stakes"
+            ]
+          ]
+        },
+        {
+          "type": "callout",
+          "variant": "warn",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>Anti-pattern:</strong> spinning up a multi-agent system because it sounds advanced. Anthropic's own engineering blog reports that well-tuned single-agent prompts often match multi-agent quality at a fraction of the cost.<a class=\"cite\" href=\"#src5\">[5]</a>"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s3-communication-patterns-between-agents",
+          "html": "Communication patterns between agents"
+        },
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            "<strong>Shared scratchpad (blackboard):</strong> all agents read/write to a shared file or in-memory dict.",
+            "<strong>Message passing:</strong> orchestrator sends typed messages to workers.",
+            "<strong>Tool calls:</strong> the orchestrator is the only \"agent\"; workers are exposed as tools."
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "python",
+          "code": "# Anthropic Research pattern (simplified)\nasync def research(query):\n    sub_queries = await orchestrator.plan(query)\n    findings = await asyncio.gather(*[\n        researcher.search(sq) for sq in sub_queries\n    ])\n    review = await critic.review(query, findings)\n    return await orchestrator.synthesise(query, findings, review)",
+          "html": "<pre class=\"shiki github-dark-dimmed\" style=\"background-color:#22272e;color:#adbac7\" tabindex=\"0\"><code><span class=\"line\"><span style=\"color:#768390\"># Anthropic Research pattern (simplified)</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">async</span><span style=\"color:#F47067\"> def</span><span style=\"color:#DCBDFB\"> research</span><span style=\"color:#ADBAC7\">(query):</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    sub_queries </span><span style=\"color:#F47067\">=</span><span style=\"color:#F47067\"> await</span><span style=\"color:#ADBAC7\"> orchestrator.plan(query)</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    findings </span><span style=\"color:#F47067\">=</span><span style=\"color:#F47067\"> await</span><span style=\"color:#ADBAC7\"> asyncio.gather(</span><span style=\"color:#F47067\">*</span><span style=\"color:#ADBAC7\">[</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">        researcher.search(sq) </span><span style=\"color:#F47067\">for</span><span style=\"color:#ADBAC7\"> sq </span><span style=\"color:#F47067\">in</span><span style=\"color:#ADBAC7\"> sub_queries</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    ])</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    review </span><span style=\"color:#F47067\">=</span><span style=\"color:#F47067\"> await</span><span style=\"color:#ADBAC7\"> critic.review(query, findings)</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">    return</span><span style=\"color:#F47067\"> await</span><span style=\"color:#ADBAC7\"> orchestrator.synthesise(query, findings, review)</span></span></code></pre>"
+        }
+      ],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>\"One smart assistant\" vs \"a team of specialists.\"</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Why teams cost more:</strong> every time the manager hands work to a specialist, you have to send them the full context. The specialist has to re-read it. That's the 2–5× cost."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>When to use a team:</strong> when one person really cannot do it all well."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>The mistake to avoid:</strong> building a team because teams sound smart, when one well-tuned generalist would do."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The restaurant analogy:</strong> single-agent is a one-person food truck. Multi-agent is a restaurant with multiple specialists."
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Single-agent বনাম Multi-agent:</strong> Single-agent সিস্টেমে একটি LLM একটি control loop-এ চলে। Multi-agent সিস্টেমে একজন <em>orchestrator</em> বিশেষায়িত <em>workers</em>-এ কাজ ভাগ করে দেয়।<a class=\"cite\" href=\"#src5\">[5]</a>"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Anti-pattern:</strong> multi-agent সিস্টেম চালু করা কারণ এটি advanced শোনায়।"
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>রেস্তোরাঁর উপমা:</strong> single-agent হলো one-person food truck। Multi-agent হলো বিশেষজ্ঞদের সাথে একটি রেস্তোরাঁ।"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "num": "04",
+      "title": "State machines and workflow graphs",
+      "sub": "For non-trivial agents, replace the implicit loop with an explicit <strong>graph</strong> of nodes (LLM calls, tool calls, human approvals) connected by edges (conditional transitions). This is how production systems stay debuggable.",
+      "body": [
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s4-langgraph",
+          "html": "LangGraph"
+        },
+        {
+          "type": "paragraph",
+          "html": "LangGraph (LangChain's graph framework) is the most popular Python/TypeScript option.<a class=\"cite\" href=\"#src6\">[6]</a> It models the agent as a state graph: nodes are functions, edges are conditional, the state is a TypedDict that flows through. Cycles are first-class (an agent <em>can</em> loop back to an earlier node), and <code>checkpointer</code> lets you resume from any past state."
+        },
+        {
+          "type": "code",
+          "lang": "python",
+          "code": "# LangGraph minimal agent\nfrom langgraph.graph import StateGraph, END\nfrom typing import TypedDict\n\nclass State(TypedDict):\n    messages: list\n    step: int\n\ndef call_llm(state: State) -> State:\n    response = llm.invoke(state[\"messages\"])\n    return {\"messages\": state[\"messages\"] + [response], \"step\": state[\"step\"] + 1}\n\ndef should_continue(state: State) -> str:\n    last = state[\"messages\"][-1]\n    if hasattr(last, \"tool_calls\") and last.tool_calls:\n        return \"tool\"\n    return END\n\ngraph = StateGraph(State)\ngraph.add_node(\"llm\", call_llm)\ngraph.add_conditional_edges(\"llm\", should_continue, {\"tool\": \"llm\", END: END})\ngraph.set_entry_point(\"llm\")\napp = graph.compile()",
+          "html": "<pre class=\"shiki github-dark-dimmed\" style=\"background-color:#22272e;color:#adbac7\" tabindex=\"0\"><code><span class=\"line\"><span style=\"color:#768390\"># LangGraph minimal agent</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">from</span><span style=\"color:#ADBAC7\"> langgraph.graph </span><span style=\"color:#F47067\">import</span><span style=\"color:#ADBAC7\"> StateGraph, </span><span style=\"color:#6CB6FF\">END</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">from</span><span style=\"color:#ADBAC7\"> typing </span><span style=\"color:#F47067\">import</span><span style=\"color:#ADBAC7\"> TypedDict</span></span>\n<span class=\"line\"></span>\n<span class=\"line\"><span style=\"color:#F47067\">class</span><span style=\"color:#F69D50\"> State</span><span style=\"color:#ADBAC7\">(</span><span style=\"color:#6CB6FF\">TypedDict</span><span style=\"color:#ADBAC7\">):</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    messages: </span><span style=\"color:#6CB6FF\">list</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    step: </span><span style=\"color:#6CB6FF\">int</span></span>\n<span class=\"line\"></span>\n<span class=\"line\"><span style=\"color:#F47067\">def</span><span style=\"color:#DCBDFB\"> call_llm</span><span style=\"color:#ADBAC7\">(state: State) -> State:</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    response </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> llm.invoke(state[</span><span style=\"color:#96D0FF\">\"messages\"</span><span style=\"color:#ADBAC7\">])</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">    return</span><span style=\"color:#ADBAC7\"> {</span><span style=\"color:#96D0FF\">\"messages\"</span><span style=\"color:#ADBAC7\">: state[</span><span style=\"color:#96D0FF\">\"messages\"</span><span style=\"color:#ADBAC7\">] </span><span style=\"color:#F47067\">+</span><span style=\"color:#ADBAC7\"> [response], </span><span style=\"color:#96D0FF\">\"step\"</span><span style=\"color:#ADBAC7\">: state[</span><span style=\"color:#96D0FF\">\"step\"</span><span style=\"color:#ADBAC7\">] </span><span style=\"color:#F47067\">+</span><span style=\"color:#6CB6FF\"> 1</span><span style=\"color:#ADBAC7\">}</span></span>\n<span class=\"line\"></span>\n<span class=\"line\"><span style=\"color:#F47067\">def</span><span style=\"color:#DCBDFB\"> should_continue</span><span style=\"color:#ADBAC7\">(state: State) -> </span><span style=\"color:#6CB6FF\">str</span><span style=\"color:#ADBAC7\">:</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    last </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> state[</span><span style=\"color:#96D0FF\">\"messages\"</span><span style=\"color:#ADBAC7\">][</span><span style=\"color:#F47067\">-</span><span style=\"color:#6CB6FF\">1</span><span style=\"color:#ADBAC7\">]</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">    if</span><span style=\"color:#6CB6FF\"> hasattr</span><span style=\"color:#ADBAC7\">(last, </span><span style=\"color:#96D0FF\">\"tool_calls\"</span><span style=\"color:#ADBAC7\">) </span><span style=\"color:#F47067\">and</span><span style=\"color:#ADBAC7\"> last.tool_calls:</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">        return</span><span style=\"color:#96D0FF\"> \"tool\"</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">    return</span><span style=\"color:#6CB6FF\"> END</span></span>\n<span class=\"line\"></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">graph </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> StateGraph(State)</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">graph.add_node(</span><span style=\"color:#96D0FF\">\"llm\"</span><span style=\"color:#ADBAC7\">, call_llm)</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">graph.add_conditional_edges(</span><span style=\"color:#96D0FF\">\"llm\"</span><span style=\"color:#ADBAC7\">, should_continue, {</span><span style=\"color:#96D0FF\">\"tool\"</span><span style=\"color:#ADBAC7\">: </span><span style=\"color:#96D0FF\">\"llm\"</span><span style=\"color:#ADBAC7\">, </span><span style=\"color:#6CB6FF\">END</span><span style=\"color:#ADBAC7\">: </span><span style=\"color:#6CB6FF\">END</span><span style=\"color:#ADBAC7\">})</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">graph.set_entry_point(</span><span style=\"color:#96D0FF\">\"llm\"</span><span style=\"color:#ADBAC7\">)</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">app </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> graph.compile()</span></span></code></pre>"
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s4-temporal-restate-mastra-inngest",
+          "html": "Temporal, Restate, Mastra, Inngest"
+        },
+        {
+          "type": "paragraph",
+          "html": "For long-running agents (minutes to hours), the graph needs to be <strong>durable</strong> — survive crashes, retries, and human-in-the-loop pauses. Temporal and Restate are workflow engines from the microservices world adapted to agents.<a class=\"cite\" href=\"#src7\">[7]</a> <strong>Mastra</strong> is TypeScript-first with built-in workflow engine, memory, and tool definitions. <strong>Inngest</strong> is event-driven serverless workflows with pay-per-step pricing."
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s4-picking-a-graph-framework",
+          "html": "Picking a graph framework"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Framework",
+            "Best for"
+          ],
+          "rows": [
+            [
+              "<strong>LangGraph</strong>",
+              "Python/TS shops already using LangChain"
+            ],
+            [
+              "<strong>Temporal</strong>",
+              "Long-running, multi-day workflows"
+            ],
+            [
+              "<strong>Restate</strong>",
+              "Same as Temporal, smaller surface"
+            ],
+            [
+              "<strong>Mastra</strong>",
+              "TypeScript-first, batteries-included"
+            ],
+            [
+              "<strong>Inngest</strong>",
+              "Event-driven, serverless, fan-out"
+            ]
+          ]
+        }
+      ],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Don't write agents as a single loop; draw a map of the steps.</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "When an agent does \"search → summarise → check → maybe search again → write answer,\" you could write that as one loop with if-statements. Or you could draw a flowchart with named boxes and arrows. The flowchart version is what graph frameworks do for you."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>For long agents (hours/days):</strong> you need a workflow engine that survives crashes. That's Temporal or Restate."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Picking one:</strong> if you're already in Python + LangChain, use LangGraph. If you need long-running + humans in the loop, use Temporal. If you want everything in TypeScript with batteries included, try Mastra. If you wake on webhooks and want to pay per step, use Inngest."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The flowchart vs paragraph analogy:</strong> writing an agent as a loop is like writing directions as a paragraph. Drawing it as a graph is like giving someone a map."
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Implicit loop-এর বদলে explicit graph ব্যবহার করুন।</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>LangGraph</strong> (LangChain-এর graph framework) সবচেয়ে জনপ্রিয়।<a class=\"cite\" href=\"#src6\">[6]</a>"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Temporal ও Restate</strong> দীর্ঘ-চলমান agent-এর জন্য, graph-কে <em>durable</em> হতে হবে।<a class=\"cite\" href=\"#src7\">[7]</a>"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>কোনটা বেছে নেবেন:</strong> LangGraph, Temporal, Restate, Mastra, Inngest।"
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>ফ্লোচার্ট বনাম অনুচ্ছেদের উপমা:</strong> agent-কে loop হিসেবে লেখা হলো দিকনির্দেশনা একটি অনুচ্ছেদ হিসেবে লেখার মতো। Graph হিসেবে আঁকা হলো মানচিত্র দেওয়ার মতো।"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "num": "05",
+      "title": "Agent memory: scratchpad, semantic, procedural",
+      "sub": "Three memory types show up again and again in the agent literature.<a class=\"cite\" href=\"#src8\">[8]</a>",
+      "body": [
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s5-semantic-memory-long-term-facts",
+          "html": "Semantic memory (long-term facts)"
+        },
+        {
+          "type": "paragraph",
+          "html": "Semantic memory stores facts the agent has learned about the user, the project, the world. The classic implementation is a vector store indexed by meaning, plus a structured row store for exact matches."
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s5-procedural-memory-skills",
+          "html": "Procedural memory (skills)"
+        },
+        {
+          "type": "paragraph",
+          "html": "Procedural memory is the agent's playbook: \"how to do X.\" Stored as versioned prompt templates or Markdown checklists."
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s5-other-memory-types",
+          "html": "Other memory types"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Type",
+            "What it stores",
+            "Where it lives"
+          ],
+          "rows": [
+            [
+              "<strong>Scratchpad</strong>",
+              "Current-run notes",
+              "Context window or temp file"
+            ],
+            [
+              "<strong>Semantic</strong>",
+              "Facts about the world",
+              "Vector store + row DB"
+            ],
+            [
+              "<strong>Procedural</strong>",
+              "How-tos",
+              "Versioned prompt templates"
+            ],
+            [
+              "<strong>Episodic</strong>",
+              "Past runs and their outcomes",
+              "Event log + vector store"
+            ],
+            [
+              "<strong>Identity</strong>",
+              "Who the agent is",
+              "System prompt (immutable)"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s5-where-memory-breaks",
+          "html": "Where memory breaks"
+        },
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            "<strong>Too much memory</strong>: the agent over-relies on stale facts.",
+            "<strong>Too little memory</strong>: the agent re-derives the same conclusion on every turn.",
+            "<strong>Conflicting memory</strong>: two facts disagree."
+          ]
+        }
+      ],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Agents have three kinds of memory, just like humans.</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "• <em>Scratchpad</em> = the napkin you're scribbling on right now.<br>\n       • <em>Semantic memory</em> = facts you remember.<br>\n       • <em>Procedural memory</em> = how-tos."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>The hard part of memory is decay.</strong> Stale facts cause confidently wrong answers."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>When memory breaks:</strong> too much = clings to old facts. Too little = re-derives. Conflicting = flip-flops."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The-colleague analogy:</strong> a new hire's scratchpad is the sticky note. Their semantic memory is the facts you told them. Their procedural memory is the standard operating procedures. A good manager keeps all three fresh."
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "<strong>তিন ধরনের মেমরি:</strong> Scratchpad (working memory), Semantic memory (long-term facts), Procedural memory (skills)।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>মেমরি যেখানে ভাঙে:</strong> খুব বেশি = পুরোনো তথ্যে আঁকড়ে থাকে। খুব কম = পুনঃউদ্ভাবন। বিরোধী = দোল খায়।"
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>সহকর্মীর উপমা:</strong> নতুন কর্মীর scratchpad হলো sticky note। তাদের semantic memory হলো আপনি যে তথ্য বলেছেন। তাদের procedural memory হলো standard operating procedures।"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "num": "06",
+      "title": "Human-in-the-loop checkpoints",
+      "sub": "Most production agents need at least one approval step.",
+      "body": [
+        {
+          "type": "code",
+          "lang": "python",
+          "code": "# LangGraph interrupt + resume\ndef send_email(state):\n    approval = interrupt({\n        \"to\": state[\"recipient\"],\n        \"subject\": state[\"subject\"],\n        \"body\": state[\"draft\"],\n    })\n    if not approval[\"approved\"]:\n        return {\"messages\": [\"User rejected email send.\"]}\n    email_client.send(approval)\n    return {\"messages\": [\"Email sent.\"]}",
+          "html": "<pre class=\"shiki github-dark-dimmed\" style=\"background-color:#22272e;color:#adbac7\" tabindex=\"0\"><code><span class=\"line\"><span style=\"color:#768390\"># LangGraph interrupt + resume</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">def</span><span style=\"color:#DCBDFB\"> send_email</span><span style=\"color:#ADBAC7\">(state):</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    approval </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> interrupt({</span></span>\n<span class=\"line\"><span style=\"color:#96D0FF\">        \"to\"</span><span style=\"color:#ADBAC7\">: state[</span><span style=\"color:#96D0FF\">\"recipient\"</span><span style=\"color:#ADBAC7\">],</span></span>\n<span class=\"line\"><span style=\"color:#96D0FF\">        \"subject\"</span><span style=\"color:#ADBAC7\">: state[</span><span style=\"color:#96D0FF\">\"subject\"</span><span style=\"color:#ADBAC7\">],</span></span>\n<span class=\"line\"><span style=\"color:#96D0FF\">        \"body\"</span><span style=\"color:#ADBAC7\">: state[</span><span style=\"color:#96D0FF\">\"draft\"</span><span style=\"color:#ADBAC7\">],</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    })</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">    if</span><span style=\"color:#F47067\"> not</span><span style=\"color:#ADBAC7\"> approval[</span><span style=\"color:#96D0FF\">\"approved\"</span><span style=\"color:#ADBAC7\">]:</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">        return</span><span style=\"color:#ADBAC7\"> {</span><span style=\"color:#96D0FF\">\"messages\"</span><span style=\"color:#ADBAC7\">: [</span><span style=\"color:#96D0FF\">\"User rejected email send.\"</span><span style=\"color:#ADBAC7\">]}</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    email_client.send(approval)</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">    return</span><span style=\"color:#ADBAC7\"> {</span><span style=\"color:#96D0FF\">\"messages\"</span><span style=\"color:#ADBAC7\">: [</span><span style=\"color:#96D0FF\">\"Email sent.\"</span><span style=\"color:#ADBAC7\">]}</span></span></code></pre>"
+        },
+        {
+          "type": "callout",
+          "variant": "warn",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The hard part is the UI, not the protocol.</strong> Most teams underestimate how much work the approval surface is. The framework gives you a clean \"interrupt\" primitive, but you still have to build the inbox, the diff view, the approve/reject buttons, the audit log, the SLA, the mobile notifications. Budget at least 30% of agent project time for the human-facing surface."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s6-asynchronous-approvals",
+          "html": "Asynchronous approvals"
+        },
+        {
+          "type": "paragraph",
+          "html": "When the human can't respond synchronously:"
+        },
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            "<strong>Soft timeout + default reject</strong>: if no response in 24 hours, the workflow terminates.",
+            "<strong>Soft timeout + default approve with rollback</strong>: if no response, the action proceeds but is logged and reversible.",
+            "<strong>Hard timeout + escalate</strong>: at 24 hours, route to a backup approver."
+          ]
+        }
+      ],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Some actions are too dangerous to do without asking.</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>The \"risk ladder\":</strong> as actions get more dangerous, more humans need to be in the loop."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>The hard part is the UI, not the protocol.</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>When the human is offline:</strong> cancel after 24h, proceed anyway but log it, or escalate to a backup approver."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The new-intern analogy:</strong> a new intern can answer the phone without asking. They can take a message. They can draft an email — but show it to you before sending. They can refund a customer under $50 — but you pre-approve the policy. They can fire a customer — only with you in the room."
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "<strong>\"Risk ladder\":</strong> কর্ম যত বিপজ্জনক হয়, তত বেশি মানুষ loop-এ থাকতে হবে।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>কঠিন অংশ UI, protocol নয়।</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>যখন মানুষ offline:</strong> 24 ঘণ্টা পর কর্ম বাতিল, যাই হোক এগিয়ে যান কিন্তু লগ করুন, বা backup approver-এ escalate করুন।"
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>নতুন ইন্টার্নের উপমা:</strong> নতুন ইন্টার্ন জিজ্ঞাসা ছাড়াই ফোন ধরতে পারে। তারা ইমেল draft করতে পারে — কিন্তু পাঠানোর আগে আপনাকে দেখায়।"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s7",
+      "num": "07",
+      "title": "Subagents and delegation patterns",
+      "sub": "When a single agent's task list grows too large for one context window, the natural move is to delegate.",
+      "body": [
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s7-manager-worker-not-fork-join",
+          "html": "Manager–worker, not fork/join"
+        },
+        {
+          "type": "paragraph",
+          "html": "The mental model is \"manager → worker,\" not \"fork/join.\" The parent does not poll the subagent. The parent does not stream the subagent's progress. The parent waits for the subagent to finish, then receives a single, structured result. The benefit: the parent's context window stays clean."
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s7-claude-code-s-task-tool",
+          "html": "Claude Code's Task tool"
+        },
+        {
+          "type": "paragraph",
+          "html": "Anthropic's Claude Code ships a <code>Task</code> tool that the model can invoke to spawn a subagent. The subagent runs in its own loop, with its own tools, and returns a summary. The parent never sees the intermediate steps — only the summary. This is the cleanest implementation of the pattern in 2025."
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s7-openai-s-agents-sdk-and-crewai",
+          "html": "OpenAI's agents-sdk and CrewAI"
+        },
+        {
+          "type": "paragraph",
+          "html": "OpenAI's <code>openai-agents-sdk</code> exposes <code>Runner.run(agent, input)</code> returning a final <code>RunResult</code>. CrewAI models multi-agent systems as crews (the team), agents (the roles), tasks (the work), and a process (sequential, hierarchical, or consensual)."
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s7-when-to-use-a-subagent",
+          "html": "When to use a subagent"
+        },
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            "The subtask is well-defined and self-contained.",
+            "The subtask needs different tools than the parent has.",
+            "The subtask's intermediate steps would pollute the parent's context.",
+            "You want the subtask to be retried independently of the parent.",
+            "You want to bill the subtask to a different cost centre."
+          ]
+        }
+      ],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>A subagent is a temporary worker you hire to do one job.</strong> You give them a brief, a list of tools they can use, and a deadline. They go do the work and come back with an answer. You never see what they did in the middle — just the final report."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Mental model:</strong> the parent is the manager. The subagent is a contractor."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Bonus:</strong> you can use a different (cheaper) model for the subagent."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The contractor analogy:</strong> a CEO doesn't personally do market research. They hire a research firm, give them a brief, get a report."
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Subagent হলো একটি অস্থায়ী কর্মী যাকে আপনি একটি কাজ করতে নিয়োগ করেন।</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Manager-worker, fork/join নয়।</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>কখন subagent ব্যবহার করবেন:</strong> উপ-কাজ সু-সংজ্ঞায়িত, ভিন্ন tools দরকার, parent-এর context দূষিত করবে, স্বাধীনভাবে retry করতে চান।"
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>ঠিকাদারের উপমা:</strong> একজন CEO ব্যক্তিগতভাবে market research করেন না। তারা একটি research firm নিয়োগ করেন।"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s8",
+      "num": "08",
+      "title": "Error recovery, retries, and self-correction",
+      "sub": "Three escalating layers: retry the same call, fall back to a different one, or reflect on the failure and revise. Always bound retries.",
+      "body": [
+        {
+          "type": "code",
+          "lang": "python",
+          "code": "# Exponential backoff with jitter\nimport random, time\ndef retry_with_backoff(fn, max_attempts=5, base=1.0):\n    for attempt in range(max_attempts):\n        try:\n            return fn()\n        except (RateLimitError, TimeoutError):\n            if attempt == max_attempts - 1: raise\n            sleep = base * (2 ** attempt) + random.uniform(0, base)\n            time.sleep(sleep)",
+          "html": "<pre class=\"shiki github-dark-dimmed\" style=\"background-color:#22272e;color:#adbac7\" tabindex=\"0\"><code><span class=\"line\"><span style=\"color:#768390\"># Exponential backoff with jitter</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">import</span><span style=\"color:#ADBAC7\"> random, time</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">def</span><span style=\"color:#DCBDFB\"> retry_with_backoff</span><span style=\"color:#ADBAC7\">(fn, max_attempts</span><span style=\"color:#F47067\">=</span><span style=\"color:#6CB6FF\">5</span><span style=\"color:#ADBAC7\">, base</span><span style=\"color:#F47067\">=</span><span style=\"color:#6CB6FF\">1.0</span><span style=\"color:#ADBAC7\">):</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">    for</span><span style=\"color:#ADBAC7\"> attempt </span><span style=\"color:#F47067\">in</span><span style=\"color:#6CB6FF\"> range</span><span style=\"color:#ADBAC7\">(max_attempts):</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">        try</span><span style=\"color:#ADBAC7\">:</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">            return</span><span style=\"color:#ADBAC7\"> fn()</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">        except</span><span style=\"color:#ADBAC7\"> (RateLimitError, </span><span style=\"color:#6CB6FF\">TimeoutError</span><span style=\"color:#ADBAC7\">):</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">            if</span><span style=\"color:#ADBAC7\"> attempt </span><span style=\"color:#F47067\">==</span><span style=\"color:#ADBAC7\"> max_attempts </span><span style=\"color:#F47067\">-</span><span style=\"color:#6CB6FF\"> 1</span><span style=\"color:#ADBAC7\">: </span><span style=\"color:#F47067\">raise</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">            sleep </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> base </span><span style=\"color:#F47067\">*</span><span style=\"color:#ADBAC7\"> (</span><span style=\"color:#6CB6FF\">2</span><span style=\"color:#F47067\"> **</span><span style=\"color:#ADBAC7\"> attempt) </span><span style=\"color:#F47067\">+</span><span style=\"color:#ADBAC7\"> random.uniform(</span><span style=\"color:#6CB6FF\">0</span><span style=\"color:#ADBAC7\">, base)</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">            time.sleep(sleep)</span></span></code></pre>"
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s8-layer-2-fallback",
+          "html": "Layer 2: fallback"
+        },
+        {
+          "type": "paragraph",
+          "html": "When the failure is not transient (the API is permanently down, the JSON schema is rejected because the model can't follow it, the function raised a domain-specific error), retrying the same call is pointless. Fall back to a different tool or model: use a smaller model with a simpler schema, use a different vendor, or skip the tool and let the model answer from its own knowledge."
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s8-layer-3-reflect",
+          "html": "Layer 3: reflect"
+        },
+        {
+          "type": "paragraph",
+          "html": "When the failure was caused by a reasoning error (the model called the right tool with the wrong arguments, or made a logical mistake), neither retry nor fallback fixes the root cause. Feed the failure back into the model and ask it to revise.<a class=\"cite\" href=\"#src3\">[3]</a> Reflexion is the formal version of this."
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s8-always-bound-retries",
+          "html": "Always bound retries"
+        },
+        {
+          "type": "callout",
+          "variant": "danger",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>Unbounded retry is a footgun.</strong> A poisoned input that always returns the same transient-looking error will burn your entire budget in a tight retry loop. Always set a hard cap on retries, a wall-clock timeout, and a circuit breaker that opens after N consecutive failures of the same type."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s8-circuit-breakers",
+          "html": "Circuit breakers"
+        },
+        {
+          "type": "paragraph",
+          "html": "A circuit breaker protects against a downstream service that's failing in a way that looks transient but isn't. After 5 consecutive failures of the same kind, the breaker opens: all calls for the next 60 seconds fail fast with a \"service unavailable\" error, no retries. After 60 seconds, the breaker half-opens: one test call. If it succeeds, the breaker closes. If it fails, the timer resets."
+        }
+      ],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Three layers of failure handling:</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "• <em>Retry</em>: try the same thing again.<br>\n       • <em>Fallback</em>: try a different thing.<br>\n       • <em>Reflect</em>: feed the error back to the AI."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>The dangerous footgun:</strong> an unbounded retry will burn your entire budget. Always cap retries."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>The circuit breaker pattern:</strong> after 5 consecutive failures, all calls for the next 60 seconds fail instantly."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The-customer-service analogy:</strong> when a customer's call drops, you call them back. If it drops a third time, you send an email instead."
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "<strong>ব্যর্থতা মোকাবেলার তিনটি স্তর:</strong> Retry, Fallback, Reflect।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>বিপজ্জনক footgun:</strong> একই ত্রুটি বারবার আসতে থাকলে, একটি unbounded retry একটি টাইট loop-এ আপনার সম্পূর্ণ budget পুড়িয়ে ফেলবে।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Circuit breaker pattern:</strong> 5 টি ধারাবাহিক ব্যর্থতার পর, পরবর্তী 60 সেকেন্ডের জন্য সমস্ত call তাৎক্ষণিকভাবে ব্যর্থ হয়।"
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>কাস্টমার সার্ভিসের উপমা:</strong> যখন একজন গ্রাহকের কল ড্রপ হয়, আপনি তাদের কল করেন। এটি তৃতীয়বার ড্রপ হলে, আপনি পরিবর্তে একটি ইমেল পাঠান।"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s9",
+      "num": "09",
+      "title": "Long-running agents and durable execution",
+      "sub": "Agents that take minutes or hours face three problems a normal Python loop can't solve: crashes lose state, rate limits force waits, and human approvals force pauses. Durable execution engines solve all three.",
+      "body": [
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s9-durable-execution-defined",
+          "html": "Durable execution, defined"
+        },
+        {
+          "type": "paragraph",
+          "html": "A <strong>durable execution engine</strong> records every step's intent and result to a durable store (a database, a journal, a queue). On crash, the next process loads the snapshot and resumes from the next un-run step. The engine handles retries, rate limits, and human-in-the-loop pauses natively. The application code is a series of workflow steps; the engine is the runtime that survives crashes.<a class=\"cite\" href=\"#src7\">[7]</a>"
+        },
+        {
+          "type": "diagram",
+          "svg": "<svg viewBox=\"0 0 1100 240\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"Durable execution: workflow as a series of recorded steps\">\n      <defs>\n        <marker id=\"arr-de\" markerWidth=\"8\" markerHeight=\"8\" refX=\"6\" refY=\"4\" orient=\"auto\">\n          <path d=\"M0,0 L6,4 L0,8 Z\" fill=\"#94a3b8\"></path>\n        </marker>\n      </defs>\n      <g>\n        <rect x=\"40\"  y=\"80\" width=\"140\" height=\"60\" rx=\"8\" fill=\"#0f172a\" stroke=\"#22d3ee\"></rect>\n        <text x=\"110\" y=\"108\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#22d3ee\">Step 1</text>\n        <text x=\"110\" y=\"125\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"9\" fill=\"#94a3b8\">search</text>\n\n        <rect x=\"220\" y=\"80\" width=\"140\" height=\"60\" rx=\"8\" fill=\"#0f172a\" stroke=\"#22d3ee\"></rect>\n        <text x=\"290\" y=\"108\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#22d3ee\">Step 2</text>\n        <text x=\"290\" y=\"125\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"9\" fill=\"#94a3b8\">fetch</text>\n\n        <rect x=\"400\" y=\"80\" width=\"140\" height=\"60\" rx=\"8\" fill=\"#0f172a\" stroke=\"#a78bfa\"></rect>\n        <text x=\"470\" y=\"108\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#a78bfa\">Step 3</text>\n        <text x=\"470\" y=\"125\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"9\" fill=\"#94a3b8\">await human</text>\n\n        <rect x=\"580\" y=\"80\" width=\"140\" height=\"60\" rx=\"8\" fill=\"#0f172a\" stroke=\"#22d3ee\"></rect>\n        <text x=\"650\" y=\"108\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#22d3ee\">Step 4</text>\n        <text x=\"650\" y=\"125\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"9\" fill=\"#94a3b8\">execute</text>\n\n        <rect x=\"760\" y=\"80\" width=\"140\" height=\"60\" rx=\"8\" fill=\"#0f172a\" stroke=\"#22d3ee\"></rect>\n        <text x=\"820\" y=\"108\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#22d3ee\">Step 5</text>\n        <text x=\"820\" y=\"125\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"9\" fill=\"#94a3b8\">notify</text>\n      </g>\n      <line x1=\"180\" y1=\"110\" x2=\"220\" y2=\"110\" stroke=\"#94a3b8\" marker-end=\"url(#arr-de)\"></line>\n      <line x1=\"360\" y1=\"110\" x2=\"400\" y2=\"110\" stroke=\"#94a3b8\" marker-end=\"url(#arr-de)\"></line>\n      <line x1=\"540\" y1=\"110\" x2=\"580\" y2=\"110\" stroke=\"#94a3b8\" marker-end=\"url(#arr-de)\"></line>\n      <line x1=\"720\" y1=\"110\" x2=\"760\" y2=\"110\" stroke=\"#94a3b8\" marker-end=\"url(#arr-de)\"></line>\n      <g>\n        <rect x=\"940\" y=\"60\" width=\"140\" height=\"100\" rx=\"8\" fill=\"#111827\" stroke=\"#fb7185\" stroke-dasharray=\"4 4\"></rect>\n        <text x=\"1010\" y=\"86\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#fb7185\">journal</text>\n        <text x=\"1010\" y=\"105\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"9\" fill=\"#94a3b8\">S1 ✓</text>\n        <text x=\"1010\" y=\"120\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"9\" fill=\"#94a3b8\">S2 ✓</text>\n        <text x=\"1010\" y=\"135\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"9\" fill=\"#94a3b8\">S3 …</text>\n        <text x=\"1010\" y=\"150\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"9\" fill=\"#94a3b8\">S4 —</text>\n      </g>\n      <line x1=\"900\" y1=\"110\" x2=\"940\" y2=\"110\" stroke=\"#fb7185\" stroke-dasharray=\"3 3\"></line>\n      <text x=\"40\" y=\"200\" font-family=\"JetBrains Mono, monospace\" font-size=\"10\" fill=\"#94a3b8\">If the worker crashes after step 3, the next process loads the journal and resumes at step 4. No work is replayed; no work is lost.</text>\n    </svg>",
+          "caption": "A durable workflow: each step's intent and result is journaled. A crash mid-flight resumes from the next un-run step, not from the beginning.",
+          "captionBn": "একটি টেকসই workflow: প্রতিটি ধাপের intent ও result জার্নাল করা হয়। মাঝ-উড়ানে ক্র্যাশ হলে, পরবর্তী un-run ধাপ থেকে resume হয়।"
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s9-when-you-need-it",
+          "html": "When you need it"
+        },
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            "The agent runs for more than ~30 seconds (anything that might survive a deploy).",
+            "Humans are in the loop and might take hours or days to respond.",
+            "The agent makes irreversible side effects (sending money, deleting records) that you want to be able to retry without duplicating.",
+            "The agent's work spans multiple services and you want to resume from the failed service."
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s9-the-four-durable-engines",
+          "html": "The four durable engines"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Engine",
+            "Model",
+            "When to use"
+          ],
+          "rows": [
+            [
+              "<strong>Temporal</strong>",
+              "Event-sourced workflows",
+              "Long-running, multi-day, with strong consistency"
+            ],
+            [
+              "<strong>Restate</strong>",
+              "Journaled workflows",
+              "Same as Temporal, smaller surface area"
+            ],
+            [
+              "<strong>Inngest</strong>",
+              "Event-driven serverless",
+              "Wake-on-webhook, pay-per-step"
+            ],
+            [
+              "<strong>AWS Step Functions / DBOS</strong>",
+              "Managed / SQL-based",
+              "AWS-native shops, simplest ops"
+            ]
+          ]
+        }
+      ],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Long agents need a \"save and resume\" engine.</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>The fix: durable execution.</strong> Treat the agent as a series of steps. After each step, write progress to a database. If the server crashes, the next process loads that log and resumes at the failed step."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>When you need it:</strong> the agent runs for more than 30 seconds; humans are in the loop and might take days to respond; the agent makes irreversible side effects."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Pick a tool:</strong> Temporal or Restate for traditional, multi-day workflows. Inngest for event-driven. AWS Step Functions if you're all-in on AWS."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The-multi-day-recipe analogy:</strong> baking a wedding cake is a 4-step process. If your kitchen floods after step 2, you don't restart from day 1 — you read the recipe's checklist and resume at day 3."
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "<strong>দীর্ঘ agent-দের \"save এবং resume\" engine দরকার।</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>সমাধান: durable execution।</strong> agent-কে একটি সিরিজ ধাপ হিসেবে দেখুন। প্রতিটি ধাপের পর, একটি database-এ progress লিখুন।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>চারটি durable engine:</strong> Temporal, Restate, Inngest, AWS Step Functions / DBOS।"
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>বহু-দিনের রেসিপির উপমা:</strong> একটি বিয়ের কেক baking একটি 4-ধাপের প্রক্রিয়া। step 2-এর পর আপনার রান্নাঘর প্লাবিত হলে, আপনি checklist পড়ুন এবং day 3 থেকে resume করুন।"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s10",
+      "num": "10",
+      "title": "Browser and computer-use agents",
+      "sub": "The newest agent category uses a model that can see a screenshot and act with mouse/keyboard primitives. OpenAI's Operator and Anthropic's \"computer use\" are the marquee examples. They trade precision for generality.",
+      "body": [
+        {
+          "type": "code",
+          "lang": "python",
+          "code": "# Anthropic computer-use minimal loop (pseudocode)\nwhile not done:\n    screenshot = capture()\n    response = client.messages.create(\n        model=\"claude-sonnet-4-5\",\n        tools=[\"computer\"],\n        messages=[{\"role\": \"user\",\n                   \"content\": [screenshot, goal]}],\n    )\n    for block in response.content:\n        if block.type == \"tool_use\":\n            execute(block.input)\n    if response.stop_reason in (\"end_turn\", \"max_tokens\"):\n        break",
+          "html": "<pre class=\"shiki github-dark-dimmed\" style=\"background-color:#22272e;color:#adbac7\" tabindex=\"0\"><code><span class=\"line\"><span style=\"color:#768390\"># Anthropic computer-use minimal loop (pseudocode)</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">while</span><span style=\"color:#F47067\"> not</span><span style=\"color:#ADBAC7\"> done:</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    screenshot </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> capture()</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    response </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> client.messages.create(</span></span>\n<span class=\"line\"><span style=\"color:#F69D50\">        model</span><span style=\"color:#F47067\">=</span><span style=\"color:#96D0FF\">\"claude-sonnet-4-5\"</span><span style=\"color:#ADBAC7\">,</span></span>\n<span class=\"line\"><span style=\"color:#F69D50\">        tools</span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\">[</span><span style=\"color:#96D0FF\">\"computer\"</span><span style=\"color:#ADBAC7\">],</span></span>\n<span class=\"line\"><span style=\"color:#F69D50\">        messages</span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\">[{</span><span style=\"color:#96D0FF\">\"role\"</span><span style=\"color:#ADBAC7\">: </span><span style=\"color:#96D0FF\">\"user\"</span><span style=\"color:#ADBAC7\">,</span></span>\n<span class=\"line\"><span style=\"color:#96D0FF\">                   \"content\"</span><span style=\"color:#ADBAC7\">: [screenshot, goal]}],</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    )</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">    for</span><span style=\"color:#ADBAC7\"> block </span><span style=\"color:#F47067\">in</span><span style=\"color:#ADBAC7\"> response.content:</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">        if</span><span style=\"color:#ADBAC7\"> block.type </span><span style=\"color:#F47067\">==</span><span style=\"color:#96D0FF\"> \"tool_use\"</span><span style=\"color:#ADBAC7\">:</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">            execute(block.input)</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">    if</span><span style=\"color:#ADBAC7\"> response.stop_reason </span><span style=\"color:#F47067\">in</span><span style=\"color:#ADBAC7\"> (</span><span style=\"color:#96D0FF\">\"end_turn\"</span><span style=\"color:#ADBAC7\">, </span><span style=\"color:#96D0FF\">\"max_tokens\"</span><span style=\"color:#ADBAC7\">):</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">        break</span></span></code></pre>"
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s10-where-computer-use-wins",
+          "html": "Where computer use wins"
+        },
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            "<strong>No API exists.</strong> The site or app has no programmatic interface; the only way in is the GUI.",
+            "<strong>The API is hostile.</strong> The vendor's API is rate-limited, expensive, or has bad docs; the GUI is faster.",
+            "<strong>One-off tasks.</strong> You need to do this once, not at scale, so the cost-per-task of computer use is acceptable.",
+            "<strong>Cross-app workflows.</strong> The task crosses SaaS boundaries (read from Gmail, post to Slack) and no integration exists."
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s10-where-computer-use-loses",
+          "html": "Where computer use loses"
+        },
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            "<strong>Cost.</strong> Computer-use calls are 5–30× the cost of an API call (vision tokens for every screenshot).",
+            "<strong>Latency.</strong> A click is instant; a screenshot → LLM → action cycle is 1–5 seconds. A 20-step task takes a minute.",
+            "<strong>Reliability.</strong> A shifted button, a popup, a captcha — any of these kills the run.",
+            "<strong>Security.</strong> The agent has unrestricted mouse/keyboard. Pair with a sandboxed VM, a per-task browser profile, and a tight human-in-the-loop on destructive actions."
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s10-browser-agents-vs-computer-use",
+          "html": "Browser agents vs computer use"
+        },
+        {
+          "type": "paragraph",
+          "html": "Browser agents (ChatGPT's \"Browse with Bing,\" Perplexity, Arc Max) are a constrained subset of computer use: the model can only see and act inside a single browser tab, not the whole desktop. They use the same screenshot → action loop but with a smaller surface area, which is why they're more reliable. If you can frame the task in a browser, prefer a browser agent over a full computer-use agent."
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s10-the-reliability-pattern",
+          "html": "The reliability pattern"
+        },
+        {
+          "type": "paragraph",
+          "html": "Production computer-use agents use three reliability patterns: (1) the model emits a structured plan up front (\"I will click the blue button, then fill the form, then submit\"), which makes mid-run debugging easier; (2) each step is checkpointed, so a crash resumes from the last successful step; (3) the agent runs in an isolated VM or browser profile, so a misclick can't reach the host system."
+        }
+      ],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Browser agents and computer-use agents are the \"wild west\" of AI.</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Where they win:</strong> no API exists for the site; the API is hostile; one-off tasks where speed doesn't matter; cross-app workflows with no integration."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Where they lose:</strong> cost (5–30× more than an API call), latency (1–5 seconds per click vs instant), reliability (a shifted button kills the run), security."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Browser agents vs full computer use:</strong> browser agents are constrained to a single browser tab. Smaller surface = more reliable."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>The reliability pattern:</strong> the model emits a plan up front, each step is checkpointed, and the agent runs in an isolated VM."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The-remote-intern analogy:</strong> a remote intern who can only see your screen and use a mouse. Slow, but they can do anything you can do."
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Browser agent এবং computer-use agent হলো AI-এর \"wild west\"।</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>যেখানে জেতে:</strong> সাইটের জন্য API নেই; API প্রতিকূল; one-off কাজ; ক্রস-অ্যাপ workflows।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>যেখানে হারে:</strong> খরচ, latency, নির্ভরযোগ্যতা, নিরাপত্তা।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Browser agent বনাম সম্পূর্ণ computer use:</strong> browser agent একটি একক browser tab-এ সীমাবদ্ধ।"
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>দূরবর্তী ইন্টার্নের উপমা:</strong> একজন দূরবর্তী ইন্টার্ন যিনি শুধু আপনার screen দেখতে এবং mouse ব্যবহার করতে পারেন।"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "n": 1,
+      "url": "https://arxiv.org/abs/2210.03629",
+      "text": "Yao et al., \"ReAct: Synergizing Reasoning and Acting in Language Models\" (ICLR 2023)"
+    },
+    {
+      "n": 2,
+      "url": "https://arxiv.org/abs/2201.11903",
+      "text": "Wei et al., \"Chain-of-Thought Prompting Elicits Reasoning in Large Language Models\" — NeurIPS 2022 (foundational for Plan-and-Execute)"
+    },
+    {
+      "n": 3,
+      "url": "https://arxiv.org/abs/2303.11381",
+      "text": "Shinn et al., \"Reflexion: Language Agents with Verbal Reinforcement Learning\" — NeurIPS 2023"
+    },
+    {
+      "n": 4,
+      "url": "https://arxiv.org/abs/2305.18323",
+      "text": "Xu et al., \"ReWOO: Decoupling Reasoning from Observations for Efficient Augmented Language Models\""
+    },
+    {
+      "n": 5,
+      "url": "https://www.anthropic.com/engineering/built-multi-agent-research-system",
+      "text": "Anthropic Engineering blog — \"How we built our multi-agent research system\" (2025)"
+    },
+    {
+      "n": 6,
+      "url": "https://langchain-ai.github.io/langgraph/",
+      "text": "LangGraph — official documentation (LangChain)"
+    },
+    {
+      "n": 7,
+      "url": "https://temporal.io/blog/temporal-for-llm-agents",
+      "text": "Temporal — \"Durable Execution for LLM Agents\""
+    },
+    {
+      "n": 8,
+      "url": "https://arxiv.org/abs/2304.03442",
+      "text": "Park et al., \"Generative Agents: Interactive Simulacra of Human Behavior\" — 2023"
+    },
+    {
+      "n": 9,
+      "url": "https://www.anthropic.com/news/3-5-models-and-computer-use",
+      "text": "Anthropic — \"Introducing computer use, a new Claude 3.5 Sonnet capability\" (Oct 2024)"
+    },
+    {
+      "n": 10,
+      "url": "https://platform.openai.com/docs/guides/agents",
+      "text": "OpenAI — Agents SDK documentation"
+    },
+    {
+      "n": 11,
+      "url": "https://docs.crewai.com/",
+      "text": "CrewAI — official documentation"
+    },
+    {
+      "n": 12,
+      "url": "https://martinfowler.com/articles/exploring-gen-ai.html",
+      "text": "Martin Fowler — \"Patterns of Building AI Applications\" (2024)"
+    },
+    {
+      "n": 13,
+      "url": "https://lilianweng.github.io/posts/2023-06-23-agent/",
+      "text": "Lilian Weng — \"LLM Powered Autonomous Agents\" (Jun 2023)"
+    },
+    {
+      "n": 14,
+      "url": "https://docs.restate.dev/",
+      "text": "Restate — official documentation"
+    },
+    {
+      "n": 15,
+      "url": "https://docs.inngest.com/",
+      "text": "Inngest — official documentation"
+    },
+    {
+      "n": 16,
+      "url": "https://en.wikipedia.org/wiki/Circuit_breaker_design_pattern",
+      "text": "Circuit Breaker pattern — Nygard, \"Release It!\" (2007)"
+    },
+    {
+      "n": 17,
+      "url": "https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview",
+      "text": "Anthropic — Tool use / function calling documentation"
+    },
+    {
+      "n": 18,
+      "url": "https://docs.aws.amazon.com/step-functions/latest/dg/welcome.html",
+      "text": "AWS Step Functions — official documentation"
+    },
+    {
+      "n": 19,
+      "url": "https://docs.dbos.dev/",
+      "text": "DBOS — durable execution built on PostgreSQL"
+    },
+    {
+      "n": 20,
+      "url": "https://platform.openai.com/docs/guides/computer-use",
+      "text": "OpenAI — Computer use / Operator documentation"
+    },
+    {
+      "n": 21,
+      "url": "https://arxiv.org/abs/2410.01798",
+      "text": "Anthropic — \"Developing a computer use agent\" technical report"
+    },
+    {
+      "n": 22,
+      "url": "https://www.nngroup.com/articles/ai-human-approval-loops/",
+      "text": "Nielsen Norman Group — \"AI in Human-Approval Loops\" (2024)"
+    },
+    {
+      "n": 23,
+      "url": "https://huggingface.co/docs/transformers/agents",
+      "text": "Hugging Face — Transformers Agents documentation"
+    },
+    {
+      "n": 24,
+      "url": "https://docs.llamaindex.ai/en/stable/module_guides/agents/",
+      "text": "LlamaIndex — Agents module documentation"
+    },
+    {
+      "n": 25,
+      "url": "https://haystack.deepset.ai/tutorials/37_building_a_chatbot_with_custom_knowledge_retrieval",
+      "text": "Haystack — Building agents with custom tools"
+    },
+    {
+      "n": 26,
+      "url": "https://github.com/Significant-Gravitas/AutoGPT",
+      "text": "AutoGPT — open-source autonomous agent framework"
+    },
+    {
+      "n": 27,
+      "url": "https://docs.phidata.com/",
+      "text": "Phidata — agent framework documentation"
+    },
+    {
+      "n": 28,
+      "url": "https://www.microsoft.com/en-us/research/project/autogen/",
+      "text": "Microsoft Research — AutoGen multi-agent framework"
+    },
+    {
+      "n": 29,
+      "url": "https://docs.mastra.ai/",
+      "text": "Mastra — TypeScript agent framework documentation"
+    },
+    {
+      "n": 30,
+      "url": "https://www.anthropic.com/news/claude-3-5-sonnet",
+      "text": "Anthropic — Claude 3.5 Sonnet announcement (2024)"
+    }
+  ]
+}

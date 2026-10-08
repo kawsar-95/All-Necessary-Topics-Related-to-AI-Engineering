@@ -1,98 +1,1121 @@
 {
   "slug": "llm-fundamentals",
   "title": "LLM Fundamentals",
-  "heroTitle": "",
-  "lede": "A dense, citation-backed reference for ten topics every ML engineer, applied researcher, and platform builder needs to internalise — tokens, families, sampling, structured outputs, tool use, multimodal, embeddings, reasoning, and the trade-offs that decide which model runs in production. <strong style=\"color: var(--accent-warn);\">Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies) at the bottom of each topic. প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
+  "tagline": "from an engineer's lens",
+  "lede": "A dense, citation-backed reference for ten topics every ML engineer, applied researcher, and platform builder needs to internalise — tokens, families, sampling, structured outputs, tool use, multimodal, embeddings, reasoning, and the trade-offs that decide which model runs in production. <strong>Each section ships in two voices:</strong> the engineer's version (technical, with code & diagrams) and a layman's version (plain English with analogies) at the bottom of each topic. প্রতিটি টপিকের শেষে বাংলা ব্যাখ্যাও আছে।",
   "sections": [
     {
       "id": "s1",
       "num": "01",
       "title": "Tokens, tokenization & context cost",
       "sub": "Everything a model does — attention, generation, cost — is denominated in <strong>tokens</strong>, not characters or words. If your prompt shrinks from 800 to 200 tokens, you just cut cost by 75% and latency by a meaningful fraction. This is the single biggest engineering lever you have.",
-      "body": "<div class=\"diagram\">\n    <svg viewBox=\"0 0 1100 280\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"Tokenization of a sample sentence\">\n      <defs>\n        <marker id=\"arr1\" markerWidth=\"8\" markerHeight=\"8\" refX=\"6\" refY=\"4\" orient=\"auto\">\n          <path d=\"M0,0 L6,4 L0,8 Z\" fill=\"#94a3b8\"/>\n        </marker>\n      </defs>\n      <!-- input text -->\n      <text x=\"40\" y=\"36\" font-family=\"JetBrains Mono, monospace\" font-size=\"13\" fill=\"#a8b5c8\">raw input</text>\n      <rect x=\"40\" y=\"50\" width=\"1020\" height=\"50\" rx=\"6\" fill=\"#0f172a\" stroke=\"#334155\"/>\n      <text x=\"56\" y=\"82\" font-family=\"JetBrains Mono, monospace\" font-size=\"20\" fill=\"#e2e8f0\">unbelievable</text>\n      <text x=\"232\" y=\"82\" font-family=\"JetBrains Mono, monospace\" font-size=\"20\" fill=\"#e2e8f0\">.</text>\n      <text x=\"252\" y=\"82\" font-family=\"JetBrains Mono, monospace\" font-size=\"20\" fill=\"#e2e8f0\">_tokenization</text>\n      <text x=\"430\" y=\"82\" font-family=\"JetBrains Mono, monospace\" font-size=\"20\" fill=\"#e2e8f0\">_</text>\n      <text x=\"446\" y=\"82\" font-family=\"JetBrains Mono, monospace\" font-size=\"20\" fill=\"#e2e8f0\">helps</text>\n      <text x=\"540\" y=\"82\" font-family=\"JetBrains Mono, monospace\" font-size=\"20\" fill=\"#e2e8f0\">_compression</text>\n      <text x=\"712\" y=\"82\" font-family=\"JetBrains Mono, monospace\" font-size=\"20\" fill=\"#e2e8f0\">.</text>\n\n      <!-- arrow -->\n      <line x1=\"550\" y1=\"110\" x2=\"550\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"1.5\" marker-end=\"url(#arr1)\"/>\n      <text x=\"568\" y=\"125\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\" fill=\"#a8b5c8\">BPE merges (low→high freq)</text>\n\n      <!-- token IDs -->\n      <text x=\"40\" y=\"160\" font-family=\"JetBrains Mono, monospace\" font-size=\"13\" fill=\"#a8b5c8\">token IDs (vocab index)</text>\n      <g font-family=\"JetBrains Mono, monospace\" font-size=\"14\" font-weight=\"600\" text-anchor=\"middle\">\n        <rect x=\"40\"   y=\"172\" width=\"118\" height=\"44\" rx=\"6\" fill=\"#22d3ee\" fill-opacity=\"0.10\" stroke=\"#22d3ee\"/>\n        <text x=\"99\"  y=\"200\" fill=\"#22d3ee\">un</text>\n        <rect x=\"166\"  y=\"172\" width=\"118\" height=\"44\" rx=\"6\" fill=\"#22d3ee\" fill-opacity=\"0.10\" stroke=\"#22d3ee\"/>\n        <text x=\"225\" y=\"200\" fill=\"#22d3ee\">believ</text>\n        <rect x=\"292\"  y=\"172\" width=\"118\" height=\"44\" rx=\"6\" fill=\"#22d3ee\" fill-opacity=\"0.10\" stroke=\"#22d3ee\"/>\n        <text x=\"351\" y=\"200\" fill=\"#22d3ee\">able</text>\n        <rect x=\"418\"  y=\"172\" width=\"46\"  height=\"44\" rx=\"6\" fill=\"#a78bfa\" fill-opacity=\"0.10\" stroke=\"#a78bfa\"/>\n        <text x=\"441\" y=\"200\" fill=\"#a78bfa\">.</text>\n        <rect x=\"472\"  y=\"172\" width=\"148\" height=\"44\" rx=\"6\" fill=\"#22d3ee\" fill-opacity=\"0.10\" stroke=\"#22d3ee\"/>\n        <text x=\"546\" y=\"200\" fill=\"#22d3ee\">_token</text>\n        <rect x=\"628\"  y=\"172\" width=\"118\" height=\"44\" rx=\"6\" fill=\"#22d3ee\" fill-opacity=\"0.10\" stroke=\"#22d3ee\"/>\n        <text x=\"687\" y=\"200\" fill=\"#22d3ee\">ization</text>\n        <rect x=\"754\"  y=\"172\" width=\"46\"  height=\"44\" rx=\"6\" fill=\"#a78bfa\" fill-opacity=\"0.10\" stroke=\"#a78bfa\"/>\n        <text x=\"777\" y=\"200\" fill=\"#a78bfa\">_</text>\n        <rect x=\"808\"  y=\"172\" width=\"118\" height=\"44\" rx=\"6\" fill=\"#22d3ee\" fill-opacity=\"0.10\" stroke=\"#22d3ee\"/>\n        <text x=\"867\" y=\"200\" fill=\"#22d3ee\">helps</text>\n        <rect x=\"934\"  y=\"172\" width=\"124\" height=\"44\" rx=\"6\" fill=\"#22d3ee\" fill-opacity=\"0.10\" stroke=\"#22d3ee\"/>\n        <text x=\"996\" y=\"200\" fill=\"#22d3ee\">_comp</text>\n      </g>\n      <text x=\"40\" y=\"248\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\" fill=\"#a8b5c8\">→ 11 subword pieces (vs 33 raw chars). Frequent runs = single tokens; rare substrings split into 2–3.</text>\n      <text x=\"40\" y=\"266\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\" fill=\"#a8b5c8\">→ The model never sees characters — only these integer IDs feed the embedding table.</text>\n    </svg>\n    <div class=\"diagram-caption\">BPE tokenization in practice: English byte-runs merge into common pieces; punctuation and whitespace often become standalone tokens.</div>\n    <div class=\"diagram-caption diagram-caption-bn\">এই diagram-এ দেখানো হয়েছে raw input টেক্সট কীভাবে BPE merges-এর মাধ্যমে subword pieces-এ ভাগ হয় এবং প্রতিটি piece একটি token ID পায়। উপর থেকে নিচে পড়ুন: মডেল কখনো characters দেখে না, শুধু এই integer IDs-ই embedding table-এ যায়।</div>\n  </div>\n\n  <h3>Why this matters: the cost equation</h3>\n  <p>APIs charge per <strong>token</strong>, not per character. A useful mnemonic: <strong>~1 token ≈ 4 characters in English</strong> for most modern tokenizers, but this varies wildly by language — Chinese runs ~1 char ≈ 1.5 tokens, code ~1 token ≈ 3.5 chars, numbers are split digit-by-digit in early tokenizers but consolidated in newer ones.</p>\n\n  <pre><code><span class=\"com\"># Counting tokens with tiktoken (OpenAI) or transformers</span>\n<span class=\"kw\">import</span> tiktoken\nenc = tiktoken.encoding_for_model(<span class=\"str\">\"gpt-4o\"</span>)\ntext = <span class=\"str\">\"Tokenization is the silent tax on every LLM call.\"</span>\n<span class=\"fn\">print</span>(<span class=\"fn\">len</span>(enc.encode(text)))   <span class=\"com\"># → 11 tokens, not 8 words</span>\n\n<span class=\"com\"># Concrete cost (input, gpt-4o-mini, Jul 2025 pricing)</span>\ntokens        = <span class=\"num\">11</span>\nprice_per_m   = <span class=\"num\">0.15</span>      <span class=\"com\"># USD per 1M input tokens</span>\ncost_per_call = tokens / <span class=\"num\">1_000_000</span> * price_per_m   <span class=\"com\"># → $0.00000165</span></code></pre>\n\n  <h3>Context windows — what they actually are</h3>\n  <p>The <strong>context window</strong> is the maximum total tokens (input + output) the model can attend to in a single call. It has grown dramatically: GPT-3's 2K window in 2020 → 8K (GPT-3.5) → 128K (GPT-4o) → 1M+ (Gemini 1.5).<a class=\"cite\" href=\"#src1\">[1]</a><a class=\"cite\" href=\"#src11\">[11]</a></p>\n\n  <div class=\"pill-grid\">\n    <div class=\"pill\"><div class=\"label\">GPT-3 (2020)</div><div class=\"val\">2,048 tokens</div></div>\n    <div class=\"pill\"><div class=\"label\">GPT-4 Turbo</div><div class=\"val\">128K tokens</div></div>\n    <div class=\"pill\"><div class=\"label\">Claude 4 Sonnet</div><div class=\"val\">200K (1M β)</div></div>\n    <div class=\"pill\"><div class=\"label\">Gemini 1.5 Pro</div><div class=\"val\">1M–2M tokens</div></div>\n    <div class=\"pill\"><div class=\"label\">Llama 3.1 405B</div><div class=\"val\">128K tokens</div></div>\n    <div class=\"pill\"><div class=\"label\">Qwen3</div><div class=\"val\">32K native, 1M w/ YaRN</div></div>\n  </div>\n\n  <div class=\"callout warn\">\n    <strong>Long context ≠ free performance.</strong> Even with 1M-token windows, retrieval-augmented generation, summarisation, or hierarchical attention beats dumping 800K tokens in. Needle-in-a-haystack benchmarks improve, but multi-hop reasoning across long contexts degrades sharply. Measure on your own workloads.\n  </div>\n\n  <h3>How tokens map to cost & latency</h3>\n  <table>\n    <thead><tr><th>Component</th><th>Cost driver</th><th>What dominates</th></tr></thead>\n    <tbody>\n      <tr><td>Prefill (prompt processing)</td><td>Tokens in × input $/M</td><td>Quadratic attention compute; ~100 ms–2 s on modern APIs for 10K tokens</td></tr>\n      <tr><td>Decode (generation)</td><td>Tokens out × output $/M</td><td>Sequential (one per step); <strong>output tokens are 3–5× more expensive than input</strong> on most APIs</td></tr>\n      <tr><td>Caching</td><td>Cache hits vs misses</td><td>Prompt caching (Anthropic, OpenAI, Gemini) cuts repeated-prefix cost by ~80–90%</td></tr>\n      <tr><td>Long context</td><td>Quadratic attention</td><td>A 1M-token call isn't 125× a 8K call — closer to 5–8× due to attention scaling and chunked prefill</td></tr>\n    </tbody>\n  </table>",
-      "layman": "<div class=\"layman-head\"><span class=\"icon\">☕</span><span class=\"label\">Layman's version<small>plain English, no jargon</small></span></div>\n    <p><strong>Think of a token like a \"word piece.\"</strong> When you read this sentence, you see whole words. An LLM doesn't see words — it sees chunks. \"Unbelievable\" might be three chunks: <code>un</code> + <code>believ</code> + <code>able</code>. Common chunks like \"the\" or \"ing\" are single chunks. Weird stuff (\"Doha\", \"kubernetes\") gets chopped into more chunks.</p>\n    <p><strong>Why does this matter to you?</strong> Because every API charge is per chunk, not per word. A 100-word email is roughly 130 chunks. A 100-word email stuffed with code and rare names might be 220 chunks. Same email, double the cost — just from language alone.</p>\n    <p><strong>Context window = the model's short-term memory.</strong> You know how if a friend has been listening for 4 hours straight, they start forgetting things you said an hour ago? LLMs do the same thing, just more abruptly. \"Context window\" is the size of their working memory — usually 8K to 1M chunks. Bigger isn't always better: cramming 800K chunks in doesn't make the model 100× smarter, it just makes the bill bigger.</p>\n    <div class=\"analogy\"><strong>The kitchen analogy:</strong> tokens are like \"ingredients on the counter.\" The context window is the counter size. A tiny counter (2K) means you can only cook small meals. A huge counter (1M) lets you cook for a wedding — but you still have to actually cook, and the bigger meal doesn't come out better just because you had room.</div>",
-      "bangla": "<div class=\"bangla-head\"><span class=\"icon\">🇧🇩</span><span class=\"label\">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>\n    <p><strong>Token</strong> হলো LLM-এর ভোকাবুলারির একেকটি টুকরো। মডেল অক্ষর বা পুরো শব্দ পড়ে না; একটি subword tokenizer শব্দকে ভেঙে ছোট ছোট অংশে পরিণত করে, যার জনপ্রিয় পদ্ধতি <code>BPE</code> (Byte-Pair Encoding)। এটি corpus-এর সবচেয়ে ঘন ঘন পাশাপাশি আসা জোড়াগুলো বারবার মিলিয়ে নেয়, যতক্ষণ না নির্দিষ্ট vocabulary size (প্রায়ই 32k–200k) হয়। বহুভাষিক ও কোডের কাজে <code>SentencePiece</code> বেশি ব্যবহৃত হয়। মডেল শেষ পর্যন্ত শুধু token ID (পূর্ণসংখ্যা) দেখে, যা embedding table-এ যায়।</p>\n    <p>খরচের হিসাব হয় token দিয়ে, অক্ষর দিয়ে নয়। ইংরেজিতে মোটামুটি 1 token ≈ 4 অক্ষর, কিন্তু ভাষাভেদে এটি অনেক বদলায়: চীনা ভাষায় 1 অক্ষর ≈ 1.5 token, কোডে 1 token ≈ 3.5 অক্ষর। তাই prompt 800 থেকে 200 token-এ নামালে খরচ 75% কমে এবং latency-ও কমে। এটাই সবচেয়ে বড় engineering lever।</p>\n    <p><strong>Context window</strong> হলো এক কলে মডেল সর্বোচ্চ কত token (input + output মিলিয়ে) দেখতে পারে। এটি GPT-3-এর 2K থেকে বেড়ে এখন 1M+ পর্যন্ত গেছে। খরচ ও গতির দিক থেকে: prefill (prompt প্রসেসিং) এর খরচ input token অনুযায়ী, আর decode (লেখা তৈরি) ধাপে ধাপে হয় এবং output token সাধারণত input-এর চেয়ে 3–5 গুণ দামি। <code>Prompt caching</code> বারবার আসা prefix-এর খরচ প্রায় 80–90% কমায়।</p>\n    <p><strong>সতর্কতা:</strong> বড় context মানে নিখুঁত পারফরম্যান্স নয়। 800K token ঢেলে দেওয়ার চেয়ে RAG বা summarisation প্রায়ই ভালো, কারণ লম্বা context-এ multi-hop reasoning দ্রুত খারাপ হয়। নিজের workload-এ মেপে দেখুন।</p>\n    <div class=\"analogy\"><strong>দর্জির দোকানের উপমা:</strong> কাপড়ের থান (পুরো লেখা) দর্জি আগে ছোট ছোট টুকরোয় কেটে নেয় (token), আর মজুরি হয় টুকরোর সংখ্যা ধরে। Context window হলো দর্জির কাটিং টেবিলের মাপ: টেবিল যত বড়, একসাথে তত কাপড় ছড়িয়ে কাজ করা যায়। কিন্তু টেবিল বড় হলেই জামা সুন্দর হয় না; আর অকারণে বেশি কাপড় ছড়ালে খরচ ও সময় দুটোই বাড়ে।</div>"
+      "body": [
+        {
+          "type": "diagram",
+          "svg": "<svg viewBox=\"0 0 1100 280\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"Tokenization of a sample sentence\">\n      <defs>\n        <marker id=\"arr1\" markerWidth=\"8\" markerHeight=\"8\" refX=\"6\" refY=\"4\" orient=\"auto\">\n          <path d=\"M0,0 L6,4 L0,8 Z\" fill=\"#94a3b8\"></path>\n        </marker>\n      </defs>\n      \n      <text x=\"40\" y=\"36\" font-family=\"JetBrains Mono, monospace\" font-size=\"13\" fill=\"#a8b5c8\">raw input</text>\n      <rect x=\"40\" y=\"50\" width=\"1020\" height=\"50\" rx=\"6\" fill=\"#0f172a\" stroke=\"#334155\"></rect>\n      <text x=\"56\" y=\"82\" font-family=\"JetBrains Mono, monospace\" font-size=\"20\" fill=\"#e2e8f0\">unbelievable</text>\n      <text x=\"232\" y=\"82\" font-family=\"JetBrains Mono, monospace\" font-size=\"20\" fill=\"#e2e8f0\">.</text>\n      <text x=\"252\" y=\"82\" font-family=\"JetBrains Mono, monospace\" font-size=\"20\" fill=\"#e2e8f0\">_tokenization</text>\n      <text x=\"430\" y=\"82\" font-family=\"JetBrains Mono, monospace\" font-size=\"20\" fill=\"#e2e8f0\">_</text>\n      <text x=\"446\" y=\"82\" font-family=\"JetBrains Mono, monospace\" font-size=\"20\" fill=\"#e2e8f0\">helps</text>\n      <text x=\"540\" y=\"82\" font-family=\"JetBrains Mono, monospace\" font-size=\"20\" fill=\"#e2e8f0\">_compression</text>\n      <text x=\"712\" y=\"82\" font-family=\"JetBrains Mono, monospace\" font-size=\"20\" fill=\"#e2e8f0\">.</text>\n\n      \n      <line x1=\"550\" y1=\"110\" x2=\"550\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"1.5\" marker-end=\"url(#arr1)\"></line>\n      <text x=\"568\" y=\"125\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\" fill=\"#a8b5c8\">BPE merges (low→high freq)</text>\n\n      \n      <text x=\"40\" y=\"160\" font-family=\"JetBrains Mono, monospace\" font-size=\"13\" fill=\"#a8b5c8\">token IDs (vocab index)</text>\n      <g font-family=\"JetBrains Mono, monospace\" font-size=\"14\" font-weight=\"600\" text-anchor=\"middle\">\n        <rect x=\"40\"   y=\"172\" width=\"118\" height=\"44\" rx=\"6\" fill=\"#22d3ee\" fill-opacity=\"0.10\" stroke=\"#22d3ee\"></rect>\n        <text x=\"99\"  y=\"200\" fill=\"#22d3ee\">un</text>\n        <rect x=\"166\"  y=\"172\" width=\"118\" height=\"44\" rx=\"6\" fill=\"#22d3ee\" fill-opacity=\"0.10\" stroke=\"#22d3ee\"></rect>\n        <text x=\"225\" y=\"200\" fill=\"#22d3ee\">believ</text>\n        <rect x=\"292\"  y=\"172\" width=\"118\" height=\"44\" rx=\"6\" fill=\"#22d3ee\" fill-opacity=\"0.10\" stroke=\"#22d3ee\"></rect>\n        <text x=\"351\" y=\"200\" fill=\"#22d3ee\">able</text>\n        <rect x=\"418\"  y=\"172\" width=\"46\"  height=\"44\" rx=\"6\" fill=\"#a78bfa\" fill-opacity=\"0.10\" stroke=\"#a78bfa\"></rect>\n        <text x=\"441\" y=\"200\" fill=\"#a78bfa\">.</text>\n        <rect x=\"472\"  y=\"172\" width=\"148\" height=\"44\" rx=\"6\" fill=\"#22d3ee\" fill-opacity=\"0.10\" stroke=\"#22d3ee\"></rect>\n        <text x=\"546\" y=\"200\" fill=\"#22d3ee\">_token</text>\n        <rect x=\"628\"  y=\"172\" width=\"118\" height=\"44\" rx=\"6\" fill=\"#22d3ee\" fill-opacity=\"0.10\" stroke=\"#22d3ee\"></rect>\n        <text x=\"687\" y=\"200\" fill=\"#22d3ee\">ization</text>\n        <rect x=\"754\"  y=\"172\" width=\"46\"  height=\"44\" rx=\"6\" fill=\"#a78bfa\" fill-opacity=\"0.10\" stroke=\"#a78bfa\"></rect>\n        <text x=\"777\" y=\"200\" fill=\"#a78bfa\">_</text>\n        <rect x=\"808\"  y=\"172\" width=\"118\" height=\"44\" rx=\"6\" fill=\"#22d3ee\" fill-opacity=\"0.10\" stroke=\"#22d3ee\"></rect>\n        <text x=\"867\" y=\"200\" fill=\"#22d3ee\">helps</text>\n        <rect x=\"934\"  y=\"172\" width=\"124\" height=\"44\" rx=\"6\" fill=\"#22d3ee\" fill-opacity=\"0.10\" stroke=\"#22d3ee\"></rect>\n        <text x=\"996\" y=\"200\" fill=\"#22d3ee\">_comp</text>\n      </g>\n      <text x=\"40\" y=\"248\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\" fill=\"#a8b5c8\">→ 11 subword pieces (vs 33 raw chars). Frequent runs = single tokens; rare substrings split into 2–3.</text>\n      <text x=\"40\" y=\"266\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\" fill=\"#a8b5c8\">→ The model never sees characters — only these integer IDs feed the embedding table.</text>\n    </svg>",
+          "caption": "BPE tokenization in practice: English byte-runs merge into common pieces; punctuation and whitespace often become standalone tokens.",
+          "captionBn": "এই diagram-এ দেখানো হয়েছে raw input টেক্সট কীভাবে BPE merges-এর মাধ্যমে subword pieces-এ ভাগ হয় এবং প্রতিটি piece একটি token ID পায়। উপর থেকে নিচে পড়ুন: মডেল কখনো characters দেখে না, শুধু এই integer IDs-ই embedding table-এ যায়।"
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s1-why-this-matters-the-cost-equation",
+          "html": "Why this matters: the cost equation"
+        },
+        {
+          "type": "paragraph",
+          "html": "APIs charge per <strong>token</strong>, not per character. A useful mnemonic: <strong>~1 token ≈ 4 characters in English</strong> for most modern tokenizers, but this varies wildly by language — Chinese runs ~1 char ≈ 1.5 tokens, code ~1 token ≈ 3.5 chars, numbers are split digit-by-digit in early tokenizers but consolidated in newer ones."
+        },
+        {
+          "type": "code",
+          "lang": "python",
+          "code": "# Counting tokens with tiktoken (OpenAI) or transformers\nimport tiktoken\nenc = tiktoken.encoding_for_model(\"gpt-4o\")\ntext = \"Tokenization is the silent tax on every LLM call.\"\nprint(len(enc.encode(text)))   # → 11 tokens, not 8 words\n\n# Concrete cost (input, gpt-4o-mini, Jul 2025 pricing)\ntokens        = 11\nprice_per_m   = 0.15      # USD per 1M input tokens\ncost_per_call = tokens / 1_000_000 * price_per_m   # → $0.00000165",
+          "html": "<pre class=\"shiki github-dark-dimmed\" style=\"background-color:#22272e;color:#adbac7\" tabindex=\"0\"><code><span class=\"line\"><span style=\"color:#768390\"># Counting tokens with tiktoken (OpenAI) or transformers</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">import</span><span style=\"color:#ADBAC7\"> tiktoken</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">enc </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> tiktoken.encoding_for_model(</span><span style=\"color:#96D0FF\">\"gpt-4o\"</span><span style=\"color:#ADBAC7\">)</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">text </span><span style=\"color:#F47067\">=</span><span style=\"color:#96D0FF\"> \"Tokenization is the silent tax on every LLM call.\"</span></span>\n<span class=\"line\"><span style=\"color:#6CB6FF\">print</span><span style=\"color:#ADBAC7\">(</span><span style=\"color:#6CB6FF\">len</span><span style=\"color:#ADBAC7\">(enc.encode(text)))   </span><span style=\"color:#768390\"># → 11 tokens, not 8 words</span></span>\n<span class=\"line\"></span>\n<span class=\"line\"><span style=\"color:#768390\"># Concrete cost (input, gpt-4o-mini, Jul 2025 pricing)</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">tokens        </span><span style=\"color:#F47067\">=</span><span style=\"color:#6CB6FF\"> 11</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">price_per_m   </span><span style=\"color:#F47067\">=</span><span style=\"color:#6CB6FF\"> 0.15</span><span style=\"color:#768390\">      # USD per 1M input tokens</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">cost_per_call </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> tokens </span><span style=\"color:#F47067\">/</span><span style=\"color:#6CB6FF\"> 1_000_000</span><span style=\"color:#F47067\"> *</span><span style=\"color:#ADBAC7\"> price_per_m   </span><span style=\"color:#768390\"># → $0.00000165</span></span></code></pre>"
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s1-context-windows-what-they-actually-are",
+          "html": "Context windows — what they actually are"
+        },
+        {
+          "type": "paragraph",
+          "html": "The <strong>context window</strong> is the maximum total tokens (input + output) the model can attend to in a single call. It has grown dramatically: GPT-3's 2K window in 2020 → 8K (GPT-3.5) → 128K (GPT-4o) → 1M+ (Gemini 1.5).<a class=\"cite\" href=\"#src1\">[1]</a><a class=\"cite\" href=\"#src11\">[11]</a>"
+        },
+        {
+          "type": "pillGrid",
+          "items": [
+            {
+              "label": "GPT-3 (2020)",
+              "value": "2,048 tokens"
+            },
+            {
+              "label": "GPT-4 Turbo",
+              "value": "128K tokens"
+            },
+            {
+              "label": "Claude 4 Sonnet",
+              "value": "200K (1M β)"
+            },
+            {
+              "label": "Gemini 1.5 Pro",
+              "value": "1M–2M tokens"
+            },
+            {
+              "label": "Llama 3.1 405B",
+              "value": "128K tokens"
+            },
+            {
+              "label": "Qwen3",
+              "value": "32K native, 1M w/ YaRN"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "variant": "warn",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>Long context ≠ free performance.</strong> Even with 1M-token windows, retrieval-augmented generation, summarisation, or hierarchical attention beats dumping 800K tokens in. Needle-in-a-haystack benchmarks improve, but multi-hop reasoning across long contexts degrades sharply. Measure on your own workloads."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s1-how-tokens-map-to-cost-latency",
+          "html": "How tokens map to cost & latency"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Component",
+            "Cost driver",
+            "What dominates"
+          ],
+          "rows": [
+            [
+              "Prefill (prompt processing)",
+              "Tokens in × input $/M",
+              "Quadratic attention compute; ~100 ms–2 s on modern APIs for 10K tokens"
+            ],
+            [
+              "Decode (generation)",
+              "Tokens out × output $/M",
+              "Sequential (one per step); <strong>output tokens are 3–5× more expensive than input</strong> on most APIs"
+            ],
+            [
+              "Caching",
+              "Cache hits vs misses",
+              "Prompt caching (Anthropic, OpenAI, Gemini) cuts repeated-prefix cost by ~80–90%"
+            ],
+            [
+              "Long context",
+              "Quadratic attention",
+              "A 1M-token call isn't 125× a 8K call — closer to 5–8× due to attention scaling and chunked prefill"
+            ]
+          ]
+        }
+      ],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Think of a token like a \"word piece.\"</strong> When you read this sentence, you see whole words. An LLM doesn't see words — it sees chunks. \"Unbelievable\" might be three chunks: <code>un</code> + <code>believ</code> + <code>able</code>. Common chunks like \"the\" or \"ing\" are single chunks. Weird stuff (\"Doha\", \"kubernetes\") gets chopped into more chunks."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Why does this matter to you?</strong> Because every API charge is per chunk, not per word. A 100-word email is roughly 130 chunks. A 100-word email stuffed with code and rare names might be 220 chunks. Same email, double the cost — just from language alone."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Context window = the model's short-term memory.</strong> You know how if a friend has been listening for 4 hours straight, they start forgetting things you said an hour ago? LLMs do the same thing, just more abruptly. \"Context window\" is the size of their working memory — usually 8K to 1M chunks. Bigger isn't always better: cramming 800K chunks in doesn't make the model 100× smarter, it just makes the bill bigger."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The kitchen analogy:</strong> tokens are like \"ingredients on the counter.\" The context window is the counter size. A tiny counter (2K) means you can only cook small meals. A huge counter (1M) lets you cook for a wedding — but you still have to actually cook, and the bigger meal doesn't come out better just because you had room."
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Token</strong> হলো LLM-এর ভোকাবুলারির একেকটি টুকরো। মডেল অক্ষর বা পুরো শব্দ পড়ে না; একটি subword tokenizer শব্দকে ভেঙে ছোট ছোট অংশে পরিণত করে, যার জনপ্রিয় পদ্ধতি <code>BPE</code> (Byte-Pair Encoding)। এটি corpus-এর সবচেয়ে ঘন ঘন পাশাপাশি আসা জোড়াগুলো বারবার মিলিয়ে নেয়, যতক্ষণ না নির্দিষ্ট vocabulary size (প্রায়ই 32k–200k) হয়। বহুভাষিক ও কোডের কাজে <code>SentencePiece</code> বেশি ব্যবহৃত হয়। মডেল শেষ পর্যন্ত শুধু token ID (পূর্ণসংখ্যা) দেখে, যা embedding table-এ যায়।"
+        },
+        {
+          "type": "paragraph",
+          "html": "খরচের হিসাব হয় token দিয়ে, অক্ষর দিয়ে নয়। ইংরেজিতে মোটামুটি 1 token ≈ 4 অক্ষর, কিন্তু ভাষাভেদে এটি অনেক বদলায়: চীনা ভাষায় 1 অক্ষর ≈ 1.5 token, কোডে 1 token ≈ 3.5 অক্ষর। তাই prompt 800 থেকে 200 token-এ নামালে খরচ 75% কমে এবং latency-ও কমে। এটাই সবচেয়ে বড় engineering lever।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Context window</strong> হলো এক কলে মডেল সর্বোচ্চ কত token (input + output মিলিয়ে) দেখতে পারে। এটি GPT-3-এর 2K থেকে বেড়ে এখন 1M+ পর্যন্ত গেছে। খরচ ও গতির দিক থেকে: prefill (prompt প্রসেসিং) এর খরচ input token অনুযায়ী, আর decode (লেখা তৈরি) ধাপে ধাপে হয় এবং output token সাধারণত input-এর চেয়ে 3–5 গুণ দামি। <code>Prompt caching</code> বারবার আসা prefix-এর খরচ প্রায় 80–90% কমায়।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>সতর্কতা:</strong> বড় context মানে নিখুঁত পারফরম্যান্স নয়। 800K token ঢেলে দেওয়ার চেয়ে RAG বা summarisation প্রায়ই ভালো, কারণ লম্বা context-এ multi-hop reasoning দ্রুত খারাপ হয়। নিজের workload-এ মেপে দেখুন।"
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>দর্জির দোকানের উপমা:</strong> কাপড়ের থান (পুরো লেখা) দর্জি আগে ছোট ছোট টুকরোয় কেটে নেয় (token), আর মজুরি হয় টুকরোর সংখ্যা ধরে। Context window হলো দর্জির কাটিং টেবিলের মাপ: টেবিল যত বড়, একসাথে তত কাপড় ছড়িয়ে কাজ করা যায়। কিন্তু টেবিল বড় হলেই জামা সুন্দর হয় না; আর অকারণে বেশি কাপড় ছড়ালে খরচ ও সময় দুটোই বাড়ে।"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "s2",
       "num": "02",
       "title": "Model families & trade-offs",
       "sub": "The frontier in 2025 is dominated by five families, each with a distinct architectural and commercial philosophy. Picking \"the best model\" is a misframe — the right question is <em>which trade-off matches your workload's centre of gravity</em>.",
-      "body": "</div>\n    <div class=\"panel\">\n      <h4>Mixture-of-Experts (MoE)</h4>\n      <p>Routes each token to a subset of \"expert\" FFNs. Total params large but <em>active</em> params per token small → cheaper inference, larger memory. Mixtral 8×7B, DeepSeek-V3 (671B/37B active), Qwen3-235B-A22B.<a class=\"cite\" href=\"#src5\">[5]</a><a class=\"cite\" href=\"#src6\">[6]</a><a class=\"cite\" href=\"#src28\">[28]</a></p>\n    </div>\n    <div class=\"panel\">\n      <h4>Multi-Head Latent Attention (MLA)</h4>\n      <p>DeepSeek's innovation: compresses the KV cache into a low-rank latent, slashing memory for long contexts.<a class=\"cite\" href=\"#src6\">[6]</a></p>\n    </div>\n    <div class=\"panel\">\n      <h4>Sliding-window / hybrid</h4>\n      <p>Mistral 7B pioneered sliding-window attention for cheap inference. Gemini 1.5 mixes local + global attention for million-token contexts.<a class=\"cite\" href=\"#src4\">[4]</a><a class=\"cite\" href=\"#src11\">[11]</a></p>\n    </div>\n  </div>",
-      "layman": "<div class=\"layman-head\"><span class=\"icon\">🚗</span><span class=\"label\">Layman's version<small>plain English, no jargon</small></span></div>\n    <p><strong>Imagine cars on a road.</strong> Each \"model family\" is a different car brand — they all get you from A to B, but they have different personalities. <strong>Anthropic (Claude)</strong> is the careful Volvo: best at reading long, complicated documents and being safe. <strong>OpenAI (GPT)</strong> is the polished Tesla: the most famous, with a huge ecosystem of accessories. <strong>Google (Gemini)</strong> is the minivan: huge cargo space (it can hold millions of words at once) and built-in cameras. <strong>Meta (Llama)</strong> is the kit car: you get the blueprints for free and build it yourself in your garage. <strong>Mistral</strong> is the European hatchback — small, nimble, made in France.</p>\n    <p><strong>And then there are the Chinese manufacturers.</strong> <strong>Alibaba's Qwen</strong> and <strong>DeepSeek</strong> are like Xiaomi and BYD: they came out of nowhere, the open-weights version is free, and benchmarks say they keep up with the expensive brands. In 2024–2025 they went from \"who?\" to \"frontier-tier.\"</p>\n    <p><strong>Why are some free?</strong> \"Open-weight\" means the company released the file containing the model's brain — anyone can download it. They still trained it on expensive computers, but once the file exists, copying it costs nothing. It's the difference between a chef who sells them dishes (closed) and a chef who publishes the recipe (open).</p>\n    <p><strong>Which should you pick?</strong> If you're a regular user, just use the brand with the best app (probably ChatGPT or Claude). If you're building software: pick closed for the absolute best capability, pick open-weight to save money at scale or keep it inside your company.</p>\n    <div class=\"analogy\"><strong>The car analogy again:</strong> closed models = renting a luxury car monthly. Open-weight = buying the car (or a cheap one) outright. If you drive 100 miles a month, renting is cheap. If you drive 100,000, buying wins. The 2025 sweet spot for most companies: rent for hard problems, own for the easy stuff you do millions of times.</div>",
-      "bangla": "<div class=\"bangla-head\"><span class=\"icon\">🇧🇩</span><span class=\"label\">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>\n    <p>\"সেরা মডেল\" বলে কিছু নেই, প্রশ্ন হলো আপনার workload-এর জন্য কোন trade-off মানানসই। প্রধান পরিবারগুলো: OpenAI (GPT-4o, o3, GPT-5) reasoning ও পরিণত ecosystem-এ ভালো; Anthropic (Claude 4) লম্বা context (200K), কোড-এজেন্ট ও দীর্ঘ ডকুমেন্ট বিশ্লেষণে ভালো; Google (Gemini 2.5) native multimodal ও 1–2M context-এ এগিয়ে; Meta (Llama 3.1) open weights ও শক্তিশালী ছোট মডেল; Mistral ইউরোপীয় data residency ও edge deployment-এর জন্য; Alibaba Qwen3 সস্তা self-host ও বহুভাষিক কাজে; DeepSeek (V3, R1) কম training খরচে শক্তিশালী open-weight reasoning-এ।</p>\n    <p>স্থাপত্যগত পার্থক্যও গুরুত্বপূর্ণ। <strong>Dense transformer</strong>-এ প্রতিটি token-এর জন্য সব parameter ব্যবহার হয়, তাই compute অনুমানযোগ্য ও serving সহজ। <strong>Mixture-of-Experts (MoE)</strong>-এ প্রতিটি token শুধু কিছু \"expert\" FFN-এ যায়: মোট parameter বিশাল কিন্তু active parameter কম, ফলে inference সস্তা হলেও memory বেশি লাগে (যেমন DeepSeek-V3: 671B মোট, 37B active)। <code>MLA</code> (Multi-Head Latent Attention) KV cache-কে ছোট করে লম্বা context-এর memory বাঁচায়। Sliding-window বা hybrid attention সস্তা inference ও বিশাল context-এ সাহায্য করে।</p>\n    <p>বাছাইয়ের নিয়ম: সর্বোচ্চ ক্ষমতা লাগলে closed মডেল, আর খরচ কমানো বা data নিজেদের কাছে রাখতে চাইলে open-weight।</p>\n    <div class=\"analogy\"><strong>পরিবহনের উপমা:</strong> প্রতিদিন অফিস করতে আপনি কখনো রিকশা, কখনো বাস, আবার জরুরি দরকারে উবার নেন। সব যানই গন্তব্যে পৌঁছে দেয়, কিন্তু দাম, আরাম ও গতি আলাদা। তেমনি সহজ কাজ ছোট সস্তা মডেলে, আর কঠিন কাজ ফ্রন্টিয়ার মডেলে চালানোই বুদ্ধিমানের কাজ।</div>"
+      "body": [
+        {
+          "type": "panels",
+          "panels": [
+            {
+              "heading": "Mixture-of-Experts (MoE)",
+              "blocks": [
+                {
+                  "type": "paragraph",
+                  "html": "Routes each token to a subset of \"expert\" FFNs. Total params large but <em>active</em> params per token small → cheaper inference, larger memory. Mixtral 8×7B, DeepSeek-V3 (671B/37B active), Qwen3-235B-A22B.<a class=\"cite\" href=\"#src5\">[5]</a><a class=\"cite\" href=\"#src6\">[6]</a><a class=\"cite\" href=\"#src28\">[28]</a>"
+                }
+              ]
+            },
+            {
+              "heading": "Multi-Head Latent Attention (MLA)",
+              "blocks": [
+                {
+                  "type": "paragraph",
+                  "html": "DeepSeek's innovation: compresses the KV cache into a low-rank latent, slashing memory for long contexts.<a class=\"cite\" href=\"#src6\">[6]</a>"
+                }
+              ]
+            },
+            {
+              "heading": "Sliding-window / hybrid",
+              "blocks": [
+                {
+                  "type": "paragraph",
+                  "html": "Mistral 7B pioneered sliding-window attention for cheap inference. Gemini 1.5 mixes local + global attention for million-token contexts.<a class=\"cite\" href=\"#src4\">[4]</a><a class=\"cite\" href=\"#src11\">[11]</a>"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Imagine cars on a road.</strong> Each \"model family\" is a different car brand — they all get you from A to B, but they have different personalities. <strong>Anthropic (Claude)</strong> is the careful Volvo: best at reading long, complicated documents and being safe. <strong>OpenAI (GPT)</strong> is the polished Tesla: the most famous, with a huge ecosystem of accessories. <strong>Google (Gemini)</strong> is the minivan: huge cargo space (it can hold millions of words at once) and built-in cameras. <strong>Meta (Llama)</strong> is the kit car: you get the blueprints for free and build it yourself in your garage. <strong>Mistral</strong> is the European hatchback — small, nimble, made in France."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>And then there are the Chinese manufacturers.</strong> <strong>Alibaba's Qwen</strong> and <strong>DeepSeek</strong> are like Xiaomi and BYD: they came out of nowhere, the open-weights version is free, and benchmarks say they keep up with the expensive brands. In 2024–2025 they went from \"who?\" to \"frontier-tier.\""
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Why are some free?</strong> \"Open-weight\" means the company released the file containing the model's brain — anyone can download it. They still trained it on expensive computers, but once the file exists, copying it costs nothing. It's the difference between a chef who sells them dishes (closed) and a chef who publishes the recipe (open)."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Which should you pick?</strong> If you're a regular user, just use the brand with the best app (probably ChatGPT or Claude). If you're building software: pick closed for the absolute best capability, pick open-weight to save money at scale or keep it inside your company."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The car analogy again:</strong> closed models = renting a luxury car monthly. Open-weight = buying the car (or a cheap one) outright. If you drive 100 miles a month, renting is cheap. If you drive 100,000, buying wins. The 2025 sweet spot for most companies: rent for hard problems, own for the easy stuff you do millions of times."
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "\"সেরা মডেল\" বলে কিছু নেই, প্রশ্ন হলো আপনার workload-এর জন্য কোন trade-off মানানসই। প্রধান পরিবারগুলো: OpenAI (GPT-4o, o3, GPT-5) reasoning ও পরিণত ecosystem-এ ভালো; Anthropic (Claude 4) লম্বা context (200K), কোড-এজেন্ট ও দীর্ঘ ডকুমেন্ট বিশ্লেষণে ভালো; Google (Gemini 2.5) native multimodal ও 1–2M context-এ এগিয়ে; Meta (Llama 3.1) open weights ও শক্তিশালী ছোট মডেল; Mistral ইউরোপীয় data residency ও edge deployment-এর জন্য; Alibaba Qwen3 সস্তা self-host ও বহুভাষিক কাজে; DeepSeek (V3, R1) কম training খরচে শক্তিশালী open-weight reasoning-এ।"
+        },
+        {
+          "type": "paragraph",
+          "html": "স্থাপত্যগত পার্থক্যও গুরুত্বপূর্ণ। <strong>Dense transformer</strong>-এ প্রতিটি token-এর জন্য সব parameter ব্যবহার হয়, তাই compute অনুমানযোগ্য ও serving সহজ। <strong>Mixture-of-Experts (MoE)</strong>-এ প্রতিটি token শুধু কিছু \"expert\" FFN-এ যায়: মোট parameter বিশাল কিন্তু active parameter কম, ফলে inference সস্তা হলেও memory বেশি লাগে (যেমন DeepSeek-V3: 671B মোট, 37B active)। <code>MLA</code> (Multi-Head Latent Attention) KV cache-কে ছোট করে লম্বা context-এর memory বাঁচায়। Sliding-window বা hybrid attention সস্তা inference ও বিশাল context-এ সাহায্য করে।"
+        },
+        {
+          "type": "paragraph",
+          "html": "বাছাইয়ের নিয়ম: সর্বোচ্চ ক্ষমতা লাগলে closed মডেল, আর খরচ কমানো বা data নিজেদের কাছে রাখতে চাইলে open-weight।"
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>পরিবহনের উপমা:</strong> প্রতিদিন অফিস করতে আপনি কখনো রিকশা, কখনো বাস, আবার জরুরি দরকারে উবার নেন। সব যানই গন্তব্যে পৌঁছে দেয়, কিন্তু দাম, আরাম ও গতি আলাদা। তেমনি সহজ কাজ ছোট সস্তা মডেলে, আর কঠিন কাজ ফ্রন্টিয়ার মডেলে চালানোই বুদ্ধিমানের কাজ।"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "s3",
       "num": "03",
       "title": "Closed vs open-weight models",
       "sub": "\"Open\" splits into two camps that engineers often confuse: <strong>open-weight</strong> (you can download and run the model) and <strong>open-source</strong> (you also have training code, data, and licence to modify and redistribute). Most \"open\" LLMs are open-weight.",
-      "body": "<h3>Open-weight</h3>\n  <p>Weights released under a licence (often Apache 2.0, Llama Community License, or MIT). Examples: Llama 3.1 (8B–405B),<a class=\"cite\" href=\"#src3\">[3]</a> Mistral 7B & Mixtral 8×7B,<a class=\"cite\" href=\"#src4\">[4]</a><a class=\"cite\" href=\"#src5\">[5]</a> Qwen2.5/Qwen3,<a class=\"cite\" href=\"#src8\">[8]</a><a class=\"cite\" href=\"#src9\">[9]</a> DeepSeek-V3 / R1.<a class=\"cite\" href=\"#src6\">[6]</a><a class=\"cite\" href=\"#src7\">[7]</a> <strong>Advantages:</strong> self-host on your hardware, fine-tune on private data, audit weights, no per-token fees, no data egress. <strong>Costs:</strong> you operate the infra (GPUs, networking, monitoring), capability ceiling ~3–9 months behind the frontier, safety is your problem.</p>\n\n  <div class=\"callout good\">\n    <strong>When open-weight wins:</strong> predictable cost at scale, data residency / compliance requirements, need to fine-tune on proprietary data, latency-sensitive serving where inference co-locates with state.\n  </div>\n  <div class=\"callout\">\n    <strong>When closed wins:</strong> tasks where you're <em>3–9 months behind the SOTA</em> matters (frontier coding agents, reasoning), small query volume makes self-hosting uneconomical, you need multimodal audio/video (Gemini).\n  </div>\n\n  <h3>Hybrid patterns becoming standard</h3>\n  <ul style=\"margin: 8px 0 16px 20px; line-height: 1.8;\">\n    <li><strong>Distillation:</strong> DeepSeek-R1's distilled Qwen/Llama variants prove you can train strong small open models from a closed teacher's outputs.<a class=\"cite\" href=\"#src7\">[7]</a></li>\n    <li><strong>Routing:</strong> route easy queries to a local 8B, hard ones to a frontier API. Saves cost without measurable quality loss on common tasks.</li>\n    <li><strong>Open-weights with closed APIs:</strong> Llama 3.1 405B is open, and you can also call it via Together, Groq, Fireworks for managed serving — keeping the option to migrate.</li>\n  </ul>",
-      "layman": "<div class=\"layman-head\"><span class=\"icon\">🔓</span><span class=\"label\">Layman's version<small>plain English, no jargon</small></span></div>\n    <p><strong>\"Closed\" vs \"open-weight\" is about who owns the brain.</strong></p>\n    <p><strong>Closed (GPT, Claude, Gemini):</strong> the AI lives on the company's servers. You talk to it through their app or API. Your data travels to them, they run the model, the answer travels back. You can never inspect the actual model — like renting a black-box appliance.</p>\n    <p><strong>Open-weight (Llama, Qwen, DeepSeek, Mistral):</strong> the company released the file containing all the model's \"knowledge\" — billions of numbers that together form a brain. Anyone can download this file (it's huge — 8 to 700 gigabytes) and run it on their own computers. The recipe is public, even if the cookbook is not.</p>\n    <p><strong>What's the catch?</strong> \"Open-weight\" is not the same as \"open-source.\" You usually can't see <em>how it was trained</em>, what data, or modify it freely. You can run it, fine-tune it on your own data, and deploy it. But retraining from scratch? That costs millions of dollars in computers.</p>\n    <p><strong>The 2025 reality:</strong> open-weight models got <em>so good</em> that for most business tasks, a free open-weight model running on rented GPUs is 80% as good as GPT-4 at 10% of the cost. Companies are quietly switching. The frontier closed models (Claude 4, GPT-5) still lead on hard reasoning, but the gap is small.</p>\n    <div class=\"analogy\"><strong>The cookbook analogy:</strong> closed = a chef who sells you meals but won't share recipes. Open-weight = a chef who wrote the recipe book; you can cook it yourself or pay someone to cook it for you. Open-source = a chef who shared the kitchen, the suppliers, AND the recipes — that's almost never available for LLMs.</div>",
-      "bangla": "<div class=\"bangla-head\"><span class=\"icon\">🇧🇩</span><span class=\"label\">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>\n    <p>\"Open\" শব্দটি দুই অর্থে ব্যবহৃত হয় এবং ইঞ্জিনিয়াররা প্রায়ই গুলিয়ে ফেলেন। <strong>Open-weight</strong> মানে মডেলের weights ডাউনলোড করে নিজে চালানো যায়। <strong>Open-source</strong> মানে এর সাথে training code, data এবং পরিবর্তন ও পুনর্বিতরণের লাইসেন্সও পাওয়া যায়। বেশিরভাগ \"open\" LLM আসলে শুধু open-weight।</p>\n    <p><strong>Closed/proprietary</strong> মডেল (GPT, Claude, Gemini) API-র পেছনে থাকে। সুবিধা: সর্বোচ্চ ক্ষমতা, দ্রুত hardware optimisation, তৈরি safety stack, নিজের infra চালাতে হয় না। অসুবিধা: vendor lock-in, weights যাচাই করা যায় না, data আপনার সীমানার বাইরে যায়, আর দাম তারা একতরফা বদলাতে পারে।</p>\n    <p><strong>Open-weight</strong> (Llama, Mistral, Qwen, DeepSeek) মডেলে আপনি নিজের হার্ডওয়্যারে চালাতে পারেন, private data-য় fine-tune করতে পারেন, weights audit করতে পারেন, per-token ফি লাগে না এবং data বাইরে যায় না। বিনিময়ে GPU, networking ও monitoring আপনাকেই চালাতে হবে, ক্ষমতা ফ্রন্টিয়ার থেকে প্রায় 3–9 মাস পিছিয়ে, আর safety-র দায়ও আপনার।</p>\n    <ul>\n      <li><strong>Open-weight জেতে</strong> যখন scale-এ অনুমানযোগ্য খরচ, data residency/compliance, proprietary data-য় fine-tuning বা latency-সংবেদী serving দরকার।</li>\n      <li><strong>Closed জেতে</strong> যখন ফ্রন্টিয়ার কোডিং/reasoning লাগে, query কম বলে self-host লাভজনক নয়, অথবা audio/video multimodal দরকার।</li>\n      <li><strong>Hybrid</strong> প্যাটার্ন এখন সাধারণ: distillation, সহজ query ছোট লোকাল মডেলে ও কঠিনগুলো ফ্রন্টিয়ার API-তে পাঠানো (routing), এবং Together/Groq/Fireworks-এর মতো managed serving।</li>\n    </ul>\n    <div class=\"analogy\"><strong>বাসা ভাড়া বনাম নিজের বাড়ির উপমা:</strong> Closed মডেল ভাড়া বাসার মতো: মালিক সব দেখভাল করে, কিন্তু ভাড়া বাড়ালে আপনার কিছু করার নেই, আর দেয়াল ভাঙার অনুমতি নেই। Open-weight হলো নিজের বাড়ি: ইচ্ছেমতো সাজাতে পারেন, কিন্তু মেরামত ও পাহারার ঝামেলা আপনার। আর Open-source হলো বাড়ির নকশা, ইট-সিমেন্টের হিসাব ও কারিগর সবকিছু পাওয়া, যা LLM-এর ক্ষেত্রে প্রায় দেখাই যায় না।</div>"
+      "body": [
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s3-open-weight",
+          "html": "Open-weight"
+        },
+        {
+          "type": "paragraph",
+          "html": "Weights released under a licence (often Apache 2.0, Llama Community License, or MIT). Examples: Llama 3.1 (8B–405B),<a class=\"cite\" href=\"#src3\">[3]</a> Mistral 7B & Mixtral 8×7B,<a class=\"cite\" href=\"#src4\">[4]</a><a class=\"cite\" href=\"#src5\">[5]</a> Qwen2.5/Qwen3,<a class=\"cite\" href=\"#src8\">[8]</a><a class=\"cite\" href=\"#src9\">[9]</a> DeepSeek-V3 / R1.<a class=\"cite\" href=\"#src6\">[6]</a><a class=\"cite\" href=\"#src7\">[7]</a> <strong>Advantages:</strong> self-host on your hardware, fine-tune on private data, audit weights, no per-token fees, no data egress. <strong>Costs:</strong> you operate the infra (GPUs, networking, monitoring), capability ceiling ~3–9 months behind the frontier, safety is your problem."
+        },
+        {
+          "type": "callout",
+          "variant": "good",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>When open-weight wins:</strong> predictable cost at scale, data residency / compliance requirements, need to fine-tune on proprietary data, latency-sensitive serving where inference co-locates with state."
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "variant": "info",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>When closed wins:</strong> tasks where you're <em>3–9 months behind the SOTA</em> matters (frontier coding agents, reasoning), small query volume makes self-hosting uneconomical, you need multimodal audio/video (Gemini)."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s3-hybrid-patterns-becoming-standard",
+          "html": "Hybrid patterns becoming standard"
+        },
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            "<strong>Distillation:</strong> DeepSeek-R1's distilled Qwen/Llama variants prove you can train strong small open models from a closed teacher's outputs.<a class=\"cite\" href=\"#src7\">[7]</a>",
+            "<strong>Routing:</strong> route easy queries to a local 8B, hard ones to a frontier API. Saves cost without measurable quality loss on common tasks.",
+            "<strong>Open-weights with closed APIs:</strong> Llama 3.1 405B is open, and you can also call it via Together, Groq, Fireworks for managed serving — keeping the option to migrate."
+          ]
+        }
+      ],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>\"Closed\" vs \"open-weight\" is about who owns the brain.</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Closed (GPT, Claude, Gemini):</strong> the AI lives on the company's servers. You talk to it through their app or API. Your data travels to them, they run the model, the answer travels back. You can never inspect the actual model — like renting a black-box appliance."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Open-weight (Llama, Qwen, DeepSeek, Mistral):</strong> the company released the file containing all the model's \"knowledge\" — billions of numbers that together form a brain. Anyone can download this file (it's huge — 8 to 700 gigabytes) and run it on their own computers. The recipe is public, even if the cookbook is not."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>What's the catch?</strong> \"Open-weight\" is not the same as \"open-source.\" You usually can't see <em>how it was trained</em>, what data, or modify it freely. You can run it, fine-tune it on your own data, and deploy it. But retraining from scratch? That costs millions of dollars in computers."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>The 2025 reality:</strong> open-weight models got <em>so good</em> that for most business tasks, a free open-weight model running on rented GPUs is 80% as good as GPT-4 at 10% of the cost. Companies are quietly switching. The frontier closed models (Claude 4, GPT-5) still lead on hard reasoning, but the gap is small."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The cookbook analogy:</strong> closed = a chef who sells you meals but won't share recipes. Open-weight = a chef who wrote the recipe book; you can cook it yourself or pay someone to cook it for you. Open-source = a chef who shared the kitchen, the suppliers, AND the recipes — that's almost never available for LLMs."
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "\"Open\" শব্দটি দুই অর্থে ব্যবহৃত হয় এবং ইঞ্জিনিয়াররা প্রায়ই গুলিয়ে ফেলেন। <strong>Open-weight</strong> মানে মডেলের weights ডাউনলোড করে নিজে চালানো যায়। <strong>Open-source</strong> মানে এর সাথে training code, data এবং পরিবর্তন ও পুনর্বিতরণের লাইসেন্সও পাওয়া যায়। বেশিরভাগ \"open\" LLM আসলে শুধু open-weight।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Closed/proprietary</strong> মডেল (GPT, Claude, Gemini) API-র পেছনে থাকে। সুবিধা: সর্বোচ্চ ক্ষমতা, দ্রুত hardware optimisation, তৈরি safety stack, নিজের infra চালাতে হয় না। অসুবিধা: vendor lock-in, weights যাচাই করা যায় না, data আপনার সীমানার বাইরে যায়, আর দাম তারা একতরফা বদলাতে পারে।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Open-weight</strong> (Llama, Mistral, Qwen, DeepSeek) মডেলে আপনি নিজের হার্ডওয়্যারে চালাতে পারেন, private data-য় fine-tune করতে পারেন, weights audit করতে পারেন, per-token ফি লাগে না এবং data বাইরে যায় না। বিনিময়ে GPU, networking ও monitoring আপনাকেই চালাতে হবে, ক্ষমতা ফ্রন্টিয়ার থেকে প্রায় 3–9 মাস পিছিয়ে, আর safety-র দায়ও আপনার।"
+        },
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            "<strong>Open-weight জেতে</strong> যখন scale-এ অনুমানযোগ্য খরচ, data residency/compliance, proprietary data-য় fine-tuning বা latency-সংবেদী serving দরকার।",
+            "<strong>Closed জেতে</strong> যখন ফ্রন্টিয়ার কোডিং/reasoning লাগে, query কম বলে self-host লাভজনক নয়, অথবা audio/video multimodal দরকার।",
+            "<strong>Hybrid</strong> প্যাটার্ন এখন সাধারণ: distillation, সহজ query ছোট লোকাল মডেলে ও কঠিনগুলো ফ্রন্টিয়ার API-তে পাঠানো (routing), এবং Together/Groq/Fireworks-এর মতো managed serving।"
+          ]
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>বাসা ভাড়া বনাম নিজের বাড়ির উপমা:</strong> Closed মডেল ভাড়া বাসার মতো: মালিক সব দেখভাল করে, কিন্তু ভাড়া বাড়ালে আপনার কিছু করার নেই, আর দেয়াল ভাঙার অনুমতি নেই। Open-weight হলো নিজের বাড়ি: ইচ্ছেমতো সাজাতে পারেন, কিন্তু মেরামত ও পাহারার ঝামেলা আপনার। আর Open-source হলো বাড়ির নকশা, ইট-সিমেন্টের হিসাব ও কারিগর সবকিছু পাওয়া, যা LLM-এর ক্ষেত্রে প্রায় দেখাই যায় না।"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "s4",
       "num": "04",
       "title": "Sampling parameters",
       "sub": "A model outputs a probability distribution over every token in its vocabulary. <em>Sampling</em> is how you turn that distribution into text. The same logits can produce robotic lists, creative prose, or factual hallucinations depending on five knobs.",
-      "body": "",
-      "layman": "<div class=\"layman-head\"><span class=\"icon\">🎲</span><span class=\"label\">Layman's version<small>plain English, no jargon</small></span></div>\n    <p><strong>Inside the AI, every word is a dice roll.</strong> When the model writes \"The cat sat on the...\" it has a list of probabilities: <em>mat</em> 40%, <em>floor</em> 25%, <em>couch</em> 15%, <em>roof</em> 8%, ... and thousands of weird options at fractions of a percent. The model has to <em>choose</em> one. How it chooses is \"sampling.\"</p>\n    <p><strong>Temperature</strong> is the dice's \"creativity dial.\" Set it to 0 and the model always picks <em>mat</em> — boring, predictable, perfect for code or facts. Crank it up to 1.2 and it might pick <em>roof</em>, <em>cathedral</em>, or <em>porcupine</em> — fun, surprising, occasionally nonsense. Set it to 2 and it's babbling.</p>\n    <p><strong>top_p and top_k</strong> are \"filters.\" Imagine you only let the dice roll the top 50 candidates (top_k=50), or only the candidates whose probabilities add up to 90% (top_p=0.9). This stops it from picking the bizarre long-shots.</p>\n    <p><strong>Penalties</strong> are memory aids. \"frequency_penalty\" means \"stop saying <em>the the the the the</em>.\" \"presence_penalty\" means \"you already mentioned dogs, try a new topic.\"</p>\n    <p><strong>The cheat sheet:</strong> code/JSON/facts → temperature 0. Chat → 0.7. Creative writing → 1.0–1.3. Don't combine lots of filters — pick one and trust it.</p>\n    <div class=\"analogy\"><strong>The dinner party analogy:</strong> the model is a friend picking from the menu. Temperature 0 = \"always order the safest thing.\" Temperature 1 = \"pick whatever sounds good tonight.\" Temperature 2 = \"order whatever's weirdest on the menu.\" top_p/top_k = \"don't even look at the last 3 pages of the menu, nothing weird there is worth trying.\"</div>",
-      "bangla": "<div class=\"bangla-head\"><span class=\"icon\">🇧🇩</span><span class=\"label\">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>\n    <p>মডেল প্রতিটি ধাপে ভোকাবুলারির সব token-এর ওপর একটি সম্ভাবনা বণ্টন (probability distribution) তৈরি করে। <strong>Sampling</strong> হলো সেই বণ্টন থেকে একটি token বেছে নেওয়ার পদ্ধতি। একই logits থেকে এই knob-গুলোর কারণে কখনো রোবটিক তালিকা, কখনো সৃজনশীল লেখা বা hallucination বেরোতে পারে।</p>\n    <ul>\n      <li><code>temperature</code>: softmax-এর আগে logits-কে T দিয়ে ভাগ করে। T<1 হলে বণ্টন ধারালো (বেশি deterministic), T>1 হলে সমতল (বেশি random)। কোড, JSON, classification, math-এর জন্য 0; chat-এর জন্য 0.7–1.0; সৃজনশীল লেখা ও brainstorming-এর জন্য 1.0–2.0।</li>\n      <li><code>top_k</code>: শুধু সবচেয়ে সম্ভাব্য k-টি token থেকে বাছে। k=1 মানে greedy; সাধারণত k≈40–100। বেশি temperature-এর সাথে k<10 এড়ানো ভালো।</li>\n      <li><code>top_p</code> (nucleus): যে ক্ষুদ্রতম token-সেটের সম্মিলিত সম্ভাবনা ≥ p, শুধু সেটি রাখে। সাধারণত 0.9–0.95।</li>\n      <li><code>min_p</code>: top token-এর সম্ভাবনার min_p গুণের চেয়ে কম সম্ভাবনার token বাদ দেয়; মডেলের আকার বদলালেও এটি ভালো কাজ করে।</li>\n      <li><code>frequency_penalty</code>: token যতবার এসেছে তার সংখ্যা অনুযায়ী logit কমায়, ফলে পুনরাবৃত্তি কমে (সাধারণত 0.1–1.0)।</li>\n      <li><code>presence_penalty</code>: token একবার এসে থাকলেই কমায়, ফলে বিষয়ের বৈচিত্র্য বাড়ে (সাধারণত 0–0.6)।</li>\n    </ul>\n    <p><strong>সাধারণ ভুল:</strong> <code>top_k</code> ও <code>top_p</code> একসাথে কড়াভাবে দিলে tail দুইবার ছাঁটা হয়ে লেখা অসংলগ্ন (degeneration) হতে পারে। আধুনিক প্রোভাইডাররা <code>temperature</code> + <code>top_p</code> (অথবা <code>temperature</code> + <code>min_p</code>) ব্যবহারের পরামর্শ দেন।</p>\n    <div class=\"analogy\"><strong>চায়ের দোকানের উপমা:</strong> আপনি চায়ের দোকানে গেছেন। Temperature 0 হলো রোজকার মতো সেই একই নিরাপদ চা অর্ডার করা। Temperature বাড়ালে আপনি নতুন কিছু চেখে দেখার ঝুঁকি নেন, আর খুব বেশি হলে যা-তা অর্ডার করে বসেন। top_p/top_k হলো আগেই ঠিক করা: মেনুর শেষের পাতার অদ্ভুত আইটেমগুলো দেখবই না।</div>"
+      "body": [],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Inside the AI, every word is a dice roll.</strong> When the model writes \"The cat sat on the...\" it has a list of probabilities: <em>mat</em> 40%, <em>floor</em> 25%, <em>couch</em> 15%, <em>roof</em> 8%, ... and thousands of weird options at fractions of a percent. The model has to <em>choose</em> one. How it chooses is \"sampling.\""
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Temperature</strong> is the dice's \"creativity dial.\" Set it to 0 and the model always picks <em>mat</em> — boring, predictable, perfect for code or facts. Crank it up to 1.2 and it might pick <em>roof</em>, <em>cathedral</em>, or <em>porcupine</em> — fun, surprising, occasionally nonsense. Set it to 2 and it's babbling."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>top_p and top_k</strong> are \"filters.\" Imagine you only let the dice roll the top 50 candidates (top_k=50), or only the candidates whose probabilities add up to 90% (top_p=0.9). This stops it from picking the bizarre long-shots."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Penalties</strong> are memory aids. \"frequency_penalty\" means \"stop saying <em>the the the the the</em>.\" \"presence_penalty\" means \"you already mentioned dogs, try a new topic.\""
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>The cheat sheet:</strong> code/JSON/facts → temperature 0. Chat → 0.7. Creative writing → 1.0–1.3. Don't combine lots of filters — pick one and trust it."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The dinner party analogy:</strong> the model is a friend picking from the menu. Temperature 0 = \"always order the safest thing.\" Temperature 1 = \"pick whatever sounds good tonight.\" Temperature 2 = \"order whatever's weirdest on the menu.\" top_p/top_k = \"don't even look at the last 3 pages of the menu, nothing weird there is worth trying.\""
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "মডেল প্রতিটি ধাপে ভোকাবুলারির সব token-এর ওপর একটি সম্ভাবনা বণ্টন (probability distribution) তৈরি করে। <strong>Sampling</strong> হলো সেই বণ্টন থেকে একটি token বেছে নেওয়ার পদ্ধতি। একই logits থেকে এই knob-গুলোর কারণে কখনো রোবটিক তালিকা, কখনো সৃজনশীল লেখা বা hallucination বেরোতে পারে।"
+        },
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            "<code>temperature</code>: softmax-এর আগে logits-কে T দিয়ে ভাগ করে। T&lt;1 হলে বণ্টন ধারালো (বেশি deterministic), T&gt;1 হলে সমতল (বেশি random)। কোড, JSON, classification, math-এর জন্য 0; chat-এর জন্য 0.7–1.0; সৃজনশীল লেখা ও brainstorming-এর জন্য 1.0–2.0।",
+            "<code>top_k</code>: শুধু সবচেয়ে সম্ভাব্য k-টি token থেকে বাছে। k=1 মানে greedy; সাধারণত k≈40–100। বেশি temperature-এর সাথে k&lt;10 এড়ানো ভালো।",
+            "<code>top_p</code> (nucleus): যে ক্ষুদ্রতম token-সেটের সম্মিলিত সম্ভাবনা ≥ p, শুধু সেটি রাখে। সাধারণত 0.9–0.95।",
+            "<code>min_p</code>: top token-এর সম্ভাবনার min_p গুণের চেয়ে কম সম্ভাবনার token বাদ দেয়; মডেলের আকার বদলালেও এটি ভালো কাজ করে।",
+            "<code>frequency_penalty</code>: token যতবার এসেছে তার সংখ্যা অনুযায়ী logit কমায়, ফলে পুনরাবৃত্তি কমে (সাধারণত 0.1–1.0)।",
+            "<code>presence_penalty</code>: token একবার এসে থাকলেই কমায়, ফলে বিষয়ের বৈচিত্র্য বাড়ে (সাধারণত 0–0.6)।"
+          ]
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>সাধারণ ভুল:</strong> <code>top_k</code> ও <code>top_p</code> একসাথে কড়াভাবে দিলে tail দুইবার ছাঁটা হয়ে লেখা অসংলগ্ন (degeneration) হতে পারে। আধুনিক প্রোভাইডাররা <code>temperature</code> + <code>top_p</code> (অথবা <code>temperature</code> + <code>min_p</code>) ব্যবহারের পরামর্শ দেন।"
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>চায়ের দোকানের উপমা:</strong> আপনি চায়ের দোকানে গেছেন। Temperature 0 হলো রোজকার মতো সেই একই নিরাপদ চা অর্ডার করা। Temperature বাড়ালে আপনি নতুন কিছু চেখে দেখার ঝুঁকি নেন, আর খুব বেশি হলে যা-তা অর্ডার করে বসেন। top_p/top_k হলো আগেই ঠিক করা: মেনুর শেষের পাতার অদ্ভুত আইটেমগুলো দেখবই না।"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "s5",
       "num": "05",
       "title": "Streaming vs non-streaming",
       "sub": "Generation is sequential — tokens come one at a time. Streaming returns them <em>as they're produced</em> via Server-Sent Events or chunked HTTP, so the UI can render the first word while the rest is still being decoded. Non-streaming waits for the full response.",
-      "body": "",
-      "layman": "<div class=\"layman-head\"><span class=\"icon\">💬</span><span class=\"label\">Layman's version<small>plain English, no jargon</small></span></div>\n    <p><strong>Without streaming, asking the AI a question is like waiting for a fax.</strong> You hit send, then wait in silence for 5–20 seconds, then the entire answer appears at once. With streaming, the answer appears word by word as the AI thinks of it — like a live chat bubble that fills in real time.</p>\n    <p><strong>Is the AI faster? No, exactly the same. But it FEELS way faster.</strong> Reading the first word after 0.3 seconds (streaming) feels snappy. Waiting 8 seconds in silence for the whole answer (non-streaming) feels broken. Same total work, completely different vibe.</p>\n    <p><strong>When should you turn streaming off?</strong> When the AI's answer isn't for humans to read directly. If you're piping the output into a database, or a code function, or a JSON parser, you want the whole answer validated before doing anything.</p>\n    <p><strong>Every chat app you've used (ChatGPT, Claude, Gemini) streams by default.</strong> That's why the responses feel instant even though complex ones take 10+ seconds to compute.</p>\n    <div class=\"analogy\"><strong>The TV analogy:</strong> non-streaming = the network holds the whole show hostage and dumps it on your screen all at once. Streaming = watching it unfold live, second by second. Same show, totally different feeling.</div>",
-      "bangla": "<div class=\"bangla-head\"><span class=\"icon\">🇧🇩</span><span class=\"label\">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>\n    <p>LLM একটি একটি করে token তৈরি করে, অর্থাৎ generation ক্রমিক। <strong>Streaming</strong>-এ token তৈরি হওয়ার সাথে সাথে Server-Sent Events বা chunked HTTP দিয়ে পাঠানো হয়, ফলে বাকি অংশ তৈরি হওয়ার আগেই UI-তে প্রথম শব্দ দেখা যায়। <strong>Non-streaming</strong>-এ পুরো উত্তর তৈরি হওয়া পর্যন্ত অপেক্ষা করতে হয়।</p>\n    <p>মূল কথা: compute একই, কিন্তু perceived latency \"সব-অথবা-কিছুই-না\" থেকে ক্রমবর্ধমান হয়ে যায়, ফলে UX অনেক ভালো লাগে।</p>\n    <ul>\n      <li><strong>Streaming ব্যবহার করুন:</strong> ব্যবহারকারীর সামনে থাকা chat/completion UI-তে, লম্বা generation-এ যেখানে ব্যবহারকারীর জানা দরকার মডেল কাজ করছে, এবং Cursor, Claude.ai, ChatGPT-র মতো প্রোডাক্টে।</li>\n      <li><strong>Streaming বাদ দিন:</strong> যখন আউটপুট pipeline-এ ফিরে যাচ্ছে (function-call result, structured extractor), পুরো response লাগে JSON parsing/validation-এর জন্য, অথবা UX-বিহীন batch job।</li>\n    </ul>\n    <p>OpenAI SDK-তে <code>stream=True</code> দিয়ে প্রতিটি chunk-এর <code>delta</code> পড়তে হয়; Anthropic-এ <code>client.messages.stream(...)</code> থেকে <code>text_stream</code> পড়া যায়।</p>\n    <div class=\"analogy\"><strong>ক্রিকেট ম্যাচের উপমা:</strong> Non-streaming হলো খেলা শেষ হওয়ার পর শুধু চূড়ান্ত স্কোর জানা। Streaming হলো বল বাই বল লাইভ কমেন্ট্রি শোনা। খেলার সময় একই, কিন্তু অপেক্ষাটা অনেক সহনীয় লাগে।</div>"
+      "body": [],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Without streaming, asking the AI a question is like waiting for a fax.</strong> You hit send, then wait in silence for 5–20 seconds, then the entire answer appears at once. With streaming, the answer appears word by word as the AI thinks of it — like a live chat bubble that fills in real time."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Is the AI faster? No, exactly the same. But it FEELS way faster.</strong> Reading the first word after 0.3 seconds (streaming) feels snappy. Waiting 8 seconds in silence for the whole answer (non-streaming) feels broken. Same total work, completely different vibe."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>When should you turn streaming off?</strong> When the AI's answer isn't for humans to read directly. If you're piping the output into a database, or a code function, or a JSON parser, you want the whole answer validated before doing anything."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Every chat app you've used (ChatGPT, Claude, Gemini) streams by default.</strong> That's why the responses feel instant even though complex ones take 10+ seconds to compute."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The TV analogy:</strong> non-streaming = the network holds the whole show hostage and dumps it on your screen all at once. Streaming = watching it unfold live, second by second. Same show, totally different feeling."
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "LLM একটি একটি করে token তৈরি করে, অর্থাৎ generation ক্রমিক। <strong>Streaming</strong>-এ token তৈরি হওয়ার সাথে সাথে Server-Sent Events বা chunked HTTP দিয়ে পাঠানো হয়, ফলে বাকি অংশ তৈরি হওয়ার আগেই UI-তে প্রথম শব্দ দেখা যায়। <strong>Non-streaming</strong>-এ পুরো উত্তর তৈরি হওয়া পর্যন্ত অপেক্ষা করতে হয়।"
+        },
+        {
+          "type": "paragraph",
+          "html": "মূল কথা: compute একই, কিন্তু perceived latency \"সব-অথবা-কিছুই-না\" থেকে ক্রমবর্ধমান হয়ে যায়, ফলে UX অনেক ভালো লাগে।"
+        },
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            "<strong>Streaming ব্যবহার করুন:</strong> ব্যবহারকারীর সামনে থাকা chat/completion UI-তে, লম্বা generation-এ যেখানে ব্যবহারকারীর জানা দরকার মডেল কাজ করছে, এবং Cursor, Claude.ai, ChatGPT-র মতো প্রোডাক্টে।",
+            "<strong>Streaming বাদ দিন:</strong> যখন আউটপুট pipeline-এ ফিরে যাচ্ছে (function-call result, structured extractor), পুরো response লাগে JSON parsing/validation-এর জন্য, অথবা UX-বিহীন batch job।"
+          ]
+        },
+        {
+          "type": "paragraph",
+          "html": "OpenAI SDK-তে <code>stream=True</code> দিয়ে প্রতিটি chunk-এর <code>delta</code> পড়তে হয়; Anthropic-এ <code>client.messages.stream(...)</code> থেকে <code>text_stream</code> পড়া যায়।"
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>ক্রিকেট ম্যাচের উপমা:</strong> Non-streaming হলো খেলা শেষ হওয়ার পর শুধু চূড়ান্ত স্কোর জানা। Streaming হলো বল বাই বল লাইভ কমেন্ট্রি শোনা। খেলার সময় একই, কিন্তু অপেক্ষাটা অনেক সহনীয় লাগে।"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "s6",
       "num": "06",
       "title": "Structured outputs & JSON mode",
       "sub": "Forcing free-form text into a typed schema unlocks LLMs as reliable components in larger pipelines. There are three progressively stricter approaches.",
-      "body": "<pre><code><span class=\"com\"># OpenAI Structured Outputs (Python)</span>\n<span class=\"kw\">from</span> pydantic <span class=\"kw\">import</span> BaseModel\n<span class=\"kw\">from</span> openai <span class=\"kw\">import</span> OpenAI\n\n<span class=\"kw\">class</span> <span class=\"fn\">Person</span>(BaseModel):\n    name: <span class=\"fn\">str</span>\n    age: <span class=\"fn\">int</span>\n    role: <span class=\"fn\">str</span>\n\nclient = <span class=\"fn\">OpenAI</span>()\nresp = client.beta.chat.completions.parse(\n    model=<span class=\"str\">\"gpt-4o-2024-08-09\"</span>,\n    messages=[{<span class=\"str\">\"role\"</span>: <span class=\"str\">\"user\"</span>, <span class=\"str\">\"content\"</span>: <span class=\"str\">\"Extract: Ada Lovelace, 36, mathematician\"</span>}],\n    response_format=Person,\n)\nperson: Person = resp.choices[<span class=\"num\">0</span>].message.parsed\n<span class=\"fn\">print</span>(person.name, person.age)    <span class=\"com\"># typed, valid by construction</span></code></pre>\n\n  <div class=\"callout good\">\n    <strong>Use structured outputs whenever you can.</strong> They turn LLM calls into well-typed function calls — no regex, no eval, no retry loops. The slight latency bump from FSM lookup is dwarfed by the saved post-validation.\n  </div>",
-      "layman": "<div class=\"layman-head\"><span class=\"icon\">📦</span><span class=\"label\">Layman's version<small>plain English, no jargon</small></span></div>\n    <p><strong>Imagine hiring a brilliant but very chatty assistant.</strong> You say \"find me flights to London next Tuesday under $500\" and they reply with a beautiful paragraph of text: <em>\"Certainly! I've looked up some lovely options, you might consider a British Airways departure at...\"</em> Now your software has to <em>parse English</em> to get the structured flight info. That's brittle and fails constantly.</p>\n    <p><strong>Structured outputs fix this.</strong> Instead of free-form prose, the AI returns a perfectly-formatted package — like a shipping label. You said \"give me {departure_city, arrival_city, date, price}\" and you get exactly that, in JSON, every time. No parsing, no guessing, no surprise.</p>\n    <p><strong>Three flavors:</strong></p>\n    <p>• <strong>JSON mode</strong> — \"respond with JSON\" in the prompt. ~90% reliable, sometimes the shape drifts.<br>\n       • <strong>Schema-constrained</strong> — you pass a strict shape; the AI physically <em>cannot</em> output anything that doesn't fit. ~99.9% reliable.<br>\n       • <strong>Typed parsing</strong> — the schema-constrained output goes directly into a typed object in your code (Pydantic, Zod). 100% guaranteed.</p>\n    <p><strong>Real impact:</strong> structured outputs turn \"AI chat\" into \"AI as API.\" You can now build reliable software on top of LLMs because they return predictable data structures, not essays.</p>\n    <div class=\"analogy\"><strong>The form analogy:</strong> free-form AI is like calling a friend and asking for advice. Structured output is like giving them a form to fill out: \"name, date, amount, address.\" The form always has the same fields in the same places — your software knows exactly where to look. Which would you rather process 10,000 of?</div>",
-      "bangla": "<div class=\"bangla-head\"><span class=\"icon\">🇧🇩</span><span class=\"label\">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>\n    <p>মডেলের মুক্ত-ভঙ্গির লেখাকে টাইপ-করা schema-তে বাধ্য করলে LLM বড় সিস্টেমের নির্ভরযোগ্য অংশ হয়ে ওঠে। এর তিনটি ক্রমশ কড়া স্তর আছে: <strong>JSON mode</strong>, <strong>schema-constrained decoding</strong> এবং <strong>typed parsing</strong>। প্রতিটি স্তরে নিশ্চয়তা ও নির্ভরযোগ্যতা বাড়ে।</p>\n    <p><strong>Schema-constrained generation</strong> কীভাবে কাজ করে: প্রোভাইডার <code>JSON schema</code>-কে একটি finite-state machine (বা grammar)-এ রূপ দেয়, এবং প্রতিটি ধাপে যে token schema ভাঙবে তার logit mask করে দেয়। ফলে আউটপুট নির্মাণগতভাবেই parse-যোগ্য, আলাদা <code>try/except</code> দরকার হয় না।</p>\n    <p>Python-এ সাধারণত <code>Pydantic</code> মডেল (যেমন <code>Person</code> ক্লাসে name, age, role) বানিয়ে <code>response_format=Person</code> দিলে ফলাফল টাইপসহ <code>parsed</code> অবজেক্ট হিসেবে পাওয়া যায়। এতে regex, <code>eval</code> বা retry loop লাগে না।</p>\n    <p>সুতরাং সম্ভব হলেই structured outputs ব্যবহার করুন। FSM lookup-এর জন্য সামান্য latency বাড়ে, কিন্তু পরে validation-এর ঝামেলা বাঁচায় বলে সেটা সহজেই পুষিয়ে যায়।</p>\n    <div class=\"analogy\"><strong>সরকারি ফর্মের উপমা:</strong> কাউকে মুখে বললে সে নিজের মতো করে লম্বা গল্প শোনাবে। কিন্তু ব্যাংকের ফর্ম দিলে নাম, তারিখ, টাকার অঙ্ক নির্দিষ্ট ঘরেই লিখতে হয়। কেরানি তখন ঠিক জানে কোন তথ্য কোথায় পাবে। দশ হাজার ফর্ম প্রসেস করতে হলে কোনটা বেছে নেবেন?</div>"
+      "body": [
+        {
+          "type": "code",
+          "lang": "python",
+          "code": "# OpenAI Structured Outputs (Python)\nfrom pydantic import BaseModel\nfrom openai import OpenAI\n\nclass Person(BaseModel):\n    name: str\n    age: int\n    role: str\n\nclient = OpenAI()\nresp = client.beta.chat.completions.parse(\n    model=\"gpt-4o-2024-08-09\",\n    messages=[{\"role\": \"user\", \"content\": \"Extract: Ada Lovelace, 36, mathematician\"}],\n    response_format=Person,\n)\nperson: Person = resp.choices[0].message.parsed\nprint(person.name, person.age)    # typed, valid by construction",
+          "html": "<pre class=\"shiki github-dark-dimmed\" style=\"background-color:#22272e;color:#adbac7\" tabindex=\"0\"><code><span class=\"line\"><span style=\"color:#768390\"># OpenAI Structured Outputs (Python)</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">from</span><span style=\"color:#ADBAC7\"> pydantic </span><span style=\"color:#F47067\">import</span><span style=\"color:#ADBAC7\"> BaseModel</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">from</span><span style=\"color:#ADBAC7\"> openai </span><span style=\"color:#F47067\">import</span><span style=\"color:#ADBAC7\"> OpenAI</span></span>\n<span class=\"line\"></span>\n<span class=\"line\"><span style=\"color:#F47067\">class</span><span style=\"color:#F69D50\"> Person</span><span style=\"color:#ADBAC7\">(</span><span style=\"color:#6CB6FF\">BaseModel</span><span style=\"color:#ADBAC7\">):</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    name: </span><span style=\"color:#6CB6FF\">str</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    age: </span><span style=\"color:#6CB6FF\">int</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    role: </span><span style=\"color:#6CB6FF\">str</span></span>\n<span class=\"line\"></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">client </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> OpenAI()</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">resp </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> client.beta.chat.completions.parse(</span></span>\n<span class=\"line\"><span style=\"color:#F69D50\">    model</span><span style=\"color:#F47067\">=</span><span style=\"color:#96D0FF\">\"gpt-4o-2024-08-09\"</span><span style=\"color:#ADBAC7\">,</span></span>\n<span class=\"line\"><span style=\"color:#F69D50\">    messages</span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\">[{</span><span style=\"color:#96D0FF\">\"role\"</span><span style=\"color:#ADBAC7\">: </span><span style=\"color:#96D0FF\">\"user\"</span><span style=\"color:#ADBAC7\">, </span><span style=\"color:#96D0FF\">\"content\"</span><span style=\"color:#ADBAC7\">: </span><span style=\"color:#96D0FF\">\"Extract: Ada Lovelace, 36, mathematician\"</span><span style=\"color:#ADBAC7\">}],</span></span>\n<span class=\"line\"><span style=\"color:#F69D50\">    response_format</span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\">Person,</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">)</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">person: Person </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> resp.choices[</span><span style=\"color:#6CB6FF\">0</span><span style=\"color:#ADBAC7\">].message.parsed</span></span>\n<span class=\"line\"><span style=\"color:#6CB6FF\">print</span><span style=\"color:#ADBAC7\">(person.name, person.age)    </span><span style=\"color:#768390\"># typed, valid by construction</span></span></code></pre>"
+        },
+        {
+          "type": "callout",
+          "variant": "good",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>Use structured outputs whenever you can.</strong> They turn LLM calls into well-typed function calls — no regex, no eval, no retry loops. The slight latency bump from FSM lookup is dwarfed by the saved post-validation."
+            }
+          ]
+        }
+      ],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Imagine hiring a brilliant but very chatty assistant.</strong> You say \"find me flights to London next Tuesday under $500\" and they reply with a beautiful paragraph of text: <em>\"Certainly! I've looked up some lovely options, you might consider a British Airways departure at...\"</em> Now your software has to <em>parse English</em> to get the structured flight info. That's brittle and fails constantly."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Structured outputs fix this.</strong> Instead of free-form prose, the AI returns a perfectly-formatted package — like a shipping label. You said \"give me {departure_city, arrival_city, date, price}\" and you get exactly that, in JSON, every time. No parsing, no guessing, no surprise."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Three flavors:</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "• <strong>JSON mode</strong> — \"respond with JSON\" in the prompt. ~90% reliable, sometimes the shape drifts.<br>\n       • <strong>Schema-constrained</strong> — you pass a strict shape; the AI physically <em>cannot</em> output anything that doesn't fit. ~99.9% reliable.<br>\n       • <strong>Typed parsing</strong> — the schema-constrained output goes directly into a typed object in your code (Pydantic, Zod). 100% guaranteed."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Real impact:</strong> structured outputs turn \"AI chat\" into \"AI as API.\" You can now build reliable software on top of LLMs because they return predictable data structures, not essays."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The form analogy:</strong> free-form AI is like calling a friend and asking for advice. Structured output is like giving them a form to fill out: \"name, date, amount, address.\" The form always has the same fields in the same places — your software knows exactly where to look. Which would you rather process 10,000 of?"
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "মডেলের মুক্ত-ভঙ্গির লেখাকে টাইপ-করা schema-তে বাধ্য করলে LLM বড় সিস্টেমের নির্ভরযোগ্য অংশ হয়ে ওঠে। এর তিনটি ক্রমশ কড়া স্তর আছে: <strong>JSON mode</strong>, <strong>schema-constrained decoding</strong> এবং <strong>typed parsing</strong>। প্রতিটি স্তরে নিশ্চয়তা ও নির্ভরযোগ্যতা বাড়ে।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Schema-constrained generation</strong> কীভাবে কাজ করে: প্রোভাইডার <code>JSON schema</code>-কে একটি finite-state machine (বা grammar)-এ রূপ দেয়, এবং প্রতিটি ধাপে যে token schema ভাঙবে তার logit mask করে দেয়। ফলে আউটপুট নির্মাণগতভাবেই parse-যোগ্য, আলাদা <code>try/except</code> দরকার হয় না।"
+        },
+        {
+          "type": "paragraph",
+          "html": "Python-এ সাধারণত <code>Pydantic</code> মডেল (যেমন <code>Person</code> ক্লাসে name, age, role) বানিয়ে <code>response_format=Person</code> দিলে ফলাফল টাইপসহ <code>parsed</code> অবজেক্ট হিসেবে পাওয়া যায়। এতে regex, <code>eval</code> বা retry loop লাগে না।"
+        },
+        {
+          "type": "paragraph",
+          "html": "সুতরাং সম্ভব হলেই structured outputs ব্যবহার করুন। FSM lookup-এর জন্য সামান্য latency বাড়ে, কিন্তু পরে validation-এর ঝামেলা বাঁচায় বলে সেটা সহজেই পুষিয়ে যায়।"
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>সরকারি ফর্মের উপমা:</strong> কাউকে মুখে বললে সে নিজের মতো করে লম্বা গল্প শোনাবে। কিন্তু ব্যাংকের ফর্ম দিলে নাম, তারিখ, টাকার অঙ্ক নির্দিষ্ট ঘরেই লিখতে হয়। কেরানি তখন ঠিক জানে কোন তথ্য কোথায় পাবে। দশ হাজার ফর্ম প্রসেস করতে হলে কোনটা বেছে নেবেন?"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "s7",
       "num": "07",
       "title": "Function calling & tool use",
       "sub": "Function calling lets the model emit a <em>structured</em> request to invoke a tool (a function, an API, a database query) instead of free-form prose. The model doesn't execute — it <strong>decides what to call and with what arguments</strong>, and your code runs the tool and feeds the result back. This is the basis of every LLM agent.",
-      "body": "<pre><code><span class=\"com\"># Anthropic tool-use example</span>\ntools = [{\n    <span class=\"str\">\"name\"</span>: <span class=\"str\">\"get_weather\"</span>,\n    <span class=\"str\">\"description\"</span>: <span class=\"str\">\"Get the current weather for a location.\"</span>,\n    <span class=\"str\">\"input_schema\"</span>: {\n        <span class=\"str\">\"type\"</span>: <span class=\"str\">\"object\"</span>,\n        <span class=\"str\">\"properties\"</span>: {<span class=\"str\">\"location\"</span>: {<span class=\"str\">\"type\"</span>: <span class=\"str\">\"string\"</span>}},\n        <span class=\"str\">\"required\"</span>: [<span class=\"str\">\"location\"</span>]\n    }\n}]\n\nmsg = client.messages.create(\n    model=<span class=\"str\">\"claude-sonnet-4-5\"</span>, tools=tools,\n    messages=[{<span class=\"str\">\"role\"</span>: <span class=\"str\">\"user\"</span>, <span class=\"str\">\"content\"</span>: <span class=\"str\">\"Weather in Dhaka?\"</span>}],\n)\n<span class=\"kw\">if</span> msg.stop_reason == <span class=\"str\">\"tool_use\"</span>:\n    tool = msg.content[<span class=\"num\">1</span>]                    <span class=\"com\"># tool-use block</span>\n    result = <span class=\"fn\">get_weather</span>(**tool.input)          <span class=\"com\"># your code</span>\n    <span class=\"com\"># feed result back, model produces final answer</span></code></pre>\n\n  <div class=\"callout\">\n    <strong>Tool design matters as much as model choice.</strong> Tool names and descriptions are inserted verbatim into the prompt. \"Retrieve flights\" is ambiguous; <code>search_flights(origin, destination, depart_date, cabin_class)</code> with documented parameters in the description yields dramatically higher correct-call rates. Iterate on tool descriptions the same way you iterate on prompts.\n  </div>\n\n  <h3>Modern patterns</h3>\n  <ul style=\"margin: 8px 0 0 20px; line-height: 1.8;\">\n    <li><strong>Parallel tool calls:</strong> OpenAI's <code>tool_choice: \"auto\"</code> can emit multiple independent calls per turn — the model decides what can run concurrently.</li>\n    <li><strong>Chain-of-Abstraction:</strong> the model writes <em>placeholders</em> for tool results, then fills them in after parallel execution — saves wall time on multi-step agents.<a class=\"cite\" href=\"#src19\">[19]</a></li>\n    <li><strong>Computer use:</strong> Sonnet 4.5 and similar can drive a desktop via screenshot + mouse/keyboard primitives — the \"ultimate tool\" with the agent acting as the API.</li>\n  </ul>",
-      "layman": "<div class=\"layman-head\"><span class=\"icon\">🛠️</span><span class=\"label\">Layman's version<small>plain English, no jargon</small></span></div>\n    <p><strong>Tools turn an LLM from a brain in a jar into something that can actually do things.</strong> Without tools, the AI can only write essays. With tools, it can look up your calendar, query Wikipedia, run a database search, send an email, book a flight, or even drive your computer mouse.</p>\n    <p><strong>How does it work?</strong> You tell the AI what tools are available, like giving a new assistant a keyring: <code>get_weather(city)</code>, <code>send_email(to, subject, body)</code>, <code>search_database(query)</code>. The AI reads your question, decides which tool(s) to use, and writes a structured request like <code>{\"tool\": \"get_weather\", \"args\": {\"city\": \"Dhaka\"}}</code>. <em>Your software</em> runs that tool — the AI itself can't touch anything. Then it gets the result and writes the final answer.</p>\n    <p><strong>This is the heart of every \"AI agent.\"</strong> ChatGPT that browses the web for you? Tool. Cursor that edits your code? Tool. The AI that books your appointments? Tool.</p>\n    <p><strong>The loop repeats:</strong> AI thinks → calls tool → reads result → calls next tool → ... → eventually writes the final reply. The smarter the AI, the more steps it can chain before getting confused.</p>\n    <p><strong>The catch:</strong> the more tools you give, the harder the AI has to think about which one to use. Too many tools = bad choices. Good tool design (clear names, descriptions, parameter docs) matters as much as the model choice.</p>\n    <div class=\"analogy\"><strong>The sous chef analogy:</strong> the AI is a brilliant chef who can't leave the kitchen. You stock the kitchen with tools: a stove, a blender, a knife. The chef can use any of them to make dinner, but YOU had to buy them and put them there. If you stock the kitchen with 200 weird gadgets, the chef gets confused. Stock it with the 10 right tools and magic happens.</div>",
-      "bangla": "<div class=\"bangla-head\"><span class=\"icon\">🇧🇩</span><span class=\"label\">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>\n    <p><strong>Function calling</strong> মানে মডেল সরাসরি কিছু চালায় না; বরং কোন tool (ফাংশন, API, ডেটাবেস কোয়েরি) কোন argument দিয়ে ডাকতে হবে তা একটি structured অনুরোধ হিসেবে বের করে দেয়। আপনার কোড tool চালায় এবং ফলাফল মডেলকে ফেরত দেয়। প্রতিটি LLM agent এই ধারণার ওপর দাঁড়িয়ে।</p>\n    <p>লুপটি ReAct-ধাঁচের: মডেল tool-call JSON দেয়, কোড সেটি চালায়, ফলাফল কনভারসেশনে যোগ হয়, আর এভাবে চলতে থাকে। আপনি tool-এর তালিকা <code>JSON Schema</code> আকারে দেন (নাম, parameters, description), এবং মডেল prose-এর বদলে (বা সাথে) <code>tool_calls</code> ফিল্ড বের করতে fine-tuned। Schema constrained বলে arguments বৈধ হয়। Anthropic-এ <code>stop_reason == \"tool_use\"</code> হলে tool-use block থেকে <code>input</code> নিয়ে নিজের ফাংশন চালাতে হয়।</p>\n    <p><strong>Tool design মডেল বাছাইয়ের মতোই গুরুত্বপূর্ণ।</strong> Tool-এর নাম ও description হুবহু prompt-এ ঢোকে। \"Retrieve flights\" অস্পষ্ট; কিন্তু <code>search_flights(origin, destination, depart_date, cabin_class)</code> এবং description-এ প্রতিটি parameter-এর ব্যাখ্যা থাকলে সঠিক কলের হার অনেক বাড়ে। Prompt-এর মতোই tool description বারবার উন্নত করুন।</p>\n    <ul>\n      <li><strong>Parallel tool calls:</strong> একাধিক স্বাধীন কল এক turn-এ দেওয়া যায়।</li>\n      <li><strong>Chain-of-Abstraction:</strong> মডেল ফলাফলের placeholder লিখে রাখে, পরে সমান্তরালে চালিয়ে পূরণ করা হয়, ফলে multi-step agent-এর সময় বাঁচে।</li>\n      <li><strong>Computer use:</strong> screenshot ও mouse/keyboard দিয়ে ডেস্কটপ চালানো, যেন agent নিজেই API।</li>\n    </ul>\n    <div class=\"analogy\"><strong>ম্যানেজার ও অফিস সহকারীর উপমা:</strong> ম্যানেজার (মডেল) নিজে ফাইল আনতে বা ফোন করতে যায় না। সে লিখে দেয়, \"রহিমকে ফোন করে আজকের বিক্রি জানাও।\" সহকারী (আপনার কোড) কাজটি করে ফলাফল ফেরত দেয়, তারপর ম্যানেজার সিদ্ধান্ত নেয়। সহকারীর হাতে কাজের তালিকা যত স্পষ্ট, ভুল তত কম।</div>"
+      "body": [
+        {
+          "type": "code",
+          "lang": "python",
+          "code": "# Anthropic tool-use example\ntools = [{\n    \"name\": \"get_weather\",\n    \"description\": \"Get the current weather for a location.\",\n    \"input_schema\": {\n        \"type\": \"object\",\n        \"properties\": {\"location\": {\"type\": \"string\"}},\n        \"required\": [\"location\"]\n    }\n}]\n\nmsg = client.messages.create(\n    model=\"claude-sonnet-4-5\", tools=tools,\n    messages=[{\"role\": \"user\", \"content\": \"Weather in Dhaka?\"}],\n)\nif msg.stop_reason == \"tool_use\":\n    tool = msg.content[1]                    # tool-use block\n    result = get_weather(**tool.input)          # your code\n    # feed result back, model produces final answer",
+          "html": "<pre class=\"shiki github-dark-dimmed\" style=\"background-color:#22272e;color:#adbac7\" tabindex=\"0\"><code><span class=\"line\"><span style=\"color:#768390\"># Anthropic tool-use example</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">tools </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> [{</span></span>\n<span class=\"line\"><span style=\"color:#96D0FF\">    \"name\"</span><span style=\"color:#ADBAC7\">: </span><span style=\"color:#96D0FF\">\"get_weather\"</span><span style=\"color:#ADBAC7\">,</span></span>\n<span class=\"line\"><span style=\"color:#96D0FF\">    \"description\"</span><span style=\"color:#ADBAC7\">: </span><span style=\"color:#96D0FF\">\"Get the current weather for a location.\"</span><span style=\"color:#ADBAC7\">,</span></span>\n<span class=\"line\"><span style=\"color:#96D0FF\">    \"input_schema\"</span><span style=\"color:#ADBAC7\">: {</span></span>\n<span class=\"line\"><span style=\"color:#96D0FF\">        \"type\"</span><span style=\"color:#ADBAC7\">: </span><span style=\"color:#96D0FF\">\"object\"</span><span style=\"color:#ADBAC7\">,</span></span>\n<span class=\"line\"><span style=\"color:#96D0FF\">        \"properties\"</span><span style=\"color:#ADBAC7\">: {</span><span style=\"color:#96D0FF\">\"location\"</span><span style=\"color:#ADBAC7\">: {</span><span style=\"color:#96D0FF\">\"type\"</span><span style=\"color:#ADBAC7\">: </span><span style=\"color:#96D0FF\">\"string\"</span><span style=\"color:#ADBAC7\">}},</span></span>\n<span class=\"line\"><span style=\"color:#96D0FF\">        \"required\"</span><span style=\"color:#ADBAC7\">: [</span><span style=\"color:#96D0FF\">\"location\"</span><span style=\"color:#ADBAC7\">]</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    }</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">}]</span></span>\n<span class=\"line\"></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">msg </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> client.messages.create(</span></span>\n<span class=\"line\"><span style=\"color:#F69D50\">    model</span><span style=\"color:#F47067\">=</span><span style=\"color:#96D0FF\">\"claude-sonnet-4-5\"</span><span style=\"color:#ADBAC7\">, </span><span style=\"color:#F69D50\">tools</span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\">tools,</span></span>\n<span class=\"line\"><span style=\"color:#F69D50\">    messages</span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\">[{</span><span style=\"color:#96D0FF\">\"role\"</span><span style=\"color:#ADBAC7\">: </span><span style=\"color:#96D0FF\">\"user\"</span><span style=\"color:#ADBAC7\">, </span><span style=\"color:#96D0FF\">\"content\"</span><span style=\"color:#ADBAC7\">: </span><span style=\"color:#96D0FF\">\"Weather in Dhaka?\"</span><span style=\"color:#ADBAC7\">}],</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">)</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">if</span><span style=\"color:#ADBAC7\"> msg.stop_reason </span><span style=\"color:#F47067\">==</span><span style=\"color:#96D0FF\"> \"tool_use\"</span><span style=\"color:#ADBAC7\">:</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    tool </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> msg.content[</span><span style=\"color:#6CB6FF\">1</span><span style=\"color:#ADBAC7\">]                    </span><span style=\"color:#768390\"># tool-use block</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    result </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> get_weather(</span><span style=\"color:#F47067\">**</span><span style=\"color:#ADBAC7\">tool.input)          </span><span style=\"color:#768390\"># your code</span></span>\n<span class=\"line\"><span style=\"color:#768390\">    # feed result back, model produces final answer</span></span></code></pre>"
+        },
+        {
+          "type": "callout",
+          "variant": "info",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>Tool design matters as much as model choice.</strong> Tool names and descriptions are inserted verbatim into the prompt. \"Retrieve flights\" is ambiguous; <code>search_flights(origin, destination, depart_date, cabin_class)</code> with documented parameters in the description yields dramatically higher correct-call rates. Iterate on tool descriptions the same way you iterate on prompts."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s7-modern-patterns",
+          "html": "Modern patterns"
+        },
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            "<strong>Parallel tool calls:</strong> OpenAI's <code>tool_choice: \"auto\"</code> can emit multiple independent calls per turn — the model decides what can run concurrently.",
+            "<strong>Chain-of-Abstraction:</strong> the model writes <em>placeholders</em> for tool results, then fills them in after parallel execution — saves wall time on multi-step agents.<a class=\"cite\" href=\"#src19\">[19]</a>",
+            "<strong>Computer use:</strong> Sonnet 4.5 and similar can drive a desktop via screenshot + mouse/keyboard primitives — the \"ultimate tool\" with the agent acting as the API."
+          ]
+        }
+      ],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Tools turn an LLM from a brain in a jar into something that can actually do things.</strong> Without tools, the AI can only write essays. With tools, it can look up your calendar, query Wikipedia, run a database search, send an email, book a flight, or even drive your computer mouse."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>How does it work?</strong> You tell the AI what tools are available, like giving a new assistant a keyring: <code>get_weather(city)</code>, <code>send_email(to, subject, body)</code>, <code>search_database(query)</code>. The AI reads your question, decides which tool(s) to use, and writes a structured request like <code>{\"tool\": \"get_weather\", \"args\": {\"city\": \"Dhaka\"}}</code>. <em>Your software</em> runs that tool — the AI itself can't touch anything. Then it gets the result and writes the final answer."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>This is the heart of every \"AI agent.\"</strong> ChatGPT that browses the web for you? Tool. Cursor that edits your code? Tool. The AI that books your appointments? Tool."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>The loop repeats:</strong> AI thinks → calls tool → reads result → calls next tool → ... → eventually writes the final reply. The smarter the AI, the more steps it can chain before getting confused."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>The catch:</strong> the more tools you give, the harder the AI has to think about which one to use. Too many tools = bad choices. Good tool design (clear names, descriptions, parameter docs) matters as much as the model choice."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The sous chef analogy:</strong> the AI is a brilliant chef who can't leave the kitchen. You stock the kitchen with tools: a stove, a blender, a knife. The chef can use any of them to make dinner, but YOU had to buy them and put them there. If you stock the kitchen with 200 weird gadgets, the chef gets confused. Stock it with the 10 right tools and magic happens."
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Function calling</strong> মানে মডেল সরাসরি কিছু চালায় না; বরং কোন tool (ফাংশন, API, ডেটাবেস কোয়েরি) কোন argument দিয়ে ডাকতে হবে তা একটি structured অনুরোধ হিসেবে বের করে দেয়। আপনার কোড tool চালায় এবং ফলাফল মডেলকে ফেরত দেয়। প্রতিটি LLM agent এই ধারণার ওপর দাঁড়িয়ে।"
+        },
+        {
+          "type": "paragraph",
+          "html": "লুপটি ReAct-ধাঁচের: মডেল tool-call JSON দেয়, কোড সেটি চালায়, ফলাফল কনভারসেশনে যোগ হয়, আর এভাবে চলতে থাকে। আপনি tool-এর তালিকা <code>JSON Schema</code> আকারে দেন (নাম, parameters, description), এবং মডেল prose-এর বদলে (বা সাথে) <code>tool_calls</code> ফিল্ড বের করতে fine-tuned। Schema constrained বলে arguments বৈধ হয়। Anthropic-এ <code>stop_reason == \"tool_use\"</code> হলে tool-use block থেকে <code>input</code> নিয়ে নিজের ফাংশন চালাতে হয়।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Tool design মডেল বাছাইয়ের মতোই গুরুত্বপূর্ণ।</strong> Tool-এর নাম ও description হুবহু prompt-এ ঢোকে। \"Retrieve flights\" অস্পষ্ট; কিন্তু <code>search_flights(origin, destination, depart_date, cabin_class)</code> এবং description-এ প্রতিটি parameter-এর ব্যাখ্যা থাকলে সঠিক কলের হার অনেক বাড়ে। Prompt-এর মতোই tool description বারবার উন্নত করুন।"
+        },
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            "<strong>Parallel tool calls:</strong> একাধিক স্বাধীন কল এক turn-এ দেওয়া যায়।",
+            "<strong>Chain-of-Abstraction:</strong> মডেল ফলাফলের placeholder লিখে রাখে, পরে সমান্তরালে চালিয়ে পূরণ করা হয়, ফলে multi-step agent-এর সময় বাঁচে।",
+            "<strong>Computer use:</strong> screenshot ও mouse/keyboard দিয়ে ডেস্কটপ চালানো, যেন agent নিজেই API।"
+          ]
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>ম্যানেজার ও অফিস সহকারীর উপমা:</strong> ম্যানেজার (মডেল) নিজে ফাইল আনতে বা ফোন করতে যায় না। সে লিখে দেয়, \"রহিমকে ফোন করে আজকের বিক্রি জানাও।\" সহকারী (আপনার কোড) কাজটি করে ফলাফল ফেরত দেয়, তারপর ম্যানেজার সিদ্ধান্ত নেয়। সহকারীর হাতে কাজের তালিকা যত স্পষ্ট, ভুল তত কম।"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "s8",
       "num": "08",
       "title": "Multimodal inputs (vision, audio, PDFs)",
       "sub": "Modern frontier models ingest more than text: images, audio, video frames, and PDF pages become tokens the transformer can attend to. The unifying trick: <strong>any modality is converted into a sequence of embedding vectors</strong> and concatenated with the text sequence.",
-      "body": "",
-      "layman": "<div class=\"layman-head\"><span class=\"icon\">👁️</span><span class=\"label\">Layman's version<small>plain English, no jargon</small></span></div>\n    <p><strong>Modern AI isn't just text anymore.</strong> You can paste a photo of a handwritten note, a chart, an X-ray, a screenshot, a 200-page PDF, or even a 30-second voice clip — and the AI can read, describe, and reason about it like a human would.</p>\n    <p><strong>How?</strong> Each input type is first run through a specialist mini-model:</p>\n    <p>• <strong>Images</strong> get chopped into patches; a vision model (like CLIP) describes each patch as numbers.<br>\n       • <strong>Audio</strong> gets converted into a spectrogram; a speech model transcribes it.<br>\n       • <strong>PDFs</strong> get split into pages; some pages become text (extractable), others become images (scanned).</p>\n    <p>All these numbers then get poured into the same LLM as if they were extra \"words.\" The AI doesn't think in pixels or sound — it thinks in numbers that <em>represent</em> pixels or sound.</p>\n    <p><strong>What can it actually do?</strong> Read a graph. Count objects in a photo. Read a screenshot and click the right button. Look at a form photo and output the form data as JSON. Watch a video and summarise it. Listen to a lecture and take notes. (Some of these still hallucinate — see the warning below.)</p>\n    <p><strong>Caution:</strong> AI vision is impressive but still imperfect on tiny text (receipts, IDs), precise numbers, rotated pages, and unfamiliar scripts. For high-precision OCR, use a dedicated OCR engine (Tesseract, Google Document AI) and feed the <em>text</em> to the LLM.</p>\n    <div class=\"analogy\"><strong>The translator analogy:</strong> imagine you're a brilliant lawyer who only speaks English. You have a team of translators: one for Chinese, one for photos, one for music. They each convert their specialty into English notes you can read. You don't see the original — but you understand the meaning well enough to give legal advice.</div>",
-      "bangla": "<div class=\"bangla-head\"><span class=\"icon\">🇧🇩</span><span class=\"label\">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>\n    <p>আধুনিক ফ্রন্টিয়ার মডেল শুধু টেক্সট নয়, ছবি, অডিও, ভিডিও ফ্রেম ও PDF পৃষ্ঠাও নেয়। মূল কৌশল: যেকোনো modality-কে embedding vector-এর ক্রমে রূপ দিয়ে টেক্সটের ক্রমের সাথে জুড়ে দেওয়া হয়। প্রতিটি modality-র নিজস্ব encoder থাকে, একটি শেখা projection সেগুলোকে LLM-এর token space-এ নিয়ে আসে, আর একটিই transformer সবকিছুর ওপর attention দেয়।</p>\n    <p>ক্ষমতা মডেলভেদে আলাদা: Gemini 1.5/2.5 সবচেয়ে native multimodal (ছবি, অডিও in/out, ভিডিও, PDF); GPT-4o ছবিতে ভালো; Claude 4 চার্ট ও ডায়াগ্রাম পড়ায় ভালো; Qwen-VL ও Llama 3.2 Vision হলো open-weight vision মডেল।</p>\n    <p><strong>সতর্কতা:</strong> Vision মানেই নিখুঁত OCR নয়। মডেল গুনতে, হাতের লেখা পড়তে, চার্ট বুঝতে পারে, কিন্তু ছোট লেখা, সূক্ষ্ম সংখ্যা ও ঘোরানো পৃষ্ঠায় hallucinate করে। ইনভয়েস, ID বা বৈজ্ঞানিক নোটেশনের মতো নিখুঁত দরকারে আলাদা OCR engine ব্যবহার করে টেক্সটটি text LLM-কে দিন।</p>\n    <p><strong>PDF-এর তিনটি পথ:</strong></p>\n    <ul>\n      <li><strong>Text-extract আগে</strong> (<code>pymupdf</code>, <code>pdfplumber</code>, <code>unstructured.io</code>): দ্রুত ও সস্তা, কিন্তু layout ও ভিজ্যুয়াল হারায়।</li>\n      <li><strong>Vision path</strong> (পৃষ্ঠা render করে multimodal LLM-এ): ধীর ও ব্যয়বহুল, কিন্তু scanned ডকুমেন্ট, টেবিল ও চার্ট সামলায়।</li>\n      <li><strong>Hybrid</strong>: টেক্সট extract এবং টেবিল/ফিগারের জন্য পৃষ্ঠার ছবি। প্রোডাকশনে এটিই বেশি চলে।</li>\n    </ul>\n    <div class=\"analogy\"><strong>বহুভাষী দোভাষী দলের উপমা:</strong> একজন বিচারক শুধু বাংলা জানেন। তাঁর সাথে আছে একজন চীনা দোভাষী, একজন ছবির বিশ্লেষক ও একজন অডিও লিপিকার। প্রত্যেকে নিজের বিষয় বাংলা নোটে বদলে দেয়, আর বিচারক সেই নোট পড়েই রায় দেন। তিনি আসল জিনিস দেখেন না, কিন্তু অর্থ ঠিকই বোঝেন।</div>"
+      "body": [],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Modern AI isn't just text anymore.</strong> You can paste a photo of a handwritten note, a chart, an X-ray, a screenshot, a 200-page PDF, or even a 30-second voice clip — and the AI can read, describe, and reason about it like a human would."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>How?</strong> Each input type is first run through a specialist mini-model:"
+        },
+        {
+          "type": "paragraph",
+          "html": "• <strong>Images</strong> get chopped into patches; a vision model (like CLIP) describes each patch as numbers.<br>\n       • <strong>Audio</strong> gets converted into a spectrogram; a speech model transcribes it.<br>\n       • <strong>PDFs</strong> get split into pages; some pages become text (extractable), others become images (scanned)."
+        },
+        {
+          "type": "paragraph",
+          "html": "All these numbers then get poured into the same LLM as if they were extra \"words.\" The AI doesn't think in pixels or sound — it thinks in numbers that <em>represent</em> pixels or sound."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>What can it actually do?</strong> Read a graph. Count objects in a photo. Read a screenshot and click the right button. Look at a form photo and output the form data as JSON. Watch a video and summarise it. Listen to a lecture and take notes. (Some of these still hallucinate — see the warning below.)"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Caution:</strong> AI vision is impressive but still imperfect on tiny text (receipts, IDs), precise numbers, rotated pages, and unfamiliar scripts. For high-precision OCR, use a dedicated OCR engine (Tesseract, Google Document AI) and feed the <em>text</em> to the LLM."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The translator analogy:</strong> imagine you're a brilliant lawyer who only speaks English. You have a team of translators: one for Chinese, one for photos, one for music. They each convert their specialty into English notes you can read. You don't see the original — but you understand the meaning well enough to give legal advice."
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "আধুনিক ফ্রন্টিয়ার মডেল শুধু টেক্সট নয়, ছবি, অডিও, ভিডিও ফ্রেম ও PDF পৃষ্ঠাও নেয়। মূল কৌশল: যেকোনো modality-কে embedding vector-এর ক্রমে রূপ দিয়ে টেক্সটের ক্রমের সাথে জুড়ে দেওয়া হয়। প্রতিটি modality-র নিজস্ব encoder থাকে, একটি শেখা projection সেগুলোকে LLM-এর token space-এ নিয়ে আসে, আর একটিই transformer সবকিছুর ওপর attention দেয়।"
+        },
+        {
+          "type": "paragraph",
+          "html": "ক্ষমতা মডেলভেদে আলাদা: Gemini 1.5/2.5 সবচেয়ে native multimodal (ছবি, অডিও in/out, ভিডিও, PDF); GPT-4o ছবিতে ভালো; Claude 4 চার্ট ও ডায়াগ্রাম পড়ায় ভালো; Qwen-VL ও Llama 3.2 Vision হলো open-weight vision মডেল।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>সতর্কতা:</strong> Vision মানেই নিখুঁত OCR নয়। মডেল গুনতে, হাতের লেখা পড়তে, চার্ট বুঝতে পারে, কিন্তু ছোট লেখা, সূক্ষ্ম সংখ্যা ও ঘোরানো পৃষ্ঠায় hallucinate করে। ইনভয়েস, ID বা বৈজ্ঞানিক নোটেশনের মতো নিখুঁত দরকারে আলাদা OCR engine ব্যবহার করে টেক্সটটি text LLM-কে দিন।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>PDF-এর তিনটি পথ:</strong>"
+        },
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            "<strong>Text-extract আগে</strong> (<code>pymupdf</code>, <code>pdfplumber</code>, <code>unstructured.io</code>): দ্রুত ও সস্তা, কিন্তু layout ও ভিজ্যুয়াল হারায়।",
+            "<strong>Vision path</strong> (পৃষ্ঠা render করে multimodal LLM-এ): ধীর ও ব্যয়বহুল, কিন্তু scanned ডকুমেন্ট, টেবিল ও চার্ট সামলায়।",
+            "<strong>Hybrid</strong>: টেক্সট extract এবং টেবিল/ফিগারের জন্য পৃষ্ঠার ছবি। প্রোডাকশনে এটিই বেশি চলে।"
+          ]
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>বহুভাষী দোভাষী দলের উপমা:</strong> একজন বিচারক শুধু বাংলা জানেন। তাঁর সাথে আছে একজন চীনা দোভাষী, একজন ছবির বিশ্লেষক ও একজন অডিও লিপিকার। প্রত্যেকে নিজের বিষয় বাংলা নোটে বদলে দেয়, আর বিচারক সেই নোট পড়েই রায় দেন। তিনি আসল জিনিস দেখেন না, কিন্তু অর্থ ঠিকই বোঝেন।"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "s9",
       "num": "09",
       "title": "Embedding models & reranker models",
       "sub": "Two specialised model types that, together with an LLM, form the standard retrieval-augmented generation (RAG) stack. <strong>Embeddings</strong> compress text into a vector such that semantically similar items land near each other. <strong>Rerankers</strong> score (query, document) pairs with cross-attention for higher precision.",
-      "body": "<pre><code><span class=\"com\"># Modern embedding call (OpenAI v3)</span>\n<span class=\"kw\">from</span> openai <span class=\"kw\">import</span> OpenAI\nclient = <span class=\"fn\">OpenAI</span>()\nresp = client.embeddings.create(\n    model=<span class=\"str\">\"text-embedding-3-large\"</span>,\n    input=[<span class=\"str\">\"What is constitutional AI?\"</span>, <span class=\"str\">\"harmlessness from AI feedback\"</span>],\n    encoding_format=<span class=\"str\">\"float\"</span>,\n)\nvectors = [d.embedding <span class=\"kw\">for</span> d <span class=\"kw\">in</span> resp.data]   <span class=\"com\"># 3072-d each</span>\n<span class=\"kw\">import</span> numpy <span class=\"kw\">as</span> np\nsim = np.dot(vectors[<span class=\"num\">0</span>], vectors[<span class=\"num\">1</span>]) / (\n    np.linalg.norm(vectors[<span class=\"num\">0</span>]) * np.linalg.norm(vectors[<span class=\"num\">1</span>]))</code></pre>\n\n  <h3>Reranker models (cross-encoders)</h3>\n  <p>Rerankers concatenate query + document and run full transformer attention across them — much more accurate but O(n) per pair. Best used as the second stage on top-K=100 candidates.<a class=\"cite\" href=\"#src22\">[22]</a> Recent papers show LLM-based rerankers (even small open ones like Qwen2.5-7B) can match proprietary rerankers with listwise ranking prompts.</p>\n\n  <table>\n    <thead><tr><th></th><th>Bi-encoder</th><th>Cross-encoder reranker</th></tr></thead>\n    <tbody>\n      <tr><td>Speed</td><td>Encode once, search billions in ms</td><td>~50–200 ms per (q, d) pair</td></tr>\n      <tr><td>Accuracy</td><td>Good recall; lower precision</td><td>Best in class precision</td></tr>\n      <tr><td>Storage</td><td>Stores vectors (KBs–MBs per doc)</td><td>No storage; runs on text</td></tr>\n      <tr><td>Use</td><td>Stage 1: candidate generation</td><td>Stage 2: final ranking</td></tr>\n    </tbody>\n  </table>\n\n  <div class=\"callout\">\n    <strong>The state-of-the-art 2025 stack:</strong> embed with <code>E5-Mistral-7B-instruct</code> or <code>BGE-M3</code> for open weights, rerank with <code>Qwen3-Reranker</code> or <code>Cohere Rerank v3</code>, generate with your favourite LLM. Hybrid retrieval (sparse BM25 + dense) consistently beats either alone on BEIR.\n  </div>",
-      "layman": "<div class=\"layman-head\"><span class=\"icon\">🔍</span><span class=\"label\">Layman's version<small>plain English, no jargon</small></span></div>\n    <p><strong>How does an AI know what's in your 10,000-doc knowledge base without reading all of it?</strong> Two specialised models: one fast-and-loose, one slow-and-precise.</p>\n    <p><strong>Embeddings: a fancy index.</strong> Imagine every document in your library gets summarised into a list of numbers — say 1,000 numbers — that captures its <em>meaning</em>. Similar documents get similar numbers. Now you can search by meaning: \"find me stuff related to climate insurance\" finds documents that <em>mean</em> similar things, even if they don't share any words. The trick is: you can compare 1,000 numbers against a million other documents in milliseconds. That's how ChatGPT's \"Search\" can scan your entire Drive in seconds.</p>\n    <p><strong>Rerankers: the tiebreaker.</strong> Embeddings are fast but sloppy. Sometimes the top 10 \"most similar\" documents aren't really the best 10. A reranker takes that shortlist and reads each one against your question, like a careful human librarian deciding which book is truly the best answer. Slow, but accurate.</p>\n    <p><strong>The two-stage pipeline:</strong></p>\n    <p>1. Embedding model narrows 10 million docs → 100 likely candidates (in 50ms).<br>\n       2. Reranker picks the best 5 from those 100 (in another 200ms).<br>\n       3. The LLM reads those 5 and writes the final answer.</p>\n    <p>This is what powers every \"ChatGPT, search my docs\" feature, every customer-support bot that knows your product manual, every legal-AI tool that scans case law.</p>\n    <div class=\"analogy\"><strong>The librarian analogy:</strong> embeddings are a librarian who skims the back cover of every book in milliseconds and grabs the 100 that look promising. Reranking is the senior librarian who reads those 100 covers more carefully and picks the 3 winners. The LLM is you, reading those 3 winners and writing the answer.</div>",
-      "bangla": "<div class=\"bangla-head\"><span class=\"icon\">🇧🇩</span><span class=\"label\">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>\n    <p>RAG (retrieval-augmented generation) স্ট্যাকে LLM-এর সাথে দুই ধরনের বিশেষায়িত মডেল থাকে। <strong>Embedding model</strong> টেক্সটকে এমন একটি vector-এ সংকুচিত করে যাতে সমার্থক জিনিস কাছাকাছি পড়ে। <strong>Reranker</strong> (query, document) জোড়াকে cross-attention দিয়ে স্কোর করে বেশি নিখুঁত ফল দেয়।</p>\n    <p><strong>Embedding (bi-encoder):</strong> query ও document আলাদা আলাদা করে নির্দিষ্ট আকারের vector বানানো হয়। সাদৃশ্য মাপা হয় dot product বা cosine দিয়ে, প্রতি জোড়ায় O(1), তাই <code>FAISS</code>, <code>ScaNN</code> বা <code>HNSW</code> দিয়ে বিলিয়ন-স্কেল ANN সার্চ সম্ভব। উদাহরণ: <code>text-embedding-3-large</code>, <code>embed-v3</code>, <code>BGE-M3</code>, <code>E5-Mistral-7B</code>।</p>\n    <p><strong>Reranker (cross-encoder):</strong> query ও document জুড়ে পুরো transformer attention চালায়। অনেক নিখুঁত, কিন্তু প্রতি জোড়ায় O(n) এবং প্রায় 50–200 ms, তাই এটি দ্বিতীয় ধাপে, শীর্ষ প্রায় 100 candidate-এর ওপর ব্যবহার করা উচিত।</p>\n    <ul>\n      <li><strong>Stage 1 (bi-encoder):</strong> একবার encode করে মিলিসেকেন্ডে কোটি কোটির মধ্যে খোঁজা; recall ভালো, precision কম।</li>\n      <li><strong>Stage 2 (cross-encoder):</strong> কোনো vector সংরক্ষণ নেই, টেক্সটের ওপর চলে; precision সেরা।</li>\n    </ul>\n    <p>2025-এর আধুনিক স্ট্যাক: open-weight-এ <code>E5-Mistral-7B-instruct</code> বা <code>BGE-M3</code> দিয়ে embed, <code>Qwen3-Reranker</code> বা <code>Cohere Rerank v3</code> দিয়ে rerank, তারপর পছন্দের LLM দিয়ে উত্তর তৈরি। Hybrid retrieval (sparse BM25 + dense) BEIR-এ প্রায় সবসময় একা কোনোটির চেয়ে ভালো ফল দেয়।</p>\n    <div class=\"analogy\"><strong>চাকরির নিয়োগের উপমা:</strong> হাজার হাজার সিভি এলে প্রথমে একটি কম্পিউটার কিওয়ার্ড মিলিয়ে ঝটপট একশোটি বেছে নেয় (embedding)। তারপর অভিজ্ঞ HR ম্যানেজার সেই একশোটি মন দিয়ে পড়ে সেরা কয়েকজনকে ইন্টারভিউয়ের জন্য ডাকেন (reranker)। শেষে সিদ্ধান্ত নেন বস (LLM)।</div>"
+      "body": [
+        {
+          "type": "code",
+          "lang": "python",
+          "code": "# Modern embedding call (OpenAI v3)\nfrom openai import OpenAI\nclient = OpenAI()\nresp = client.embeddings.create(\n    model=\"text-embedding-3-large\",\n    input=[\"What is constitutional AI?\", \"harmlessness from AI feedback\"],\n    encoding_format=\"float\",\n)\nvectors = [d.embedding for d in resp.data]   # 3072-d each\nimport numpy as np\nsim = np.dot(vectors[0], vectors[1]) / (\n    np.linalg.norm(vectors[0]) * np.linalg.norm(vectors[1]))",
+          "html": "<pre class=\"shiki github-dark-dimmed\" style=\"background-color:#22272e;color:#adbac7\" tabindex=\"0\"><code><span class=\"line\"><span style=\"color:#768390\"># Modern embedding call (OpenAI v3)</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">from</span><span style=\"color:#ADBAC7\"> openai </span><span style=\"color:#F47067\">import</span><span style=\"color:#ADBAC7\"> OpenAI</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">client </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> OpenAI()</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">resp </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> client.embeddings.create(</span></span>\n<span class=\"line\"><span style=\"color:#F69D50\">    model</span><span style=\"color:#F47067\">=</span><span style=\"color:#96D0FF\">\"text-embedding-3-large\"</span><span style=\"color:#ADBAC7\">,</span></span>\n<span class=\"line\"><span style=\"color:#F69D50\">    input</span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\">[</span><span style=\"color:#96D0FF\">\"What is constitutional AI?\"</span><span style=\"color:#ADBAC7\">, </span><span style=\"color:#96D0FF\">\"harmlessness from AI feedback\"</span><span style=\"color:#ADBAC7\">],</span></span>\n<span class=\"line\"><span style=\"color:#F69D50\">    encoding_format</span><span style=\"color:#F47067\">=</span><span style=\"color:#96D0FF\">\"float\"</span><span style=\"color:#ADBAC7\">,</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">)</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">vectors </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> [d.embedding </span><span style=\"color:#F47067\">for</span><span style=\"color:#ADBAC7\"> d </span><span style=\"color:#F47067\">in</span><span style=\"color:#ADBAC7\"> resp.data]   </span><span style=\"color:#768390\"># 3072-d each</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">import</span><span style=\"color:#ADBAC7\"> numpy </span><span style=\"color:#F47067\">as</span><span style=\"color:#ADBAC7\"> np</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">sim </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> np.dot(vectors[</span><span style=\"color:#6CB6FF\">0</span><span style=\"color:#ADBAC7\">], vectors[</span><span style=\"color:#6CB6FF\">1</span><span style=\"color:#ADBAC7\">]) </span><span style=\"color:#F47067\">/</span><span style=\"color:#ADBAC7\"> (</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">    np.linalg.norm(vectors[</span><span style=\"color:#6CB6FF\">0</span><span style=\"color:#ADBAC7\">]) </span><span style=\"color:#F47067\">*</span><span style=\"color:#ADBAC7\"> np.linalg.norm(vectors[</span><span style=\"color:#6CB6FF\">1</span><span style=\"color:#ADBAC7\">]))</span></span></code></pre>"
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s9-reranker-models-cross-encoders",
+          "html": "Reranker models (cross-encoders)"
+        },
+        {
+          "type": "paragraph",
+          "html": "Rerankers concatenate query + document and run full transformer attention across them — much more accurate but O(n) per pair. Best used as the second stage on top-K=100 candidates.<a class=\"cite\" href=\"#src22\">[22]</a> Recent papers show LLM-based rerankers (even small open ones like Qwen2.5-7B) can match proprietary rerankers with listwise ranking prompts."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "",
+            "Bi-encoder",
+            "Cross-encoder reranker"
+          ],
+          "rows": [
+            [
+              "Speed",
+              "Encode once, search billions in ms",
+              "~50–200 ms per (q, d) pair"
+            ],
+            [
+              "Accuracy",
+              "Good recall; lower precision",
+              "Best in class precision"
+            ],
+            [
+              "Storage",
+              "Stores vectors (KBs–MBs per doc)",
+              "No storage; runs on text"
+            ],
+            [
+              "Use",
+              "Stage 1: candidate generation",
+              "Stage 2: final ranking"
+            ]
+          ]
+        },
+        {
+          "type": "callout",
+          "variant": "info",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The state-of-the-art 2025 stack:</strong> embed with <code>E5-Mistral-7B-instruct</code> or <code>BGE-M3</code> for open weights, rerank with <code>Qwen3-Reranker</code> or <code>Cohere Rerank v3</code>, generate with your favourite LLM. Hybrid retrieval (sparse BM25 + dense) consistently beats either alone on BEIR."
+            }
+          ]
+        }
+      ],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>How does an AI know what's in your 10,000-doc knowledge base without reading all of it?</strong> Two specialised models: one fast-and-loose, one slow-and-precise."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Embeddings: a fancy index.</strong> Imagine every document in your library gets summarised into a list of numbers — say 1,000 numbers — that captures its <em>meaning</em>. Similar documents get similar numbers. Now you can search by meaning: \"find me stuff related to climate insurance\" finds documents that <em>mean</em> similar things, even if they don't share any words. The trick is: you can compare 1,000 numbers against a million other documents in milliseconds. That's how ChatGPT's \"Search\" can scan your entire Drive in seconds."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Rerankers: the tiebreaker.</strong> Embeddings are fast but sloppy. Sometimes the top 10 \"most similar\" documents aren't really the best 10. A reranker takes that shortlist and reads each one against your question, like a careful human librarian deciding which book is truly the best answer. Slow, but accurate."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>The two-stage pipeline:</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "1. Embedding model narrows 10 million docs → 100 likely candidates (in 50ms).<br>\n       2. Reranker picks the best 5 from those 100 (in another 200ms).<br>\n       3. The LLM reads those 5 and writes the final answer."
+        },
+        {
+          "type": "paragraph",
+          "html": "This is what powers every \"ChatGPT, search my docs\" feature, every customer-support bot that knows your product manual, every legal-AI tool that scans case law."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The librarian analogy:</strong> embeddings are a librarian who skims the back cover of every book in milliseconds and grabs the 100 that look promising. Reranking is the senior librarian who reads those 100 covers more carefully and picks the 3 winners. The LLM is you, reading those 3 winners and writing the answer."
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "RAG (retrieval-augmented generation) স্ট্যাকে LLM-এর সাথে দুই ধরনের বিশেষায়িত মডেল থাকে। <strong>Embedding model</strong> টেক্সটকে এমন একটি vector-এ সংকুচিত করে যাতে সমার্থক জিনিস কাছাকাছি পড়ে। <strong>Reranker</strong> (query, document) জোড়াকে cross-attention দিয়ে স্কোর করে বেশি নিখুঁত ফল দেয়।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Embedding (bi-encoder):</strong> query ও document আলাদা আলাদা করে নির্দিষ্ট আকারের vector বানানো হয়। সাদৃশ্য মাপা হয় dot product বা cosine দিয়ে, প্রতি জোড়ায় O(1), তাই <code>FAISS</code>, <code>ScaNN</code> বা <code>HNSW</code> দিয়ে বিলিয়ন-স্কেল ANN সার্চ সম্ভব। উদাহরণ: <code>text-embedding-3-large</code>, <code>embed-v3</code>, <code>BGE-M3</code>, <code>E5-Mistral-7B</code>।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Reranker (cross-encoder):</strong> query ও document জুড়ে পুরো transformer attention চালায়। অনেক নিখুঁত, কিন্তু প্রতি জোড়ায় O(n) এবং প্রায় 50–200 ms, তাই এটি দ্বিতীয় ধাপে, শীর্ষ প্রায় 100 candidate-এর ওপর ব্যবহার করা উচিত।"
+        },
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            "<strong>Stage 1 (bi-encoder):</strong> একবার encode করে মিলিসেকেন্ডে কোটি কোটির মধ্যে খোঁজা; recall ভালো, precision কম।",
+            "<strong>Stage 2 (cross-encoder):</strong> কোনো vector সংরক্ষণ নেই, টেক্সটের ওপর চলে; precision সেরা।"
+          ]
+        },
+        {
+          "type": "paragraph",
+          "html": "2025-এর আধুনিক স্ট্যাক: open-weight-এ <code>E5-Mistral-7B-instruct</code> বা <code>BGE-M3</code> দিয়ে embed, <code>Qwen3-Reranker</code> বা <code>Cohere Rerank v3</code> দিয়ে rerank, তারপর পছন্দের LLM দিয়ে উত্তর তৈরি। Hybrid retrieval (sparse BM25 + dense) BEIR-এ প্রায় সবসময় একা কোনোটির চেয়ে ভালো ফল দেয়।"
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>চাকরির নিয়োগের উপমা:</strong> হাজার হাজার সিভি এলে প্রথমে একটি কম্পিউটার কিওয়ার্ড মিলিয়ে ঝটপট একশোটি বেছে নেয় (embedding)। তারপর অভিজ্ঞ HR ম্যানেজার সেই একশোটি মন দিয়ে পড়ে সেরা কয়েকজনকে ইন্টারভিউয়ের জন্য ডাকেন (reranker)। শেষে সিদ্ধান্ত নেন বস (LLM)।"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "s10",
       "num": "10",
       "title": "Reasoning models & extended thinking",
       "sub": "A new class of models trained to spend <em>more compute at inference time</em> on hard problems. Instead of answering immediately, they emit a chain of internal reasoning (\"thinking tokens\"), then produce a final answer. This is the most important capability shift since GPT-4.",
-      "body": "<h3>When extended thinking helps</h3>\n  <table>\n    <thead><tr><th>Task</th><th>Standard</th><th>Reasoning</th><th>Notes</th></tr></thead>\n    <tbody>\n      <tr><td>Chat, summarisation, extraction</td><td>✓ best</td><td>overkill</td><td>Reasoning models waste tokens</td></tr>\n      <tr><td>Math, physics, formal proofs</td><td>poor</td><td>✓ best</td><td>Large jumps from o1, R1</td></tr>\n      <tr><td>Hard multi-step coding agents</td><td>mixed</td><td>✓ best</td><td>Cursor / Devin ship reasoning</td></tr>\n      <tr><td>Planning & tool orchestration</td><td>mixed</td><td>✓ best</td><td>CoT helps agent reliability</td></tr>\n      <tr><td>Simple Q&A, classification</td><td>✓ best</td><td>overkill</td><td>Use small / fast model</td></tr>\n    </tbody>\n  </table>\n\n  <h3>Engineering trade-offs</h3>\n  <div class=\"two-col\">\n    <div class=\"panel\">\n      <h4>Costs</h4>\n      <p>Reasoning models can use 5–50× more tokens per query. A \"thinking budget\" cap is essential — set it to your latency/cost ceiling.</p>\n    </div>\n    <div class=\"panel\">\n      <h4>Latency</h4>\n      <p>TTFT is often slower (longer prefill). Streaming the thinking tokens can help UX.</p>\n    </div>\n    <div class=\"panel\">\n      <h4>Distillation</h4>\n      <p>DeepSeek-R1 distilled into Qwen 1.5B–32B gives small open models with reasoning capabilities.<a class=\"cite\" href=\"#src7\">[7]</a></p>\n    </div>\n    <div class=\"panel\">\n      <h4>Process reward models</h4>\n      <p>\"Let's verify step by step\" showed step-level reward models beat outcome-only supervision on math.<a class=\"cite\" href=\"#src24\">[24]</a></p>\n    </div>\n  </div>\n\n  <pre><code><span class=\"com\"># Anthropic extended thinking</span>\nresp = client.messages.create(\n    model=<span class=\"str\">\"claude-sonnet-4-5\"</span>,\n    thinking={<span class=\"str\">\"type\"</span>: <span class=\"str\">\"enabled\"</span>, <span class=\"str\">\"budget_tokens\"</span>: <span class=\"num\">10000</span>},\n    messages=[{<span class=\"str\">\"role\"</span>: <span class=\"str\">\"user\"</span>, <span class=\"str\">\"content\"</span>: <span class=\"str\">\"Prove sqrt(2) is irrational\"</span>}],\n)\n<span class=\"kw\">for</span> block <span class=\"kw\">in</span> resp.content:\n    <span class=\"kw\">if</span> block.type == <span class=\"str\">\"thinking\"</span>:  <span class=\"fn\">print</span>(<span class=\"str\">\"…\"</span>, block.thinking)\n    <span class=\"kw\">if</span> block.type == <span class=\"str\">\"text\"</span>:      <span class=\"fn\">print</span>(block.text)</code></pre>\n\n  <div class=\"callout warn\">\n    <strong>Don't reach for reasoning models by reflex.</strong> They're 5–50× more expensive and slower. Use them when (1) the task is math/code/agentic, (2) standard models have plateaued on your benchmark, and (3) you can afford the latency. For most chat / extraction / RAG, a standard model + careful prompting wins.\n  </div>\n\n  <hr>\n\n  <h3>The frontier as of Q3 2025</h3>\n  <ul style=\"margin: 0 0 0 20px; line-height: 1.8;\">\n    <li>Reasoning models are the default for hard tasks: GPT-5, o3, DeepSeek-R1, Claude 4 with extended thinking.<a class=\"cite\" href=\"#src13\">[13]</a><a class=\"cite\" href=\"#src7\">[7]</a></li>\n    <li>Open-weight models match closed on many benchmarks (Qwen3, Llama 3.1 405B, DeepSeek-V3).<a class=\"cite\" href=\"#src9\">[9]</a><a class=\"cite\" href=\"#src3\">[3]</a><a class=\"cite\" href=\"#src6\">[6]</a></li>\n    <li>Multimodal is now table stakes: Gemini 2.5, GPT-4o, Claude 4, Qwen3-VL all native.<a class=\"cite\" href=\"#src12\">[12]</a></li>\n    <li>Long context (1M+) is real but doesn't replace good retrieval.</li>\n    <li>Tool-use agents are the dominant deployment pattern.</li>\n  </ul>",
-      "layman": "<div class=\"layman-head\"><span class=\"icon\">🧠</span><span class=\"label\">Layman's version<small>plain English, no jargon</small></span></div>\n    <p><strong>Sometimes the AI needs to \"think before it speaks.\"</strong> A regular AI answers instantly: you ask \"What's 17 × 24?\" and it blurts an answer (maybe wrong). A reasoning AI scribbles for 30 seconds first — breaking the problem into pieces, checking its work, considering alternatives — then gives you the answer.</p>\n    <p><strong>Think of it like two students taking an exam.</strong></p>\n    <p>• <strong>Standard AI</strong> = the kid who writes the first thing that pops into their head. Fast, sometimes brilliant, often sloppy.<br>\n       • <strong>Reasoning AI</strong> = the kid who works through the problem on scratch paper, tries two methods, checks the answer. Slow, almost always right on hard stuff.</p>\n    <p><strong>Where reasoning models win dramatically:</strong> math, logic, multi-step coding, planning complex tasks, scientific questions. OpenAI's o1/o3, Claude with \"extended thinking,\" DeepSeek-R1 — these all spend 5–50× more \"thinking time\" than regular models, and the quality jump is real.</p>\n    <p><strong>Where they're a waste:</strong> \"Write me a thank-you email.\" \"Summarise this article.\" \"Translate this sentence.\" You'd be paying 50× more for the same answer. Use the regular model for everyday stuff.</p>\n    <p><strong>The catch:</strong> reasoning models cost a lot. They're 5–50× more expensive per query, and they take longer. So pick them deliberately, like calling a math tutor for the hard homework but doing the easy drills yourself.</p>\n    <p><strong>The cool part:</strong> you can limit the \"thinking budget.\" Tell Claude \"spend up to 5,000 tokens thinking, then answer.\" For easy questions it finishes early. For hard ones, it uses the full budget. You control the speed/quality dial.</p>\n    <div class=\"analogy\"><strong>The patient friend analogy:</strong> regular AI = your friend who blurts answers quickly. Reasoning AI = your friend who pauses, says \"let me think about this,\" scribbles for a minute, then gives you a careful answer. You go to the patient friend for the important questions; the quick friend is fine for casual stuff.</div>",
-      "bangla": "<div class=\"bangla-head\"><span class=\"icon\">🇧🇩</span><span class=\"label\">বাংলা ব্যাখ্যা<small>সহজ ভাষায় বিস্তারিত</small></span></div>\n    <p><strong>Reasoning model</strong> এমন একটি নতুন শ্রেণির মডেল যা কঠিন সমস্যায় inference-এর সময় বেশি compute খরচ করে। সরাসরি উত্তর না দিয়ে প্রথমে অভ্যন্তরীণ chain of reasoning (\"thinking tokens\") লেখে, তারপর চূড়ান্ত উত্তর দেয়। GPT-4-এর পর এটিকেই সবচেয়ে গুরুত্বপূর্ণ সক্ষমতার পরিবর্তন বলা হচ্ছে।</p>\n    <p><strong>প্রশিক্ষণের কৌশল:</strong> chain-of-thought-এর ওপর reinforcement learning (RL) প্রয়োগ করলে math, physics ও code reasoning অনেক ভালো হয়, কারণ মডেল কঠিন সমস্যায় বেশি ভাবতে শেখে। OpenAI-এর o1 এটি দেখিয়েছে; DeepSeek-R1 শুধু RL দিয়ে (SFT ছাড়া) open-weight আকারে তা পুনরায় করেছে; আর Anthropic-এ <code>extended thinking</code> একটি চালু/বন্ধ করার parameter। Process reward model-ও step-level পুরস্কার দিয়ে math-এ outcome-only supervision-কে ছাড়িয়ে গেছে।</p>\n    <ul>\n      <li><strong>কখন কাজে লাগে:</strong> math/physics/proof, কঠিন multi-step কোডিং agent, planning ও tool orchestration।</li>\n      <li><strong>কখন অপচয়:</strong> chat, summarisation, extraction, সহজ Q&A ও classification; এসবে ছোট/দ্রুত মডেলই ভালো।</li>\n    </ul>\n    <p><strong>Engineering trade-off:</strong> প্রতি query-তে 5–50 গুণ বেশি token লাগতে পারে, তাই latency/খরচের সীমা অনুযায়ী <code>budget_tokens</code> (thinking budget) সীমা দেওয়া জরুরি। Prefill লম্বা হওয়ায় TTFT প্রায়ই ধীর হয়; thinking token stream করলে UX ভালো হয়। Distillation-এর মাধ্যমে R1-এর ক্ষমতা Qwen 1.5B–32B-এর মতো ছোট open মডেলে আনা গেছে।</p>\n    <p><strong>অভ্যাসবশে reasoning মডেল নেবেন না।</strong> ব্যবহার করুন যখন (১) কাজটি math/code/agentic, (২) সাধারণ মডেল আপনার benchmark-এ আর এগোচ্ছে না, এবং (৩) latency সহ্য করা যায়। বেশিরভাগ chat/extraction/RAG-এ সাধারণ মডেল ও ভালো prompting-ই যথেষ্ট।</p>\n    <div class=\"analogy\"><strong>গণিত পরীক্ষার উপমা:</strong> সহজ অঙ্ক পরীক্ষার হলে অনেকে মুখে মুখে করে ফেলে। কিন্তু কঠিন জ্যামিতি বা বীজগণিতে ভালো ছাত্র খাতায় ধাপে ধাপে লেখে, নিজের উত্তর মিলিয়ে দেখে। এতে সময় বেশি লাগে, কিন্তু উত্তর ঠিক হওয়ার সম্ভাবনা বাড়ে। সব প্রশ্নে এত সময় দেওয়াও বোকামি।</div>"
+      "body": [
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s10-when-extended-thinking-helps",
+          "html": "When extended thinking helps"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Task",
+            "Standard",
+            "Reasoning",
+            "Notes"
+          ],
+          "rows": [
+            [
+              "Chat, summarisation, extraction",
+              "✓ best",
+              "overkill",
+              "Reasoning models waste tokens"
+            ],
+            [
+              "Math, physics, formal proofs",
+              "poor",
+              "✓ best",
+              "Large jumps from o1, R1"
+            ],
+            [
+              "Hard multi-step coding agents",
+              "mixed",
+              "✓ best",
+              "Cursor / Devin ship reasoning"
+            ],
+            [
+              "Planning & tool orchestration",
+              "mixed",
+              "✓ best",
+              "CoT helps agent reliability"
+            ],
+            [
+              "Simple Q&A, classification",
+              "✓ best",
+              "overkill",
+              "Use small / fast model"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s10-engineering-trade-offs",
+          "html": "Engineering trade-offs"
+        },
+        {
+          "type": "panels",
+          "panels": [
+            {
+              "heading": "Costs",
+              "blocks": [
+                {
+                  "type": "paragraph",
+                  "html": "Reasoning models can use 5–50× more tokens per query. A \"thinking budget\" cap is essential — set it to your latency/cost ceiling."
+                }
+              ]
+            },
+            {
+              "heading": "Latency",
+              "blocks": [
+                {
+                  "type": "paragraph",
+                  "html": "TTFT is often slower (longer prefill). Streaming the thinking tokens can help UX."
+                }
+              ]
+            },
+            {
+              "heading": "Distillation",
+              "blocks": [
+                {
+                  "type": "paragraph",
+                  "html": "DeepSeek-R1 distilled into Qwen 1.5B–32B gives small open models with reasoning capabilities.<a class=\"cite\" href=\"#src7\">[7]</a>"
+                }
+              ]
+            },
+            {
+              "heading": "Process reward models",
+              "blocks": [
+                {
+                  "type": "paragraph",
+                  "html": "\"Let's verify step by step\" showed step-level reward models beat outcome-only supervision on math.<a class=\"cite\" href=\"#src24\">[24]</a>"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "python",
+          "code": "# Anthropic extended thinking\nresp = client.messages.create(\n    model=\"claude-sonnet-4-5\",\n    thinking={\"type\": \"enabled\", \"budget_tokens\": 10000},\n    messages=[{\"role\": \"user\", \"content\": \"Prove sqrt(2) is irrational\"}],\n)\nfor block in resp.content:\n    if block.type == \"thinking\":  print(\"…\", block.thinking)\n    if block.type == \"text\":      print(block.text)",
+          "html": "<pre class=\"shiki github-dark-dimmed\" style=\"background-color:#22272e;color:#adbac7\" tabindex=\"0\"><code><span class=\"line\"><span style=\"color:#768390\"># Anthropic extended thinking</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">resp </span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\"> client.messages.create(</span></span>\n<span class=\"line\"><span style=\"color:#F69D50\">    model</span><span style=\"color:#F47067\">=</span><span style=\"color:#96D0FF\">\"claude-sonnet-4-5\"</span><span style=\"color:#ADBAC7\">,</span></span>\n<span class=\"line\"><span style=\"color:#F69D50\">    thinking</span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\">{</span><span style=\"color:#96D0FF\">\"type\"</span><span style=\"color:#ADBAC7\">: </span><span style=\"color:#96D0FF\">\"enabled\"</span><span style=\"color:#ADBAC7\">, </span><span style=\"color:#96D0FF\">\"budget_tokens\"</span><span style=\"color:#ADBAC7\">: </span><span style=\"color:#6CB6FF\">10000</span><span style=\"color:#ADBAC7\">},</span></span>\n<span class=\"line\"><span style=\"color:#F69D50\">    messages</span><span style=\"color:#F47067\">=</span><span style=\"color:#ADBAC7\">[{</span><span style=\"color:#96D0FF\">\"role\"</span><span style=\"color:#ADBAC7\">: </span><span style=\"color:#96D0FF\">\"user\"</span><span style=\"color:#ADBAC7\">, </span><span style=\"color:#96D0FF\">\"content\"</span><span style=\"color:#ADBAC7\">: </span><span style=\"color:#96D0FF\">\"Prove sqrt(2) is irrational\"</span><span style=\"color:#ADBAC7\">}],</span></span>\n<span class=\"line\"><span style=\"color:#ADBAC7\">)</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">for</span><span style=\"color:#ADBAC7\"> block </span><span style=\"color:#F47067\">in</span><span style=\"color:#ADBAC7\"> resp.content:</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">    if</span><span style=\"color:#ADBAC7\"> block.type </span><span style=\"color:#F47067\">==</span><span style=\"color:#96D0FF\"> \"thinking\"</span><span style=\"color:#ADBAC7\">:  </span><span style=\"color:#6CB6FF\">print</span><span style=\"color:#ADBAC7\">(</span><span style=\"color:#96D0FF\">\"…\"</span><span style=\"color:#ADBAC7\">, block.thinking)</span></span>\n<span class=\"line\"><span style=\"color:#F47067\">    if</span><span style=\"color:#ADBAC7\"> block.type </span><span style=\"color:#F47067\">==</span><span style=\"color:#96D0FF\"> \"text\"</span><span style=\"color:#ADBAC7\">:      </span><span style=\"color:#6CB6FF\">print</span><span style=\"color:#ADBAC7\">(block.text)</span></span></code></pre>"
+        },
+        {
+          "type": "callout",
+          "variant": "warn",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>Don't reach for reasoning models by reflex.</strong> They're 5–50× more expensive and slower. Use them when (1) the task is math/code/agentic, (2) standard models have plateaued on your benchmark, and (3) you can afford the latency. For most chat / extraction / RAG, a standard model + careful prompting wins."
+            }
+          ]
+        },
+        {
+          "type": "divider"
+        },
+        {
+          "type": "heading",
+          "level": 3,
+          "id": "s10-the-frontier-as-of-q3-2025",
+          "html": "The frontier as of Q3 2025"
+        },
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            "Reasoning models are the default for hard tasks: GPT-5, o3, DeepSeek-R1, Claude 4 with extended thinking.<a class=\"cite\" href=\"#src13\">[13]</a><a class=\"cite\" href=\"#src7\">[7]</a>",
+            "Open-weight models match closed on many benchmarks (Qwen3, Llama 3.1 405B, DeepSeek-V3).<a class=\"cite\" href=\"#src9\">[9]</a><a class=\"cite\" href=\"#src3\">[3]</a><a class=\"cite\" href=\"#src6\">[6]</a>",
+            "Multimodal is now table stakes: Gemini 2.5, GPT-4o, Claude 4, Qwen3-VL all native.<a class=\"cite\" href=\"#src12\">[12]</a>",
+            "Long context (1M+) is real but doesn't replace good retrieval.",
+            "Tool-use agents are the dominant deployment pattern."
+          ]
+        }
+      ],
+      "layman": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Sometimes the AI needs to \"think before it speaks.\"</strong> A regular AI answers instantly: you ask \"What's 17 × 24?\" and it blurts an answer (maybe wrong). A reasoning AI scribbles for 30 seconds first — breaking the problem into pieces, checking its work, considering alternatives — then gives you the answer."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Think of it like two students taking an exam.</strong>"
+        },
+        {
+          "type": "paragraph",
+          "html": "• <strong>Standard AI</strong> = the kid who writes the first thing that pops into their head. Fast, sometimes brilliant, often sloppy.<br>\n       • <strong>Reasoning AI</strong> = the kid who works through the problem on scratch paper, tries two methods, checks the answer. Slow, almost always right on hard stuff."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Where reasoning models win dramatically:</strong> math, logic, multi-step coding, planning complex tasks, scientific questions. OpenAI's o1/o3, Claude with \"extended thinking,\" DeepSeek-R1 — these all spend 5–50× more \"thinking time\" than regular models, and the quality jump is real."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Where they're a waste:</strong> \"Write me a thank-you email.\" \"Summarise this article.\" \"Translate this sentence.\" You'd be paying 50× more for the same answer. Use the regular model for everyday stuff."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>The catch:</strong> reasoning models cost a lot. They're 5–50× more expensive per query, and they take longer. So pick them deliberately, like calling a math tutor for the hard homework but doing the easy drills yourself."
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>The cool part:</strong> you can limit the \"thinking budget.\" Tell Claude \"spend up to 5,000 tokens thinking, then answer.\" For easy questions it finishes early. For hard ones, it uses the full budget. You control the speed/quality dial."
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>The patient friend analogy:</strong> regular AI = your friend who blurts answers quickly. Reasoning AI = your friend who pauses, says \"let me think about this,\" scribbles for a minute, then gives you a careful answer. You go to the patient friend for the important questions; the quick friend is fine for casual stuff."
+            }
+          ]
+        }
+      ],
+      "bangla": [
+        {
+          "type": "paragraph",
+          "html": "<strong>Reasoning model</strong> এমন একটি নতুন শ্রেণির মডেল যা কঠিন সমস্যায় inference-এর সময় বেশি compute খরচ করে। সরাসরি উত্তর না দিয়ে প্রথমে অভ্যন্তরীণ chain of reasoning (\"thinking tokens\") লেখে, তারপর চূড়ান্ত উত্তর দেয়। GPT-4-এর পর এটিকেই সবচেয়ে গুরুত্বপূর্ণ সক্ষমতার পরিবর্তন বলা হচ্ছে।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>প্রশিক্ষণের কৌশল:</strong> chain-of-thought-এর ওপর reinforcement learning (RL) প্রয়োগ করলে math, physics ও code reasoning অনেক ভালো হয়, কারণ মডেল কঠিন সমস্যায় বেশি ভাবতে শেখে। OpenAI-এর o1 এটি দেখিয়েছে; DeepSeek-R1 শুধু RL দিয়ে (SFT ছাড়া) open-weight আকারে তা পুনরায় করেছে; আর Anthropic-এ <code>extended thinking</code> একটি চালু/বন্ধ করার parameter। Process reward model-ও step-level পুরস্কার দিয়ে math-এ outcome-only supervision-কে ছাড়িয়ে গেছে।"
+        },
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            "<strong>কখন কাজে লাগে:</strong> math/physics/proof, কঠিন multi-step কোডিং agent, planning ও tool orchestration।",
+            "<strong>কখন অপচয়:</strong> chat, summarisation, extraction, সহজ Q&A ও classification; এসবে ছোট/দ্রুত মডেলই ভালো।"
+          ]
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>Engineering trade-off:</strong> প্রতি query-তে 5–50 গুণ বেশি token লাগতে পারে, তাই latency/খরচের সীমা অনুযায়ী <code>budget_tokens</code> (thinking budget) সীমা দেওয়া জরুরি। Prefill লম্বা হওয়ায় TTFT প্রায়ই ধীর হয়; thinking token stream করলে UX ভালো হয়। Distillation-এর মাধ্যমে R1-এর ক্ষমতা Qwen 1.5B–32B-এর মতো ছোট open মডেলে আনা গেছে।"
+        },
+        {
+          "type": "paragraph",
+          "html": "<strong>অভ্যাসবশে reasoning মডেল নেবেন না।</strong> ব্যবহার করুন যখন (১) কাজটি math/code/agentic, (২) সাধারণ মডেল আপনার benchmark-এ আর এগোচ্ছে না, এবং (৩) latency সহ্য করা যায়। বেশিরভাগ chat/extraction/RAG-এ সাধারণ মডেল ও ভালো prompting-ই যথেষ্ট।"
+        },
+        {
+          "type": "analogy",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "html": "<strong>গণিত পরীক্ষার উপমা:</strong> সহজ অঙ্ক পরীক্ষার হলে অনেকে মুখে মুখে করে ফেলে। কিন্তু কঠিন জ্যামিতি বা বীজগণিতে ভালো ছাত্র খাতায় ধাপে ধাপে লেখে, নিজের উত্তর মিলিয়ে দেখে। এতে সময় বেশি লাগে, কিন্তু উত্তর ঠিক হওয়ার সম্ভাবনা বাড়ে। সব প্রশ্নে এত সময় দেওয়াও বোকামি।"
+            }
+          ]
+        }
+      ]
     }
   ],
   "sources": [

@@ -1,4 +1,4 @@
-import type { Source } from "@/lib/guides";
+import type { Source } from "@/lib/content-schema";
 
 /**
  * The Sources block. Renders the guide's citations as a numbered list with

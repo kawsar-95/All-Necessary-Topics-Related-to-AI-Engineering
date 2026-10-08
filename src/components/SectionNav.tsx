@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Section } from "@/lib/guides";
+import type { Section } from "@/lib/content-schema";
 
 /**
  * Sticky in-page table of contents for a guide. Shows the section number and

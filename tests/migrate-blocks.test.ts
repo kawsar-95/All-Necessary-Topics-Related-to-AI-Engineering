@@ -261,6 +261,27 @@ test("extractCode keeps pseudo-tags and strips highlight spans", () => {
   assert.equal(extractCode('<span class="kw">def</span> f(): return <span class="str">"&lt;document&gt;"</span>'), 'def f(): return "<document>"');
 });
 
+test("sibling panels without a two-col wrapper group into one panels block", () => {
+  const c = ctx();
+  const b = parseBlocks(
+    '</div>\n  <div class="panel"><h4>A</h4><p>a</p></div>\n  <div class="panel"><h4>B</h4><p>b</p></div>\n</div>' +
+      '<p>after</p><div class="panel"><h4>C</h4></div>',
+    c,
+  );
+  assert.deepEqual(b, [
+    {
+      type: "panels",
+      panels: [
+        { heading: "A", blocks: [{ type: "paragraph", html: "a" }] },
+        { heading: "B", blocks: [{ type: "paragraph", html: "b" }] },
+      ],
+    },
+    { type: "paragraph", html: "after" },
+    { type: "panels", panels: [{ heading: "C", blocks: [] }] },
+  ]);
+  assert.deepEqual(c.warnings, []);
+});
+
 test("extractCode decodes entities with amp last and trims one newline each side", () => {
   assert.equal(extractCode("\n\na &amp;lt; &#39;b&#39; &quot;c&quot;\n\n"), "\na &lt; 'b' \"c\"\n");
 });
