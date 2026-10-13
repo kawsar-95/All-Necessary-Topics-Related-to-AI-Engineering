@@ -231,6 +231,24 @@
           "title": "Transformers, the tech behind LLMs | Deep Learning Chapter 5",
           "channel": "3Blue1Brown",
           "lang": "en"
+        },
+        {
+          "id": "TFUc41G2ikY",
+          "title": "[Demo Video] Transformer Explainer: Learning LLM Transformers with Interactive Visual Explanation",
+          "channel": "Polo Club of Data Science @ Georgia Tech",
+          "lang": "en"
+        },
+        {
+          "id": "ECR4oAwocjs",
+          "title": "Transformers Explained Visually: Learn How LLM Transformer Models Work",
+          "channel": "Polo Club of Data Science @ Georgia Tech",
+          "lang": "en"
+        },
+        {
+          "id": "YhFv_0zidTw",
+          "title": "E-2: LLM কী | LLM কীভাবে কাজ করে? | Prompt Engineering Full Course in Bangla | Afran Sarkar",
+          "channel": "Afran Sarkar",
+          "lang": "bn"
         }
       ],
       "practice": [
@@ -296,6 +314,15 @@
             "challenge": "এমন একটি prompt বাছো যেখানে তোমার মনে হয় দুটি শব্দের সম্ভাবনা প্রায় সমান। Explainer-এ দেখো তুমি ঠিক ছিলে কি না।"
           }
         }
+      ],
+      "embeds": [
+        {
+          "url": "https://poloclub.github.io/transformer-explainer/",
+          "title": "Transformer Explainer",
+          "note": "Pick an example or type a prompt, press <strong>Generate</strong>, and click a token to follow it through the model. The page downloads GPT-2 into your browser, so the first load can take a while.",
+          "noteBn": "একটি উদাহরণ বাছো বা prompt লেখো, <strong>Generate</strong> চাপো, তারপর একটি token-এ click করে দেখো সেটি মডেলের ভেতর দিয়ে কীভাবে যায়। পাতাটি তোমার browser-এ GPT-2 নামায়, তাই প্রথমবার load হতে সময় লাগতে পারে।",
+          "height": 720
+        }
       ]
     },
     {
@@ -330,7 +357,7 @@
         },
         {
           "type": "paragraph",
-          "html": "The page includes these three models: <strong>nano-GPT</strong>, <strong>GPT-2 (small)</strong>, and <strong>GPT-2 (XL)</strong>. They share one design, so the shapes below are the same kind of object at three sizes.<a class=\"cite\" href=\"#src5\">[5]</a>"
+          "html": "The page includes these four models: <strong>nano-GPT</strong>, <strong>GPT-2 (small)</strong>, and <strong>GPT-2 (XL)</strong>, and <strong>GPT-3</strong>. They share one design, so the shapes below are the same kind of object at four sizes. The GPT-3 row uses the sizes from its paper.<a class=\"cite\" href=\"#src5\">[5]</a><a class=\"cite\" href=\"#src32\">[32]</a>"
         },
         {
           "type": "table",
@@ -370,6 +397,15 @@
               "48",
               "50,257",
               "about 1.56B"
+            ],
+            [
+              "GPT-3",
+              "2,048",
+              "12,288",
+              "96",
+              "96",
+              "50,257",
+              "about 175B"
             ]
           ]
         },
@@ -401,9 +437,9 @@
         },
         {
           "type": "diagram",
-          "svg": "<svg viewBox=\"0 0 900 230\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"Bar chart on a log scale: parameters of nano-GPT, GPT-2 small and GPT-2 XL\"><text x=\"450.0\" y=\"22.0\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"13\" fill=\"#94a3b8\">Parameters, log scale. Each step to the right is about 10×.</text><text x=\"158.0\" y=\"72.0\" text-anchor=\"end\" font-family=\"JetBrains Mono, monospace\" font-size=\"14\" fill=\"#e2e8f0\">nano-GPT</text><rect x=\"170.0\" y=\"52.0\" width=\"187.3\" height=\"30.0\" rx=\"5\" fill=\"rgba(52,211,153,0.13)\" stroke=\"#34d399\" stroke-width=\"1.5\"></rect><text x=\"367.3\" y=\"72.0\" text-anchor=\"start\" font-family=\"JetBrains Mono, monospace\" font-size=\"14\" fill=\"#34d399\" font-weight=\"600\">86K</text><text x=\"158.0\" y=\"124.0\" text-anchor=\"end\" font-family=\"JetBrains Mono, monospace\" font-size=\"14\" fill=\"#e2e8f0\">GPT-2 (small)</text><rect x=\"170.0\" y=\"104.0\" width=\"493.8\" height=\"30.0\" rx=\"5\" fill=\"rgba(34,211,238,0.13)\" stroke=\"#22d3ee\" stroke-width=\"1.5\"></rect><text x=\"673.8\" y=\"124.0\" text-anchor=\"start\" font-family=\"JetBrains Mono, monospace\" font-size=\"14\" fill=\"#22d3ee\" font-weight=\"600\">124M</text><text x=\"158.0\" y=\"176.0\" text-anchor=\"end\" font-family=\"JetBrains Mono, monospace\" font-size=\"14\" fill=\"#e2e8f0\">GPT-2 (XL)</text><rect x=\"170.0\" y=\"156.0\" width=\"600.2\" height=\"30.0\" rx=\"5\" fill=\"rgba(167,139,250,0.14)\" stroke=\"#a78bfa\" stroke-width=\"1.5\"></rect><text x=\"780.2\" y=\"176.0\" text-anchor=\"start\" font-family=\"JetBrains Mono, monospace\" font-size=\"14\" fill=\"#a78bfa\" font-weight=\"600\">1.56B</text><line x1=\"266.9\" y1=\"206.0\" x2=\"266.9\" y2=\"212.0\" stroke=\"#94a3b8\" stroke-width=\"1\"></line><text x=\"266.9\" y=\"226.0\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#94a3b8\">10^4</text><line x1=\"363.8\" y1=\"206.0\" x2=\"363.8\" y2=\"212.0\" stroke=\"#94a3b8\" stroke-width=\"1\"></line><text x=\"363.8\" y=\"226.0\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#94a3b8\">10^5</text><line x1=\"460.8\" y1=\"206.0\" x2=\"460.8\" y2=\"212.0\" stroke=\"#94a3b8\" stroke-width=\"1\"></line><text x=\"460.8\" y=\"226.0\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#94a3b8\">10^6</text><line x1=\"557.7\" y1=\"206.0\" x2=\"557.7\" y2=\"212.0\" stroke=\"#94a3b8\" stroke-width=\"1\"></line><text x=\"557.7\" y=\"226.0\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#94a3b8\">10^7</text><line x1=\"654.6\" y1=\"206.0\" x2=\"654.6\" y2=\"212.0\" stroke=\"#94a3b8\" stroke-width=\"1\"></line><text x=\"654.6\" y=\"226.0\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#94a3b8\">10^8</text><line x1=\"751.5\" y1=\"206.0\" x2=\"751.5\" y2=\"212.0\" stroke=\"#94a3b8\" stroke-width=\"1\"></line><text x=\"751.5\" y=\"226.0\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#94a3b8\">10^9</text><line x1=\"170.0\" y1=\"206.0\" x2=\"800.0\" y2=\"206.0\" stroke=\"#334155\" stroke-width=\"1\"></line></svg>",
-          "caption": "Parameter counts computed from the shapes in the table, with the input and output embeddings tied (as in GPT-2). The three models differ by a factor of about 18,000 from smallest to largest.",
-          "captionBn": "টেবিলের shape থেকে হিসাব করা parameter সংখ্যা (GPT-2-এর মতো input ও output embedding একসাথে বাঁধা)। ছোটতম থেকে বড়তম মডেলের ব্যবধান প্রায় ১৮,০০০ গুণ।"
+          "svg": "<svg viewBox=\"0 0 900 290\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"Bar chart on a log scale: parameters of nano-GPT, GPT-2 small, GPT-2 XL and GPT-3\"><text x=\"450.0\" y=\"22.0\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"13\" fill=\"#94a3b8\">Parameters, log scale. Each step to the right is about 10×.</text><text x=\"138.0\" y=\"68.0\" text-anchor=\"end\" font-family=\"JetBrains Mono, monospace\" font-size=\"14\" fill=\"#e2e8f0\">nano-GPT</text><rect x=\"150.0\" y=\"48.0\" width=\"139.6\" height=\"30.0\" rx=\"5\" fill=\"rgba(52,211,153,0.13)\" stroke=\"#34d399\" stroke-width=\"1.5\"></rect><text x=\"299.6\" y=\"68.0\" text-anchor=\"start\" font-family=\"JetBrains Mono, monospace\" font-size=\"14\" fill=\"#34d399\" font-weight=\"600\">86K</text><text x=\"138.0\" y=\"114.0\" text-anchor=\"end\" font-family=\"JetBrains Mono, monospace\" font-size=\"14\" fill=\"#e2e8f0\">GPT-2 (small)</text><rect x=\"150.0\" y=\"94.0\" width=\"368.0\" height=\"30.0\" rx=\"5\" fill=\"rgba(34,211,238,0.13)\" stroke=\"#22d3ee\" stroke-width=\"1.5\"></rect><text x=\"528.0\" y=\"114.0\" text-anchor=\"start\" font-family=\"JetBrains Mono, monospace\" font-size=\"14\" fill=\"#22d3ee\" font-weight=\"600\">124M</text><text x=\"138.0\" y=\"160.0\" text-anchor=\"end\" font-family=\"JetBrains Mono, monospace\" font-size=\"14\" fill=\"#e2e8f0\">GPT-2 (XL)</text><rect x=\"150.0\" y=\"140.0\" width=\"447.2\" height=\"30.0\" rx=\"5\" fill=\"rgba(167,139,250,0.14)\" stroke=\"#a78bfa\" stroke-width=\"1.5\"></rect><text x=\"607.2\" y=\"160.0\" text-anchor=\"start\" font-family=\"JetBrains Mono, monospace\" font-size=\"14\" fill=\"#a78bfa\" font-weight=\"600\">1.56B</text><text x=\"138.0\" y=\"206.0\" text-anchor=\"end\" font-family=\"JetBrains Mono, monospace\" font-size=\"14\" fill=\"#e2e8f0\">GPT-3</text><rect x=\"150.0\" y=\"186.0\" width=\"595.3\" height=\"30.0\" rx=\"5\" fill=\"rgba(251,191,36,0.13)\" stroke=\"#fbbf24\" stroke-width=\"1.5\"></rect><text x=\"755.3\" y=\"206.0\" text-anchor=\"start\" font-family=\"JetBrains Mono, monospace\" font-size=\"14\" fill=\"#fbbf24\" font-weight=\"600\">175B</text><line x1=\"222.2\" y1=\"236.0\" x2=\"222.2\" y2=\"242.0\" stroke=\"#94a3b8\" stroke-width=\"1\"></line><text x=\"222.2\" y=\"258.0\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#94a3b8\">10^4</text><line x1=\"294.4\" y1=\"236.0\" x2=\"294.4\" y2=\"242.0\" stroke=\"#94a3b8\" stroke-width=\"1\"></line><text x=\"294.4\" y=\"258.0\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#94a3b8\">10^5</text><line x1=\"366.7\" y1=\"236.0\" x2=\"366.7\" y2=\"242.0\" stroke=\"#94a3b8\" stroke-width=\"1\"></line><text x=\"366.7\" y=\"258.0\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#94a3b8\">10^6</text><line x1=\"438.9\" y1=\"236.0\" x2=\"438.9\" y2=\"242.0\" stroke=\"#94a3b8\" stroke-width=\"1\"></line><text x=\"438.9\" y=\"258.0\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#94a3b8\">10^7</text><line x1=\"511.1\" y1=\"236.0\" x2=\"511.1\" y2=\"242.0\" stroke=\"#94a3b8\" stroke-width=\"1\"></line><text x=\"511.1\" y=\"258.0\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#94a3b8\">10^8</text><line x1=\"583.3\" y1=\"236.0\" x2=\"583.3\" y2=\"242.0\" stroke=\"#94a3b8\" stroke-width=\"1\"></line><text x=\"583.3\" y=\"258.0\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#94a3b8\">10^9</text><line x1=\"655.6\" y1=\"236.0\" x2=\"655.6\" y2=\"242.0\" stroke=\"#94a3b8\" stroke-width=\"1\"></line><text x=\"655.6\" y=\"258.0\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#94a3b8\">10^10</text><line x1=\"727.8\" y1=\"236.0\" x2=\"727.8\" y2=\"242.0\" stroke=\"#94a3b8\" stroke-width=\"1\"></line><text x=\"727.8\" y=\"258.0\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#94a3b8\">10^11</text><line x1=\"800.0\" y1=\"236.0\" x2=\"800.0\" y2=\"242.0\" stroke=\"#94a3b8\" stroke-width=\"1\"></line><text x=\"800.0\" y=\"258.0\" text-anchor=\"middle\" font-family=\"JetBrains Mono, monospace\" font-size=\"11\" fill=\"#94a3b8\">10^12</text><line x1=\"150.0\" y1=\"236.0\" x2=\"800.0\" y2=\"236.0\" stroke=\"#334155\" stroke-width=\"1\"></line></svg>",
+          "caption": "Parameter counts computed from the shapes in the table, with the input and output embeddings tied (as in GPT-2). The four models differ by a factor of about 2 million from smallest to largest.",
+          "captionBn": "টেবিলের shape থেকে হিসাব করা parameter সংখ্যা (GPT-2-এর মতো input ও output embedding একসাথে বাঁধা)। ছোটতম থেকে বড়তম মডেলের ব্যবধান প্রায় ২০ লক্ষ গুণ।"
         },
         {
           "type": "heading",
@@ -448,7 +484,7 @@
         },
         {
           "type": "paragraph",
-          "html": "There are three models on the page: a tiny one that you can understand completely, and two bigger ones that use the same design. The tiny one has about 85,000 numbers inside it. The biggest one has about 1.5 billion."
+          "html": "There are four models on the page: a tiny one that you can understand completely, and three bigger ones that use the same design. The tiny one has about 85,000 numbers inside it. The biggest one has about 175 billion."
         },
         {
           "type": "analogy",
@@ -467,7 +503,7 @@
         },
         {
           "type": "paragraph",
-          "html": "পেজে এই তিনটি মডেল আছে: <strong>nano-GPT</strong>, <strong>GPT-2 (small)</strong> এবং <strong>GPT-2 (XL)</strong>। তিনটির নকশা একই। শুধু আকার আলাদা।"
+          "html": "পেজে এই চারটি মডেল আছে: <strong>nano-GPT</strong>, <strong>GPT-2 (small)</strong>, <strong>GPT-2 (XL)</strong> এবং <strong>GPT-3</strong>। চারটির নকশা একই। শুধু আকার আলাদা।"
         },
         {
           "type": "list",
@@ -475,7 +511,8 @@
           "items": [
             "<strong>nano-GPT:</strong> ১১টি position, প্রতি position-এ ৪৮টি সংখ্যা, ৩টি head, ৩টি block এবং ৩টি token-এর (A, B, C) vocabulary। এতে প্রায় ৮৫,০০০টি parameter আছে। walkthrough এই মডেলটিই ব্যবহার করে।",
             "<strong>GPT-2 (small):</strong> ১,০২৪টি position, প্রস্থ ৭৬৮, ১২টি head, ১২টি block। প্রায় ১২৪ মিলিয়ন parameter।",
-            "<strong>GPT-2 (XL):</strong> প্রস্থ ১,৬০০, ২৫টি head, ৪৮টি block। প্রায় ১.৫ বিলিয়ন parameter।"
+            "<strong>GPT-2 (XL):</strong> প্রস্থ ১,৬০০, ২৫টি head, ৪৮টি block। প্রায় ১.৫ বিলিয়ন parameter।",
+            "<strong>GPT-3:</strong> প্রস্থ ১২,২৮৮, ৯৬টি head, ৯৬টি block। প্রায় ১৭৫ বিলিয়ন parameter (গবেষণাপত্রের আকার অনুযায়ী)।"
           ]
         },
         {
@@ -505,6 +542,24 @@
           "id": "kCc8FmEb1nY",
           "title": "Let's build GPT: from scratch, in code, spelled out.",
           "channel": "Andrej Karpathy",
+          "lang": "en"
+        },
+        {
+          "id": "ps9_8MG1c3s",
+          "title": "GPT Models Explained with 3D Visualization by BrendanBycroft",
+          "channel": "Brain Titan",
+          "lang": "en"
+        },
+        {
+          "id": "AmgeP55nbt0",
+          "title": "LLM Visualizer: See Inside a GPT Model! | Understand How LLM Actually Work 🔥",
+          "channel": "Tech Pluss Avik",
+          "lang": "en"
+        },
+        {
+          "id": "8ZD1hUqdLcs",
+          "title": "NanoGPT simulation from bycroft.net/llm",
+          "channel": "Julian Harris",
           "lang": "en"
         }
       ],
@@ -570,6 +625,15 @@
             },
             "challenge": "পেজে GPT-2 (small) খোলো। table-এর আকার থেকে chat-কে তার parameter গুনতে বলো। প্রায় ১২৪ মিলিয়নের সাথে মিলিয়ে দেখো।"
           }
+        }
+      ],
+      "embeds": [
+        {
+          "url": "https://bbycroft.net/llm",
+          "title": "LLM Visualization",
+          "note": "Press <em>Continue</em> to start the guided walkthrough. Pick a model at the top: GPT-2 (small), nano-gpt, GPT-2 (XL), or GPT-3. Use the full-screen button for a bigger view.",
+          "noteBn": "গাইডেড walkthrough শুরু করতে <em>Continue</em> চাপো। ওপরে মডেল বাছো: GPT-2 (small), nano-gpt, GPT-2 (XL) বা GPT-3। বড় করে দেখতে full-screen বোতাম ব্যবহার করো।",
+          "height": 700
         }
       ]
     },
@@ -829,6 +893,18 @@
           "title": "How might LLMs store facts | Deep Learning Chapter 7",
           "channel": "3Blue1Brown",
           "lang": "en"
+        },
+        {
+          "id": "cXIt5JPnjxo",
+          "title": "মেশিন লার্নিং আসলে কী? | What is Machine Learning? (Bangla Explanation)",
+          "channel": "Foyzul Karim",
+          "lang": "bn"
+        },
+        {
+          "id": "2MExBZvDpJQ",
+          "title": "হাতেকলমে পাইথন ডিপ লার্নিং: নিউরাল নেটওয়ার্কে ডাটা কিভাবে থাকে?",
+          "channel": "Building Intelligent Systems with Rakib: AI-ML-NLP",
+          "lang": "bn"
         }
       ],
       "practice": [
@@ -897,6 +973,15 @@
             },
             "challenge": "chat-কে জিজ্ঞাসা করো ০.১, ০.৫ ও ১.০-এর মধ্যে কোন learning rate এই loss-এ <code>w = 3</code>-এ সবচেয়ে কম ধাপে পৌঁছায়। তার উত্তর হাতে মিলিয়ে দেখো।"
           }
+        }
+      ],
+      "embeds": [
+        {
+          "url": "https://www.3blue1brown.com/?topic=neural-networks",
+          "title": "3Blue1Brown: Neural networks",
+          "note": "The lesson list of the series. Start with <em>But what is a neural network?</em>. The videos below play the lessons on this page.",
+          "noteBn": "সিরিজের পাঠের তালিকা। <em>But what is a neural network?</em> দিয়ে শুরু করো। নিচের ভিডিওগুলো এই পাতাতেই পাঠগুলো চালায়।",
+          "height": 640
         }
       ]
     },
@@ -1188,6 +1273,24 @@
           "title": "Attention in transformers, step-by-step | Deep Learning Chapter 6",
           "channel": "3Blue1Brown",
           "lang": "en"
+        },
+        {
+          "id": "VzvG23gmcYU",
+          "title": "A gentle visual intro to Transformer models",
+          "channel": "Hugging Face",
+          "lang": "en"
+        },
+        {
+          "id": "k1ILy23t89E",
+          "title": "Learn how ChatGPT and DeepSeek models work: How Transformer LLMs Work [Free Course]",
+          "channel": "Jay Alammar",
+          "lang": "en"
+        },
+        {
+          "id": "hVEo76eZmpo",
+          "title": "The Illustrated Transformer: Jay Alammar's Classic, Read and Highlighted",
+          "channel": "Standarity",
+          "lang": "en"
         }
       ],
       "practice": [
@@ -1256,6 +1359,15 @@
             },
             "challenge": "query বদলে <code>[0, 1]</code> করো এবং chat-কে হিসাবটি আবার করতে বলো। আগে অনুমান করো ফল কোন value-র কাছাকাছি হবে।"
           }
+        }
+      ],
+      "embeds": [
+        {
+          "url": "https://jalammar.github.io/illustrated-transformer/",
+          "title": "The Illustrated Transformer",
+          "note": "The full post, live. Read the self-attention part first. Scroll inside the frame, or open the post in a new tab for the full width.",
+          "noteBn": "পুরো পোস্টটি সরাসরি। আগে self-attention অংশ পড়ো। frame-এর ভেতরে scroll করো, অথবা পুরো প্রস্থে দেখতে পোস্টটি নতুন tab-এ খোলো।",
+          "height": 760
         }
       ]
     },
@@ -1480,6 +1592,32 @@
           ]
         }
       ],
+      "videos": [
+        {
+          "id": "ZNrmS6q_Zp4",
+          "title": "Deep Learning 101: Tensorflow Playground",
+          "channel": "Prof. Ryan Ahmed",
+          "lang": "en"
+        },
+        {
+          "id": "nN6a-8nbDiU",
+          "title": "TensorFlow Playground Demo (Beginner Friendly)",
+          "channel": "Byte Size ML",
+          "lang": "en"
+        },
+        {
+          "id": "hiJpg3TM0LE",
+          "title": "Neural Network Demonstration with TF Playground",
+          "channel": "IIT Madras - B.S. Degree Programme",
+          "lang": "en"
+        },
+        {
+          "id": "2MExBZvDpJQ",
+          "title": "হাতেকলমে পাইথন ডিপ লার্নিং: নিউরাল নেটওয়ার্কে ডাটা কিভাবে থাকে?",
+          "channel": "Building Intelligent Systems with Rakib: AI-ML-NLP",
+          "lang": "bn"
+        }
+      ],
       "practice": [
         {
           "en": {
@@ -1542,6 +1680,17 @@
             },
             "challenge": "spiral dataset বাছো। এমন feature আর layer-এর সেট খুঁজে বের করো যা এটি সমাধান করে। যে সেটআপ কাজ করেছে তা লিখে রাখো।"
           }
+        }
+      ],
+      "embeds": [
+        {
+          "url": "https://playground.tensorflow.org/#activation=tanh&batchSize=10&dataset=circle&regDataset=reg-plane&learningRate=0.03&regularizationRate=0&noise=0&networkShape=4,2&seed=0.5&showTestData=false&discretize=false&percTrainData=50&x=true&y=true&xTimesY=false&xSquared=false&ySquared=false&cosX=false&sinX=false&cosY=false&sinY=false&collectStats=false&problem=classification&initZero=false&hideText=false",
+          "title": "TensorFlow Playground",
+          "note": "The circle dataset with only X1 and X2 is ready. Press play, then try the experiments in the list below: add the squared features, add a hidden layer, or set the activation to Linear.",
+          "noteBn": "শুধু X1 আর X2-সহ circle dataset তৈরি আছে। play চাপো, তারপর নিচের পরীক্ষাগুলো করো: squared feature যোগ করো, hidden layer যোগ করো, বা activation Linear করো।",
+          "height": 900,
+          "autoload": true,
+          "designWidth": 1040
         }
       ]
     },
@@ -1805,6 +1954,26 @@
           ]
         }
       ],
+      "videos": [
+        {
+          "id": "9y-0rpEnPrg",
+          "title": "How DeepSeek Reduced KV Cache by 93% | Multi Head Latent Attention MLA",
+          "channel": "ExplainingAI",
+          "lang": "en"
+        },
+        {
+          "id": "kx3rETIxo4Q",
+          "title": "Understand Grouped Query Attention (GQA) | The final frontier before latent attention",
+          "channel": "Vizuara",
+          "lang": "en"
+        },
+        {
+          "id": "oanuxVw5CvU",
+          "title": "What is Grouped Query Attention (GQA)",
+          "channel": "Data Science Made Easy",
+          "lang": "en"
+        }
+      ],
       "practice": [
         {
           "en": {
@@ -1867,6 +2036,22 @@
             },
             "challenge": "chat-কে ১০ লক্ষ token-এ ৮ KV head-এর cache হিসাব করতে বলো। একটি ৮০ GB GPU কি মডেলের weight-এর পাশাপাশি এটি ধরতে পারবে?"
           }
+        }
+      ],
+      "embeds": [
+        {
+          "url": "https://sebastianraschka.com/llm-architecture-gallery/",
+          "title": "LLM Architecture Gallery (Sebastian Raschka)",
+          "note": "A gallery of model cards from the same author. Use it to check which attention variant a model uses, and compare it with the table in this section.",
+          "noteBn": "একই লেখকের model card-এর একটি গ্যালারি। একটি মডেল কোন attention variant ব্যবহার করে তা দেখো এবং এই section-এর টেবিলের সাথে মেলাও।",
+          "height": 720
+        },
+        {
+          "url": "https://magazine.sebastianraschka.com/p/visual-attention-variants",
+          "title": "A Visual Guide to Attention Variants in Modern LLMs",
+          "note": "The article for this section, with all of its diagrams. The publisher does not allow it inside other sites, so open it in a new tab.",
+          "noteBn": "এই section-এর article, তার সব diagram-সহ। প্রকাশক এটি অন্য সাইটের ভেতরে দেখাতে দেয় না, তাই নতুন tab-এ খোলো।",
+          "frame": false
         }
       ]
     },
@@ -2123,6 +2308,26 @@
           ]
         }
       ],
+      "videos": [
+        {
+          "id": "sOPDGQjFcuM",
+          "title": "A Visual Guide to Mixture of Experts (MoE) in LLMs",
+          "channel": "Maarten Grootendorst",
+          "lang": "en"
+        },
+        {
+          "id": "0QQlYR1r6pQ",
+          "title": "Mixture of Experts (MoE), Visually Explained",
+          "channel": "Jia-Bin Huang",
+          "lang": "en"
+        },
+        {
+          "id": "jviOo2EgdPk",
+          "title": "Mixture of Experts (MoE) Explained: Bigger AI Models Without More Compute | LLM Efficiency",
+          "channel": "AIChronicles_JK",
+          "lang": "en"
+        }
+      ],
       "practice": [
         {
           "en": {
@@ -2185,6 +2390,15 @@
             },
             "challenge": "একটি সাম্প্রতিক MoE মডেলের model card দেখো। তার মোট আর সক্রিয় আকার লেখো। অনুপাত হিসাব করো।"
           }
+        }
+      ],
+      "embeds": [
+        {
+          "url": "https://newsletter.maartengrootendorst.com/p/a-visual-guide-to-mixture-of-experts",
+          "title": "A Visual Guide to Mixture of Experts (MoE)",
+          "note": "The article with more than 50 diagrams. The publisher does not allow it inside other sites, so open it in a new tab. The author's own video version is in the video list below.",
+          "noteBn": "৫০টিরও বেশি diagram-সহ article। প্রকাশক এটি অন্য সাইটের ভেতরে দেখাতে দেয় না, তাই নতুন tab-এ খোলো। লেখকের নিজের ভিডিও সংস্করণ নিচের ভিডিও তালিকায় আছে।",
+          "frame": false
         }
       ]
     },
@@ -2437,6 +2651,26 @@
           ]
         }
       ],
+      "videos": [
+        {
+          "id": "oObhZfVdcpI",
+          "title": "Efficient LLM Serving with vLLM (Ray x AI21 Meetup)",
+          "channel": "AI21 Labs",
+          "lang": "en"
+        },
+        {
+          "id": "SAqktpwcE4M",
+          "title": "An Intermediate Guide to Inference Using vLLM",
+          "channel": "Red Hat Open",
+          "lang": "en"
+        },
+        {
+          "id": "bNIOGEkAI1I",
+          "title": "vLLM Deep Dive: PagedAttention, Continuous Batching & 24x Throughput",
+          "channel": "Latest AI Technolgy Breakdowns",
+          "lang": "en"
+        }
+      ],
       "practice": [
         {
           "en": {
@@ -2501,6 +2735,16 @@
             },
             "challenge": "উদাহরণটি ১,০০০ output token করো। এখন কোন কৌশল বেশি কাজে লাগে? দুটি হিসাব করে প্রথম উত্তরের সাথে মেলাও।"
           }
+        }
+      ],
+      "embeds": [
+        {
+          "url": "https://handbook.modular.com/llm-inference-basics/what-is-llm-inference/",
+          "title": "LLM Inference Handbook",
+          "note": "The first page of the handbook. Press play on the <em>LLM Inference Visualizer</em> to follow one prompt through Tokenizer, Scheduling, Prefill, and Output.",
+          "noteBn": "handbook-এর প্রথম পাতা। একটি prompt-কে Tokenizer, Scheduling, Prefill ও Output-এর মধ্য দিয়ে অনুসরণ করতে <em>LLM Inference Visualizer</em>-এ play চাপো।",
+          "height": 720,
+          "autoload": true
         }
       ]
     },
@@ -2708,6 +2952,26 @@
           ]
         }
       ],
+      "videos": [
+        {
+          "id": "TxhhMTOTMDg",
+          "title": "What is interpretability?",
+          "channel": "Anthropic",
+          "lang": "en"
+        },
+        {
+          "id": "cgcrV4-tjPU",
+          "title": "What is Mechanistic Interpretability?",
+          "channel": "Standarity",
+          "lang": "en"
+        },
+        {
+          "id": "QqrGt5GrGfw",
+          "title": "I Am The Golden Gate Bridge & Why That's Important.",
+          "channel": "bycloud",
+          "lang": "en"
+        }
+      ],
       "practice": [
         {
           "en": {
@@ -2770,6 +3034,23 @@
             },
             "challenge": "যে feature যাচাই করেছ তার জন্য Steer tool খোলো। ছোট আর বড় strength দিয়ে চেষ্টা করো। কখন লেখা মসৃণ থাকে আর কখন ভেঙে যায় তা লিখে রাখো।"
           }
+        }
+      ],
+      "embeds": [
+        {
+          "url": "https://www.neuronpedia.org/gemma-2-2b/20-gemmascope-res-16k/1000?embed=true",
+          "title": "Neuronpedia: a real feature (Gemma 2 2B, layer 20, feature 1000)",
+          "note": "The auto-written label says <em>elements related to React component structure and rendering methods</em>. Read the top activating text and check the label. Then type your own text in the test box.",
+          "noteBn": "স্বয়ংক্রিয়ভাবে লেখা লেবেলটি বলছে <em>elements related to React component structure and rendering methods</em>। সবচেয়ে বেশি সক্রিয় করা লেখাগুলো পড়ে লেবেলটি যাচাই করো। তারপর test box-এ নিজের লেখা দাও।",
+          "height": 620,
+          "autoload": true
+        },
+        {
+          "url": "https://www.neuronpedia.org/",
+          "title": "Neuronpedia home",
+          "note": "The full site. Use <strong>Search</strong> to find features by text, and <strong>Steer</strong> to push a feature up or down while a model writes.",
+          "noteBn": "পুরো সাইট। text দিয়ে feature খুঁজতে <strong>Search</strong>, আর মডেল লেখার সময় কোনো feature বাড়াতে-কমাতে <strong>Steer</strong> ব্যবহার করো।",
+          "height": 700
         }
       ]
     },
@@ -2994,6 +3275,20 @@
           ]
         }
       ],
+      "videos": [
+        {
+          "id": "ETjx9ylC7Mc",
+          "title": "Google Maps for Vector Embeddings: Visualizing Semantic Space with UMAP | Raj Bala (Diffute)",
+          "channel": "AI Tinkerers",
+          "lang": "en"
+        },
+        {
+          "id": "zhv8wuPSWHw",
+          "title": "Embeddings & Vector Databases for RAG: Semantic Search Explained | Module 2.2",
+          "channel": "KryptoMindz Technologies",
+          "lang": "en"
+        }
+      ],
       "practice": [
         {
           "en": {
@@ -3056,6 +3351,22 @@
             },
             "challenge": "ফাইলে আরও ৫টি কেক বা বেকিংয়ের বার্তা যোগ করে আবার load করো। একলা বিন্দুটি কি একটি নতুন cluster হয়?"
           }
+        }
+      ],
+      "embeds": [
+        {
+          "url": "https://apple.github.io/embedding-atlas/examples/app/#?data=example%3A%2F%2Fvispubdata&settings=VchBCoAgEEbhu_xrT-Cuk0TqYAY6Mk6giHePdrV735tQ6gqLzTWVwysMKDsKIZUIO1GFPOd6K4WXHRZV-CKvicveYTD-a8CgUIqnY2mwn15rPQ&state=1ZNPj9MwEMW_ChpxNFXTZfmTWxXgwgoV2AtaVZUTT1KDa0f2hDZU_u7ITqumpVV3QUXqJUomL-83mTdew0-0ThoNKQwHo9vBEBgUc27JQbqGJFyorRFSwEWOQkhdAQOSpELtfa8mOPEgX0EKtTXfsSBp9GwFDNr9UhsccEWQwjh3ZHlBgcoJK2ODNjO6RIu6QPCewajXRW1RyCB1vTa-fr57Ntm98Axuep9I7YjrYu-Le54rDMKXUbipfkNugYHiLVoH6cMaFtz-gBTyWHfUBtkaSqlUZpSxkMLzIIkPH7iIlqgLE2fSDSPIUYmtvY_jWAOvKosVp8AtTKMJvPfsgFhKRRgpm7t_cp8ycKi6EIIot42bh5udJ6zixJdSVEjdCDZTdAVXOIgPcUO0RtXp2W5FNj4DbeyCK_kraDmRlXkTW2m304X0YciSKQNTh24CCVYw9VPP4LaXXez9Ra0M9cLrrcdu7bZjONidV-fMJrxGe9_91qHX7l2wen3OarzkVhyx6erB4s1Zi4bmxn7iC3SzdyiaGo8aHlVJdycdQUq2wQB7-zjYuCylkjwuxSnUvuYQlAwfR_qI7dJY4U5ieoI_GEn_oI4XUqPNJMWWsrjglzu3x2gXO8ZPhl3JqU5G_QD3_m-WWePcFywvmOEJ4MVi_BvetSR5009y0uQuk4Tif6R4BHaxBJ_Kuor0vP8N",
+          "title": "Embedding Atlas: IEEE VIS publications example",
+          "note": "A live Embedding Atlas on a public example dataset of about 3,750 publications. Colour the map by conference, pan and zoom, click a point to read it, and use the linked charts to filter. The map needs a browser with WebGPU, such as a recent Chrome, Edge, or Safari.",
+          "noteBn": "প্রায় ৩,৭৫০টি প্রকাশনার একটি সর্বজনীন example dataset-এ চলমান Embedding Atlas। মানচিত্রটি conference অনুযায়ী রঙ করো, pan ও zoom করো, একটি বিন্দুতে click করে পড়ো, এবং linked chart দিয়ে filter করো। মানচিত্রের জন্য WebGPU-সহ browser লাগে, যেমন সাম্প্রতিক Chrome, Edge বা Safari।",
+          "height": 720
+        },
+        {
+          "url": "https://apple.github.io/embedding-atlas/app/",
+          "title": "Embedding Atlas: load your own file",
+          "note": "Drop a CSV, JSONL, or Parquet file here. The page says that the data stays in your browser. You can use the <code>tickets.csv</code> file from the practice task below.",
+          "noteBn": "এখানে একটি CSV, JSONL বা Parquet ফাইল ফেলো। পাতাটি বলে data তোমার browser-এই থাকে। নিচের practice task-এর <code>tickets.csv</code> ফাইলটি ব্যবহার করতে পারো।",
+          "height": 520
         }
       ]
     }
@@ -3215,6 +3526,11 @@
       "n": 31,
       "url": "https://arxiv.org/abs/2104.09864",
       "text": "Su et al., \"RoFormer: Enhanced Transformer with Rotary Position Embedding\" (2021)"
+    },
+    {
+      "n": 32,
+      "url": "https://arxiv.org/abs/2005.14165",
+      "text": "Brown et al., \"Language Models are Few-Shot Learners\" (NeurIPS 2020)"
     }
   ]
 }

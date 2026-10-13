@@ -109,6 +109,14 @@ const en = {
   watch: (n: number) => `Watch · ${n} ${n === 1 ? "video" : "videos"}`,
   playVideo: (title: string) => `Play video: ${title}`,
 
+  // Live views: pages from other sites, shown in a frame.
+  liveHeading: (n: number) => `Live view · ${n} ${n === 1 ? "page" : "pages"}`,
+  liveLoad: "Load live view",
+  liveLoadHint: "The page loads from its own site when you click.",
+  liveLoadLabel: (title: string) => `Load live view: ${title}`,
+  liveOpen: "Open in a new tab",
+  liveWide: "Works best on a wide screen.",
+
   // 404.
   notFoundEyebrow: "Error 404",
   notFoundTitle: "Page not found",
@@ -174,6 +182,13 @@ const bn: Dict = {
 
   watch: (n: number) => `ভিডিও দেখো · ${fmtNum("bn", n)}টি`,
   playVideo: (title: string) => `Video চালাও: ${title}`,
+
+  liveHeading: (n: number) => `সরাসরি দেখো · ${fmtNum("bn", n)}টি পাতা`,
+  liveLoad: "সরাসরি দেখো",
+  liveLoadHint: "Click করলে পাতাটি তার নিজের সাইট থেকে load হয়।",
+  liveLoadLabel: (title: string) => `সরাসরি দেখো: ${title}`,
+  liveOpen: "নতুন tab-এ খোলো",
+  liveWide: "বড় screen-এ সবচেয়ে ভালো কাজ করে।",
 
   notFoundEyebrow: "Error 404",
   notFoundTitle: "পাতাটি পাওয়া যায়নি",

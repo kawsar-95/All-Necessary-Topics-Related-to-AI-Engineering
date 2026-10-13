@@ -7,6 +7,7 @@ import { practiceLang } from "@/lib/practice";
 import { videosForVoice } from "@/lib/videos";
 import { UI } from "@/lib/i18n";
 import type { Lang } from "@/lib/i18n";
+import { EmbedList } from "./EmbedList";
 import { Inline } from "./Inline";
 import { PracticeList } from "./PracticeList";
 import { ProseBlocks } from "./ProseBlocks";
@@ -184,6 +185,12 @@ export function SectionView({ section, lang }: { section: Section; lang: Lang })
           className="mt-4 text-lg leading-relaxed text-pretty text-text-dim sm:text-[1.1875rem]"
         />
       </header>
+
+      {section.embeds && section.embeds.length > 0 && (
+        <div className="mt-8">
+          <EmbedList sectionId={section.id} embeds={section.embeds} lang={lang} />
+        </div>
+      )}
 
       {available.length > 1 && (
         <div className="mt-8">

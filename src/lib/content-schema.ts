@@ -24,6 +24,68 @@ export type Video = {
   lang: "en" | "bn";
 };
 
+/**
+ * The hosts a section may show or link to. A page on FRAMEABLE_HOSTS can be
+ * shown in a frame. A page on LINK_ONLY_HOSTS sends a header that blocks
+ * framing, so the site only links to it.
+ */
+export const FRAMEABLE_HOSTS: readonly string[] = [
+  "poloclub.github.io",
+  "bbycroft.net",
+  "jalammar.github.io",
+  "playground.tensorflow.org",
+  "handbook.modular.com",
+  "www.neuronpedia.org",
+  "apple.github.io",
+  "www.3blue1brown.com",
+  "sebastianraschka.com",
+];
+export const LINK_ONLY_HOSTS: readonly string[] = [
+  "magazine.sebastianraschka.com",
+  "newsletter.maartengrootendorst.com",
+];
+
+/** The host of an https URL, or null for any other URL. */
+export function httpsHost(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" ? parsed.hostname : null;
+  } catch {
+    return null;
+  }
+}
+
+export function canFrameUrl(url: string): boolean {
+  const host = httpsHost(url);
+  return host !== null && FRAMEABLE_HOSTS.includes(host);
+}
+
+export function isAllowedEmbedUrl(url: string): boolean {
+  const host = httpsHost(url);
+  return host !== null && (FRAMEABLE_HOSTS.includes(host) || LINK_ONLY_HOSTS.includes(host));
+}
+
+/** A live page from another site, shown in a frame under the section intro. */
+export type Embed = {
+  /** An https URL on one of the listed hosts. */
+  url: string;
+  title: string;
+  /** What to look at, in English and in Bangla. */
+  note: Inline;
+  noteBn: Inline;
+  /** false: the publisher blocks framing, so show a link card only. */
+  frame?: boolean;
+  /** Load the frame when it scrolls into view. Use it only for light pages. */
+  autoload?: boolean;
+  /** Frame height in px. */
+  height?: number;
+  /**
+   * For an app that needs a wide screen: the width in px that it is made for.
+   * In a narrower column the frame keeps this width and shrinks to fit.
+   */
+  designWidth?: number;
+};
+
 /** One step of a practice task, done in an AI chat. */
 export type PracticeStep = {
   /** Open a new chat for this step, or keep the same one. */
@@ -63,6 +125,7 @@ export type Section = {
   layman: Block[];
   bangla: Block[];
   videos?: Video[];
+  embeds?: Embed[];
   practice?: Practice[];
 };
 
@@ -165,6 +228,26 @@ const FilledInlineSchema = InlineSchema.refine((s) => s.trim().length > 0, {
 
 const PlainTextSchema = z.string().trim().min(1);
 
+const EmbedSchema = z
+  .strictObject({
+    url: z.string().refine(isAllowedEmbedUrl, {
+      message: "An embed needs an https URL on a host in FRAMEABLE_HOSTS or LINK_ONLY_HOSTS",
+    }),
+    title: PlainTextSchema,
+    note: FilledInlineSchema,
+    noteBn: FilledInlineSchema,
+    frame: z.boolean().optional(),
+    autoload: z.boolean().optional(),
+    height: z.number().int().min(320).max(1000).optional(),
+    designWidth: z.number().int().min(600).max(1600).optional(),
+  })
+  .refine((e) => e.frame === false || canFrameUrl(e.url), {
+    message: "This host does not allow framing. Set frame to false.",
+  })
+  .refine((e) => !(e.autoload && e.frame === false), {
+    message: "A link card has nothing to autoload",
+  });
+
 const PracticeStepSchema = z.strictObject({
   chat: z.enum(["new", "same"]),
   do: FilledInlineSchema,
@@ -200,6 +283,7 @@ export const SectionSchema: z.ZodType<Section> = z.strictObject({
   layman: z.array(BlockSchema),
   bangla: z.array(BlockSchema),
   videos: z.array(VideoSchema).optional(),
+  embeds: z.array(EmbedSchema).optional(),
   practice: z.array(PracticeSchema).min(1).optional(),
 });
 

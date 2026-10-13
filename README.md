@@ -96,7 +96,19 @@ A file has this shape:
 Each section has `id`, `num`, `title`, `sub`, `bn: { title, sub }` (the
 Bangla title and intro), three lists of blocks
 (`body` for Technical, `layman`, and `bangla`), an optional `videos`
-list, and an optional `practice` list.
+list, an optional `embeds` list, and an optional `practice` list.
+
+An embed is a live page from another site, shown under the section intro:
+`{ url, title, note, noteBn, frame?, autoload?, height?, designWidth? }`. The schema
+accepts only an `https` URL on a host in `FRAMEABLE_HOSTS` or
+`LINK_ONLY_HOSTS` (both in `src/lib/content-schema.ts`). A page loads in a
+sandboxed frame when the reader clicks. `autoload: true` loads it when it
+nears the screen, so use it only for light pages. A publisher that blocks
+framing (it sends `frame-ancestors`, as Substack does) goes in
+`LINK_ONLY_HOSTS`, and its embed needs `frame: false`. It then shows as a
+link card. `designWidth` is for an app that needs a wide screen: the frame
+keeps that width and shrinks to fit a narrower column. Before you add a host, open the page in a frame in a real
+browser to check that it loads.
 
 A block has a `type`. These are the block types:
 
