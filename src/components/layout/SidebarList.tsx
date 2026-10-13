@@ -14,7 +14,7 @@ export function activeSlugFromPath(pathname: string | null): string | null {
 }
 
 /**
- * The list of Parts 1–13. A plain component without hooks, so the server
+ * The list of Parts 1–14. A plain component without hooks, so the server
  * layout can render it as the Suspense fallback and the client Sidebar and
  * MobileNav can render it with the active slug.
  */

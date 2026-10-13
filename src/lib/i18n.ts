@@ -48,10 +48,10 @@ export function langInitScript(basePath: string): string {
 const en = {
   siteName: "AI Engineering",
   skipLink: "Skip to content",
-  footer: "13 parts · citations verified against each publisher's metadata.",
+  footer: "14 parts · citations verified against each publisher's metadata.",
   metaTitle: "AI Engineering — All Necessary Topics",
   metaDescription:
-    "Thirteen reference parts covering every topic an applied AI engineer needs, from LLM fundamentals and prompt engineering to agents, inference, evaluation, safety, and AI application architecture. Each topic in three voices: technical, layman, and বাংলা.",
+    "Fourteen reference parts covering every topic an applied AI engineer needs, from LLM fundamentals and prompt engineering to agents, inference, evaluation, safety, and AI application architecture. Each topic in three voices: technical, layman, and বাংলা.",
 
   // Language and theme switches.
   langSwitchText: "বাংলা",
@@ -71,9 +71,9 @@ const en = {
 
   // Search.
   search: "Search",
-  searchAll: "Search all 13 parts",
+  searchAll: "Search all 14 parts",
   searchUnavailable: "Search is unavailable.",
-  searchType: "Type to search 13 parts.",
+  searchType: "Type to search 14 parts.",
   searchLoading: "Loading…",
   searchNone: "No results.",
   searchClose: "Close search",
@@ -112,7 +112,7 @@ const en = {
   // 404.
   notFoundEyebrow: "Error 404",
   notFoundTitle: "Page not found",
-  notFoundText: "That page does not exist. All 13 parts are listed on the home page.",
+  notFoundText: "That page does not exist. All 14 parts are listed on the home page.",
   notFoundBack: "← Back to all parts",
 };
 
@@ -121,10 +121,10 @@ export type Dict = typeof en;
 const bn: Dict = {
   siteName: "AI Engineering",
   skipLink: "মূল লেখায় যাও",
-  footer: "১৩টি part · প্রতিটি source প্রকাশকের তথ্যের সাথে মিলিয়ে যাচাই করা।",
+  footer: "১৪টি part · প্রতিটি source প্রকাশকের তথ্যের সাথে মিলিয়ে যাচাই করা।",
   metaTitle: "AI Engineering — দরকারি সব বিষয়, বাংলায়",
   metaDescription:
-    "Applied AI engineer-এর দরকারি সব বিষয় ১৩টি part-এ: LLM-এর মূল ধারণা, prompt engineering থেকে agent, inference, evaluation, safety আর AI app architecture পর্যন্ত। প্রতিটি বিষয় সহজ বাংলা ব্যাখ্যা, practice task আর video সহ।",
+    "Applied AI engineer-এর দরকারি সব বিষয় ১৪টি part-এ: LLM-এর মূল ধারণা, prompt engineering থেকে agent, inference, evaluation, safety আর AI app architecture পর্যন্ত। প্রতিটি বিষয় সহজ বাংলা ব্যাখ্যা, practice task আর video সহ।",
 
   langSwitchText: "English",
   langSwitchLabel: "Read in English",
@@ -141,9 +141,9 @@ const bn: Dict = {
   prevNextNav: "আগের আর পরের Part",
 
   search: "খোঁজো",
-  searchAll: "১৩টি part-এ খোঁজো",
+  searchAll: "১৪টি part-এ খোঁজো",
   searchUnavailable: "এখন search কাজ করছে না।",
-  searchType: "১৩টি part-এ খুঁজতে লেখো।",
+  searchType: "১৪টি part-এ খুঁজতে লেখো।",
   searchLoading: "Load হচ্ছে…",
   searchNone: "কিছু পাওয়া যায়নি।",
   searchClose: "Search বন্ধ করো",
@@ -177,7 +177,7 @@ const bn: Dict = {
 
   notFoundEyebrow: "Error 404",
   notFoundTitle: "পাতাটি পাওয়া যায়নি",
-  notFoundText: "এই পাতাটি নেই। Home page-এ ১৩টি part-এর তালিকা আছে।",
+  notFoundText: "এই পাতাটি নেই। Home page-এ ১৪টি part-এর তালিকা আছে।",
   notFoundBack: "← সব part-এ ফিরে যাও",
 };
 

@@ -1,8 +1,9 @@
 # All Necessary Topics Related to AI Engineering
 
 A citation-backed Next.js reference for the topics an applied AI engineer
-needs. It has 13 parts, from LLM fundamentals to AI application
-architecture. Each topic has three voices: Technical (diagrams, code, cited
+needs. It has 14 parts, from LLM fundamentals to AI application
+architecture, and a last part with ten visual and interactive learning
+resources. Each topic has three voices: Technical (diagrams, code, cited
 sources), Layman's (plain English with analogies), and বাংলা (Bangla
 explanation).
 
@@ -50,13 +51,13 @@ not set it, so the site serves from `/`. Code that builds a URL by hand
 
 | Route                       | What it is                                         |
 | --------------------------- | -------------------------------------------------- |
-| `/`                         | Landing page. An index of the 13 parts.            |
+| `/`                         | Landing page. An index of the 14 parts.            |
 | `/topics/<slug>`            | One part, with prev/next links and an outline.     |
 | `/search-index.json`        | The search index. Built at build time.             |
 | `/bn/`, `/bn/topics/<slug>` | The same pages in Bangla. See "Languages".         |
 | `/bn/search-index.json`     | The Bangla search index.                           |
 
-The 13 parts, in order:
+The 14 parts, in order:
 
 | Part | Route                                      |
 | ---- | ------------------------------------------ |
@@ -73,10 +74,11 @@ The 13 parts, in order:
 | 11   | `/topics/safety-security-and-guardrails`   |
 | 12   | `/topics/multimodal-engineering`           |
 | 13   | `/topics/ai-application-architecture`      |
+| 14   | `/topics/visual-learning-resources`        |
 
 The order is set in one place: `TOPIC_ORDER` in `src/lib/topics.ts`.
 
-Only these 13 slugs exist. Any other URL gets the 404 page.
+Only these 14 slugs exist. Any other URL gets the 404 page.
 
 ## Content
 
@@ -118,7 +120,7 @@ allows only these tags: `strong`, `em`, `code`, `br`, `a` (a citation link
 `<a class="cite" href="#srcN">` or an `http(s)` link). The schema rejects
 any other tag.
 
-`src/lib/topics.ts` loads and validates the 13 files, and it exposes the
+`src/lib/topics.ts` loads and validates the 14 files, and it exposes the
 parts in order. Only server code imports it. Client components get data as
 props.
 
@@ -285,7 +287,7 @@ All citations resolve to:
 │   │   │                               language and theme switches
 │   │   ├── navigation/                 search palette, outline (TOC)
 │   │   └── pages/                      home and topic pages, shared by both languages
-│   ├── content/                        13 topic JSON files (source of truth)
+│   ├── content/                        14 topic JSON files (source of truth)
 │   └── lib/
 │       ├── content-schema.ts           block types and Zod schema
 │       ├── topics.ts                   loads and validates content; order, outline, nav
@@ -320,7 +322,7 @@ All citations resolve to:
   one. If you add a diagram with a new solid color, add it to that map.
 - Fraunces (headings), Inter, JetBrains Mono, and Noto Sans Bengali load
   through `next/font/google` with `display: swap`.
-- The sidebar lists the 13 parts. Below the `lg` breakpoint, a menu button
+- The sidebar lists the 14 parts. Below the `lg` breakpoint, a menu button
   opens the same list.
 - The voice switcher works for one section at a time. Its options are
   Technical, Layman's, বাংলা, and All three. A section shows only the

@@ -19,7 +19,7 @@ function outlineTitles(topic: Topic, lang: Lang): string[] {
     .map((item) => item.title);
 }
 
-/** The landing page: an index of the 13 Parts, in one language. */
+/** The landing page: an index of the 14 Parts, in one language. */
 export function HomePage({ lang }: { lang: Lang }) {
   const ui = UI[lang];
   return (

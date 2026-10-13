@@ -1,4 +1,4 @@
-// Server-only access to the 13 topic files. Never import this module from a
+// Server-only access to the 14 topic files. Never import this module from a
 // "use client" file; pass the data down as props.
 //
 // Each file goes through TopicFileSchema.parse at module load, so bad content
@@ -21,6 +21,7 @@ import costAndPerformanceOptimization from "@/content/cost-and-performance-optim
 import safetySecurityAndGuardrails from "@/content/safety-security-and-guardrails.json";
 import multimodalEngineering from "@/content/multimodal-engineering.json";
 import aiApplicationArchitecture from "@/content/ai-application-architecture.json";
+import visualLearningResources from "@/content/visual-learning-resources.json";
 
 export type Topic = TopicFile & { part: number };
 export type OutlineItem = { id: string; title: string; level: 2 | 3 };
@@ -41,6 +42,7 @@ export const TOPIC_ORDER: readonly string[] = [
   "safety-security-and-guardrails",
   "multimodal-engineering",
   "ai-application-architecture",
+  "visual-learning-resources",
 ];
 
 const FILES: Record<string, unknown> = {
@@ -57,6 +59,7 @@ const FILES: Record<string, unknown> = {
   "safety-security-and-guardrails": safetySecurityAndGuardrails,
   "multimodal-engineering": multimodalEngineering,
   "ai-application-architecture": aiApplicationArchitecture,
+  "visual-learning-resources": visualLearningResources,
 };
 
 export const TOPICS: Topic[] = TOPIC_ORDER.map((slug, i) => {

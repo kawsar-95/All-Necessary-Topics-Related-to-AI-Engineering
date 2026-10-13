@@ -12,7 +12,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "AI Engineering — All Necessary Topics",
     short_name: "AI Engineering",
     description:
-      "Thirteen reference parts for applied AI engineers. Each topic in three voices: technical, layman, and বাংলা.",
+      "Fourteen reference parts for applied AI engineers. Each topic in three voices: technical, layman, and বাংলা.",
     start_url: "./",
     scope: "./",
     display: "standalone",
